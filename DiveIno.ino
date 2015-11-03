@@ -1,4 +1,4 @@
-#include "SparkFun_MS5803_I2C.h"
+#include "MS5803_I2C.h"
 #include "SPI.h"
 #include "Wire.h"
 #include "DiveDeco.h"
@@ -44,7 +44,7 @@ const char* METER_SHORT = "m";
 const char* METER = "meter";
 const char* CEL_SHORT = "cel";
 
-char* mainMenu[] = {" DiveIno ",
+char* mainMenu[] = {" DiveIno - Main Menu ",
                 " Dive",
                 " Logbook",
 				" Surface Time",
@@ -54,7 +54,7 @@ char* mainMenu[] = {" DiveIno ",
 #define MENU_SIZE (sizeof(mainMenu)/sizeof(char *))-1
 
 // Position of first menu item from the top of the screen
-#define MENU_TOP 20
+#define MENU_TOP 30
 // Currently elected menu item
 byte selectedMenuItemIndex;
 
@@ -137,30 +137,28 @@ void loop() {
 	// Button Handling //
 	/////////////////////
 
-
+	if (irrecv.decode(&results)) {
+		processRemoteButtonPress(&results);
+		irrecv.resume(); // Receive the next value
+	}
 
 	/////////////////////
 	// Sensor handling //
 	/////////////////////
 
 	switch (currentScreen) {
-		case DIVE_START_SCREEN: {
-			// Read pressure from the sensor in mbar.
+		case GAUGE_SCREEN: {
 			float pressureInMillibar = sensor.getPressure(ADC_4096);
-
-			//Switch to DIVE PROGRESS mode, if the diver has already descended below 2 meters
-			if (pressureInMillibar > 1200) {
-				diveStartButtonPressed();
+			if (pressureInMillibar > seaLevelAtmosphericPressure) {
+				depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
 			} else {
-				if (pressureInMillibar > seaLevelAtmosphericPressure) {
-					depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
-				}
-				float temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
-
-				drawCurrentTemperature(temperatureInCelsius);
-				drawCurrentPressure(pressureInMillibar);
-				drawDepth(depthInMeter);
+				depthInMeter = 0;
 			}
+			float temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
+
+			drawCurrentPressure(pressureInMillibar);
+			drawDepth(depthInMeter);
+			drawCurrentTemperature(temperatureInCelsius);
 		}
 		break;
 		case DIVE_SCREEN: {
@@ -275,35 +273,88 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		//Switch to DIVE_STOP mode
 		currentMode = DIVE_STOP_MODE;
-		displayScreen(DIVE_STOP_SCREEN);
+		//displayScreen(DIVE_STOP_SCREEN);
 
 		//TODO Start surface time counter
 	}
 }
 
+////////////////////////////////////////////////////////////////////
+
+void processRemoteButtonPress(decode_results *results) {
+	if (results->value == 0xFD8877 || results->value == 0xFF629D) {
+		if (testMode) {
+			Serial.println("Up");
+			tone(speakerPin, 261, 10);
+		}
+		upButtonPressed();
+	} else if (results->value == 0xFD9867 || results->value == 0xFFA857) {
+		if (testMode) {
+			Serial.println("Down");
+			tone(speakerPin, 261, 10);
+		}
+		downButtonPressed();
+	} else if (results->value == 0xFDA857 || results->value == 0xFF02FD) {
+		if (testMode) {
+			Serial.println("OK");
+			tone(speakerPin, 261, 10);
+		}
+		selectButtonPressed();
+	}
+}
+
+// This is the OK or the Prev button on the IR Remote Control
 void selectButtonPressed() {
-	if (currentMode == SURFACE_MODE) {
+	if (currentScreen == MENU_SCREEN) {
 		switch (selectedMenuItemIndex) {
-			case 1: {
+			case 1: { //Dive
 				currentMode = DIVE_START_MODE;
-				displayScreen(DIVE_START_SCREEN);
+				displayScreen(DIVE_SCREEN);
 			}
 			break;
-			case 2 : { //Last dive
-				currentMode = DIVE_STOP_MODE;
-				displayScreen(DIVE_STOP_SCREEN);
+			case 2: { //Logbook
+				currentMode = SURFACE_MODE;
+				displayScreen(LOGBOOK_SCREEN);
+			}
+			break;
+			case 3: { //Surface time
+				currentMode = SURFACE_MODE;
+				displayScreen(SURFACE_TIME_SCREEN);
+			}
+			break;
+			case 4: { //Gauge
+				currentMode = GAUGE_MODE;
+				displayScreen(GAUGE_SCREEN);
+			}
+			break;
+			case 5: { //Settings
+				currentMode = SURFACE_MODE;
+				displayScreen(SETTINGS_SCREEN);
 			}
 			break;
 		}
-	} else if (currentMode == DIVE_STOP_MODE || currentMode == DIVE_START_MODE) {
-		//Go back to the main menu
+	} else if (currentScreen == GAUGE_SCREEN) {
 		currentMode = SURFACE_MODE;
 		displayScreen(MENU_SCREEN);
 	}
 }
 
-void navigationButtonPressed() {
-	if (currentMode == SURFACE_MODE) {
+// This is the Up or the Mode button on the IR Remote Control
+void upButtonPressed() {
+	if (currentScreen == MENU_SCREEN) {
+		if (selectedMenuItemIndex == 1) {
+			// Position to the last menu item
+			menuSelect(MENU_SIZE);
+		} else {
+			// Move down the selection
+			menuSelect(selectedMenuItemIndex - 1);
+		}
+	}
+}
+
+// This is the Down or the - button on the IR Remote Control
+void downButtonPressed() {
+	if (currentScreen == MENU_SCREEN) {
 		if (selectedMenuItemIndex < MENU_SIZE) {
 			// Move down the selection
 			menuSelect(selectedMenuItemIndex + 1);
@@ -317,7 +368,7 @@ void navigationButtonPressed() {
 void diveStartButtonPressed() {
 	if (currentMode == SURFACE_MODE) {
 		currentMode = DIVE_START_MODE;
-		displayScreen(DIVE_START_SCREEN);
+		//displayScreen(DIVE_START_SCREEN);
 	} else if (currentMode == DIVE_START_MODE) {
 		//Start to count the duration of the dive
 		diveDurationInSeconds = 0;
@@ -343,54 +394,7 @@ void diveStartButtonPressed() {
 	}
 }
 
-void displayScreen(byte screen) {
-	currentScreen = screen;
-
-	//Clear the screen
-	tft.clrScr();
-
-	switch (screen) {
-		case MENU_SCREEN:
-			// Draw the menu
-			displayMenuScreen();
-			// Select 1st menu item
-			selectedMenuItemIndex = 1;
-			menuSelect(selectedMenuItemIndex);
-			break;
-		case DIVE_SCREEN:
-			displayDiveScreen();
-
-			drawDepth(0);
-			drawMaximumDepth(0);
-			drawDiveDuration(0);
-			drawCurrentTemperature(0);
-			drawCurrentPressure(0);
-			drawOxigenPercentage(21);
-			break;
-		case DIVE_STOP_SCREEN:
-			displayDiveStopScreen();
-			break;
-	}
-}
-
-void displayMenuScreen() {
-
-	// Clear the screen
-	tft.clrScr();
-
-	// Display the header of the menu - the header is the first item
-	tft.setColor(VGA_LIME);
-	tft.print(mainMenu[0], 0, 0);
-
-	// Draw separation line
-	tft.drawLine(0, 0, tft.getDisplayXSize(), 0);
-
-	// Display other menu items
-	tft.setColor(VGA_YELLOW);
-	for (int i = 1; i <= MENU_SIZE; i++) {
-		tft.print(mainMenu[i], 0, ((i - 1) * 16) + MENU_TOP);
-	}
-}
+///////////////////////////////////////////////////////////////
 
 void menuSelect(byte menuItemIndex) {
 
@@ -408,16 +412,77 @@ void menuSelect(byte menuItemIndex) {
 	selectedMenuItemIndex = menuItemIndex;
 }
 
-void displayDiveScreen() {
-	//TODO
+///////////////////////////////////////////////////////////////////////////////
+
+void displayScreen(byte screen) {
+	currentScreen = screen;
+
+	switch (screen) {
+		case MENU_SCREEN:
+			// Draw the menu
+			displayMenuScreen();
+			// Select 1st menu item
+			selectedMenuItemIndex = 1;
+			menuSelect(selectedMenuItemIndex);
+			break;
+		case GAUGE_SCREEN:
+			displayGaugeScreen();
+			break;
+	}
 }
 
-void displayDiveStopScreen() {
-	//TODO
+void displayMenuScreen() {
+
+	// Clear the screen
+	tft.clrScr();
+	tft.setFont(BigFont);
+
+	// Display the header of the menu - the header is the first item
+	tft.setColor(VGA_LIME);
+	tft.print(mainMenu[0], 48, 0);
+
+	// Draw separation line
+	tft.drawLine(0, MENU_TOP-5, tft.getDisplayXSize()-1, MENU_TOP-5);
+
+	// Display other menu items
+	tft.setColor(VGA_YELLOW);
+	for (int i = 1; i <= MENU_SIZE; i++) {
+		tft.print(mainMenu[i], 0, ((i - 1) * 16) + MENU_TOP);
+	}
+}
+
+void displayGaugeScreen() {
+
+	// Clear the screen
+	tft.clrScr();
+	tft.setFont(BigFont);
+
+	// Display the header of the menu - the header is the first item
+	tft.setColor(VGA_LIME);
+	tft.setBackColor(VGA_BLACK);
+	tft.print("Gauge", 128, 6);
+
+	tft.setColor(VGA_YELLOW);
+	tft.print("Depth", 16, 32);
+	tft.print("Temperature", 16, 102);
+	tft.print("Pressure", 16, 172);
+	tft.print("Time", 16, 242);
+
+	tft.setColor(VGA_SILVER);
+	tft.drawRect(0, 0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
+
+	tft.drawRect(0, 30, tft.getDisplayXSize()-1, 30);
+	tft.drawRect(0, 100, tft.getDisplayXSize()-1, 100);
+	tft.drawRect(0, 170, tft.getDisplayXSize()-1, 170);
+	tft.drawRect(0, 240, tft.getDisplayXSize()-1, 240);
 }
 
 void drawDepth(float depth) {
-	//TODO
+	if (currentScreen == GAUGE_SCREEN) {
+		tft.setFont(SevenSegNumFont);
+		tft.setColor(VGA_AQUA);
+		tft.printNumI(depth, CENTER, 50, 3, '0');
+	}
 }
 
 void drawMaximumDepth(float maximumDepth) {
@@ -429,11 +494,20 @@ void drawDiveDuration(int duration) {
 }
 
 void drawCurrentTemperature(float currentTemperature) {
-	//TODO
+	if (currentScreen == GAUGE_SCREEN) {
+		tft.setFont(SevenSegNumFont);
+		tft.setColor(VGA_AQUA);
+		tft.printNumI(currentTemperature, CENTER, 120, 2);
+	}
+
 }
 
 void drawCurrentPressure(int currentPressure) {
-	//TODO
+	if (currentScreen == GAUGE_SCREEN) {
+		tft.setFont(SevenSegNumFont);
+		tft.setColor(VGA_AQUA);
+		tft.printNumI(currentPressure, CENTER, 190, 4);
+	}
 }
 
 void drawOxigenPercentage(int oxigenPercentage) {
