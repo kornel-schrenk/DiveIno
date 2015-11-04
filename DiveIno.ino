@@ -31,9 +31,10 @@ int speakerPin = 8;
 // TFT setup - 480x320 pixel
 
 // Declare which fonts we will be using
-extern uint8_t SmallFont[];       //8x12 pixel
+//extern uint8_t SmallFont[];       //8x12 pixel
 extern uint8_t BigFont[];         //16x16 pixel
-extern uint8_t SevenSegNumFont[]; //32x50 pixel
+//extern uint8_t SevenSegNumFont[]; //32x50 pixel
+extern uint8_t SevenSegNumFontPlusPlus[]; //32x50 pixel
 
 UTFT tft(HX8357B,38,39,40,41);
 
@@ -479,9 +480,9 @@ void displayGaugeScreen() {
 
 void drawDepth(float depth) {
 	if (currentScreen == GAUGE_SCREEN) {
-		tft.setFont(SevenSegNumFont);
+		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_AQUA);
-		tft.printNumI(depth, CENTER, 50, 3, '0');
+		tft.printNumF(depth, 1, CENTER, 50);
 	}
 }
 
@@ -495,16 +496,16 @@ void drawDiveDuration(int duration) {
 
 void drawCurrentTemperature(float currentTemperature) {
 	if (currentScreen == GAUGE_SCREEN) {
-		tft.setFont(SevenSegNumFont);
+		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_AQUA);
-		tft.printNumI(currentTemperature, CENTER, 120, 2);
+		tft.printNumF(currentTemperature, 1, CENTER, 120);
 	}
 
 }
 
 void drawCurrentPressure(int currentPressure) {
 	if (currentScreen == GAUGE_SCREEN) {
-		tft.setFont(SevenSegNumFont);
+		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_AQUA);
 		tft.printNumI(currentPressure, CENTER, 190, 4);
 	}
