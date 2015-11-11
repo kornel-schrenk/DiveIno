@@ -42,9 +42,9 @@
 			<locationURI>ArduinoPrivateLibPath/IRremote</locationURI>
 		</link>
 		<link>
-			<name>Libraries/MS5803-I2C</name>
+			<name>Libraries/MS5803_I2C</name>
 			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/MS5803-I2C</locationURI>
+			<locationURI>ArduinoPrivateLibPath/MS5803_I2C</locationURI>
 		</link>
 		<link>
 			<name>Libraries/SD</name>

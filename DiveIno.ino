@@ -31,10 +31,10 @@ int speakerPin = 8;
 // TFT setup - 480x320 pixel
 
 // Declare which fonts we will be using
-//extern uint8_t SmallFont[];       //8x12 pixel
-extern uint8_t BigFont[];         //16x16 pixel
-//extern uint8_t SevenSegNumFont[]; //32x50 pixel
-extern uint8_t SevenSegNumFontPlusPlus[]; //32x50 pixel
+extern uint8_t BigFont[];                  //16x16 pixel
+extern uint8_t SevenSegNumFontPlusPlus[];  //32x50 pixel
+extern uint8_t SevenSeg_XXXL_Num[];        //64x100 pixel
+extern uint8_t Grotesk16x32[];
 
 UTFT tft(HX8357B,38,39,40,41);
 
@@ -55,7 +55,7 @@ char* mainMenu[] = {" DiveIno - Main Menu ",
 #define MENU_SIZE (sizeof(mainMenu)/sizeof(char *))-1
 
 // Position of first menu item from the top of the screen
-#define MENU_TOP 30
+#define MENU_TOP 50
 // Currently elected menu item
 byte selectedMenuItemIndex;
 
@@ -85,8 +85,6 @@ const bool testMode = true;
 
 //Utility variables
 DiveResult* previousDiveResult;
-
-float depthInMeter;
 
 float maxDepthInMeter;
 float maxTemperatureInCelsius;
@@ -121,9 +119,6 @@ void setup() {
 	sensor.begin();
 
 	tft.InitLCD();
-	tft.setFont(BigFont);
-	tft.setBackColor(VGA_BLACK);
-	tft.setColor(VGA_LIME);
 	tft.clrScr();
 
 	displayScreen(MENU_SCREEN);
@@ -149,13 +144,45 @@ void loop() {
 
 	switch (currentScreen) {
 		case GAUGE_SCREEN: {
-			float pressureInMillibar = sensor.getPressure(ADC_4096);
-			if (pressureInMillibar > seaLevelAtmosphericPressure) {
-				depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
+
+			drawCurrentTime();
+
+			float pressureInMillibar;
+			float temperatureInCelsius;
+			float depthInMeter;
+
+			if (!testMode) {
+				pressureInMillibar = sensor.getPressure(ADC_4096);
+				if (pressureInMillibar > seaLevelAtmosphericPressure) {
+					depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
+				} else {
+					depthInMeter = 0;
+				}
+				temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
+
+				if (pressureInMillibar > 1200) { // If we are at least 2 meters deep, start to calculate the dive duration
+					//Calculate dive duration
+					if ((diveDurationTimeStamp / 1000) < (millis() / 1000)) {
+						diveDurationInSeconds++;
+						diveDurationTimeStamp = millis();
+
+						drawDiveDuration(diveDurationInSeconds);
+					}
+				} else {
+					diveDurationInSeconds = 0;
+				}
 			} else {
-				depthInMeter = 0;
+				//We are in test - simulation - mode, where the data comes from the serial interface
+
+				if (Serial.available() > 0) {
+					pressureInMillibar = Serial.parseFloat();
+					depthInMeter = Serial.parseFloat();
+					unsigned int durationInSeconds = Serial.parseInt();
+					temperatureInCelsius = Serial.parseFloat();
+
+					drawDiveDuration(durationInSeconds);
+				}
 			}
-			float temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
 
 			drawCurrentPressure(pressureInMillibar);
 			drawDepth(depthInMeter);
@@ -163,8 +190,10 @@ void loop() {
 		}
 		break;
 		case DIVE_SCREEN: {
+
 			float pressureInMillibar;
 			float temperatureInCelsius;
+			float depthInMeter;
 
 			if (!testMode) {
 				pressureInMillibar = sensor.getPressure(ADC_4096);
@@ -376,7 +405,6 @@ void diveStartButtonPressed() {
 
 		//Set default values before the dive
 		maxDepthInMeter = 0;
-		depthInMeter = 0;
 		minTemperatureInCelsius = 60;
 		maxTemperatureInCelsius = 0;
 
@@ -403,11 +431,11 @@ void menuSelect(byte menuItemIndex) {
 
 	// Remove the highlight from the currently selected menu item
 	tft.setBackColor(VGA_BLACK);
-	tft.print(mainMenu[selectedMenuItemIndex], 0, ((selectedMenuItemIndex - 1) * 16) + MENU_TOP);
+	tft.print(mainMenu[selectedMenuItemIndex], 0, ((selectedMenuItemIndex - 1) * 32) + MENU_TOP);
 
 	// Highlight the new selected menu item
 	tft.setBackColor(VGA_BLUE);
-	tft.print(mainMenu[menuItemIndex], 0, ((menuItemIndex - 1) * 16) + MENU_TOP);
+	tft.print(mainMenu[menuItemIndex], 0, ((menuItemIndex - 1) * 32) + MENU_TOP);
 
 	// Save the selection
 	selectedMenuItemIndex = menuItemIndex;
@@ -436,7 +464,7 @@ void displayMenuScreen() {
 
 	// Clear the screen
 	tft.clrScr();
-	tft.setFont(BigFont);
+	tft.setFont(Grotesk16x32);
 
 	// Display the header of the menu - the header is the first item
 	tft.setColor(VGA_LIME);
@@ -448,41 +476,36 @@ void displayMenuScreen() {
 	// Display other menu items
 	tft.setColor(VGA_YELLOW);
 	for (int i = 1; i <= MENU_SIZE; i++) {
-		tft.print(mainMenu[i], 0, ((i - 1) * 16) + MENU_TOP);
+		tft.print(mainMenu[i], 0, ((i - 1) * 32) + MENU_TOP);
 	}
+
+	//Reset the dive duration
+	diveDurationInSeconds = 0;
 }
 
 void displayGaugeScreen() {
 
 	// Clear the screen
 	tft.clrScr();
-	tft.setFont(BigFont);
-
-	// Display the header of the menu - the header is the first item
-	tft.setColor(VGA_LIME);
-	tft.setBackColor(VGA_BLACK);
-	tft.print("Gauge", 128, 6);
-
-	tft.setColor(VGA_YELLOW);
-	tft.print("Depth", 16, 32);
-	tft.print("Temperature", 16, 102);
-	tft.print("Pressure", 16, 172);
-	tft.print("Time", 16, 242);
 
 	tft.setColor(VGA_SILVER);
+	tft.setBackColor(VGA_BLACK);
 	tft.drawRect(0, 0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
-
-	tft.drawRect(0, 30, tft.getDisplayXSize()-1, 30);
-	tft.drawRect(0, 100, tft.getDisplayXSize()-1, 100);
-	tft.drawRect(0, 170, tft.getDisplayXSize()-1, 170);
-	tft.drawRect(0, 240, tft.getDisplayXSize()-1, 240);
 }
 
 void drawDepth(float depth) {
 	if (currentScreen == GAUGE_SCREEN) {
-		tft.setFont(SevenSegNumFontPlusPlus);
-		tft.setColor(VGA_AQUA);
-		tft.printNumF(depth, 1, CENTER, 50);
+		tft.setFont(SevenSeg_XXXL_Num);
+		tft.setColor(VGA_YELLOW);
+		if (depth < 10) {
+			tft.printNumI(depth, 304, 10, 1); //Only one digit
+		} else {
+			tft.printNumI(depth, 240, 10, 2); //Two digits
+		}
+
+		tft.setFont(BigFont);
+		tft.setColor(VGA_SILVER);
+		tft.print("m", 378, 80);
 	}
 }
 
@@ -490,15 +513,19 @@ void drawMaximumDepth(float maximumDepth) {
 	//TODO
 }
 
-void drawDiveDuration(int duration) {
-	//TODO
-}
-
 void drawCurrentTemperature(float currentTemperature) {
 	if (currentScreen == GAUGE_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
-		tft.setColor(VGA_AQUA);
-		tft.printNumF(currentTemperature, 1, CENTER, 120);
+		tft.setColor(VGA_LIME);
+		if (currentTemperature < 10) {
+			tft.printNumI(currentTemperature, 106, 10, 1); // Only one digit
+		} else {
+			tft.printNumI(currentTemperature, 74, 10, 2); // Two digits
+		}
+
+		tft.setFont(BigFont);
+		tft.setColor(VGA_SILVER);
+		tft.print("cel", 148, 40);
 	}
 
 }
@@ -507,7 +534,62 @@ void drawCurrentPressure(int currentPressure) {
 	if (currentScreen == GAUGE_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_AQUA);
-		tft.printNumI(currentPressure, CENTER, 190, 4);
+		tft.printNumI(currentPressure, 10, 70, 4); // Always four digits
+
+		tft.setFont(BigFont);
+		tft.setColor(VGA_SILVER);
+		tft.print("mBar", 148, 100);
+	}
+}
+
+void drawDiveDuration(int duration) { // The dive duration is always in seconds
+	if (currentScreen == GAUGE_SCREEN) {
+		tft.setFont(SevenSegNumFontPlusPlus);
+		tft.setColor(VGA_WHITE);
+
+		byte hours = duration / 3600;
+		duration = duration % 3600;
+		byte minutes = duration / 60;
+		byte seconds = duration % 60;
+
+		int paddingLeft = 100;
+		int paddingTop = 170;
+
+		tft.printNumI(seconds, paddingLeft + tft.getFontXsize() * 6, paddingTop, 2, '0');
+		tft.print(":", paddingLeft + tft.getFontXsize() * 5, paddingTop, 1);
+		tft.printNumI(minutes, paddingLeft + tft.getFontXsize() * 3, paddingTop, 2, '0');
+		tft.print(":", paddingLeft + tft.getFontXsize() * 2, paddingTop, 1);
+		tft.printNumI(hours, paddingLeft, paddingTop, 2, '0');
+	}
+}
+
+void drawCurrentTime() {
+
+	if (currentScreen == GAUGE_SCREEN) {
+		tft.setFont(Grotesk16x32);
+		tft.setColor(VGA_TEAL);
+
+		byte year, month, date, DoW, hour, minute, second;
+		Clock.getTime(year, month, date, DoW, hour, minute, second);
+
+		int paddingLeft = 50;
+		int paddingTop = 250;
+
+		tft.print("20", paddingLeft + tft.getFontXsize(), paddingTop);
+		tft.printNumI(year, paddingLeft + tft.getFontXsize() * 3, paddingTop, 2, '0');
+
+		tft.print("-", paddingLeft + tft.getFontXsize() * 5, paddingTop);
+		tft.printNumI(month, paddingLeft + tft.getFontXsize() * 6, paddingTop, 2, '0');
+		tft.print("-", paddingLeft + tft.getFontXsize() * 8, paddingTop);
+		tft.printNumI(date, paddingLeft + tft.getFontXsize() * 9, paddingTop, 2, '0');
+
+		tft.print(" ", paddingLeft + tft.getFontXsize() * 11, paddingTop);
+
+		tft.printNumI(hour, paddingLeft + tft.getFontXsize() * 13, paddingTop, 2, '0');
+		tft.print(":", paddingLeft + tft.getFontXsize() * 15, paddingTop);
+		tft.printNumI(minute, paddingLeft + tft.getFontXsize() * 16, paddingTop, 2, '0');
+		tft.print(":", paddingLeft + tft.getFontXsize() * 18, paddingTop);
+		tft.printNumI(second, paddingLeft + tft.getFontXsize() * 19, paddingTop, 2, '0');
 	}
 }
 
