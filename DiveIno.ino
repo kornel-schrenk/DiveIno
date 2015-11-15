@@ -413,6 +413,8 @@ void numericButtonPressed(byte number) {
 		Serial.println(number);
 		tone(speakerPin, 261, 10);
 	}
+
+	// TODO
 }
 
 void hashButtonPressed()
@@ -648,10 +650,15 @@ void displayGaugeScreen()
 void displaySettingsScreen()
 {
 	// Settings:
-	//  seaLevelAtmosphericPressure = 1013.25
-	//  nitrogenRateInGas = 0.79  ->  oxygen: 0.21
-	//  testMode = On/Off
-	//  units = metric/imperial
+	//
+	// From SETTINGS.TXT:
+	//  seaLevelPressure = 1013.25
+	//  oxygenRate = 0.21
+	//  testMode = 1 :  0 = Off, 1 = On
+	//  sound = 1 : 0 = Off, 1 = On
+	//  units = 0 : 0 = metric, 1 = imperial
+	//
+	// Real Time Clock settings - for this a separate application can be used:
 	//  time = 18:05
 	//  date = 2015-11-14
 
