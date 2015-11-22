@@ -5,6 +5,7 @@
 #include "UTFT.h"
 #include "DS3231.h"
 #include "IRremote.h"
+#include "SD.h"
 
 //DS3231 Real Time Clock initialization
 DS3231 Clock;
@@ -60,6 +61,23 @@ char* mainMenu[] = {" DiveIno - Main Menu ",
 // Currently elected menu item
 byte selectedMenuItemIndex;
 
+char* settingsList[] = {" Sea level",
+						" Oxygen %",
+						" Test mode",
+						" Sound",
+						" Units"};
+
+float seaLevelPressureSetting = 1013.25;
+float oxygenRateSetting = 0.21;
+bool testModeSetting = true;
+bool soundSetting = true;
+bool imperialUnitsSetting = false;
+
+#define SETTINGS_SIZE (sizeof(settingsList)/sizeof(char *))
+#define SETTINGS_TOP 60
+
+byte selectedSettingIndex = 0;
+
 #define SURFACE_MODE 		0  // Menu, Logbook, Surface Time, Settings and About are available
 #define DIVE_START_MODE 	1  // When the driver pressed the dive button but not below 2 meters
 #define DIVE_PROGRESS_MODE 	2  // During the dive
@@ -82,8 +100,7 @@ const float seaLevelAtmosphericPressure = 1013.25;
 //Create a new instance from the library - the default atmospheric pressure on sea level was passed in milliBar
 DiveDeco diveDeco = DiveDeco(seaLevelAtmosphericPressure, 0.79, 400, 56.7);
 
-//Preferences
-const bool testMode = true;
+bool isSdCardPresent = false;
 
 //Utility variables
 DiveResult* previousDiveResult;
@@ -109,9 +126,73 @@ unsigned int diveDurationInSeconds;
 
 //The setup function is called once at startup of the sketch
 void setup() {
-	if (testMode) {
+
+	pinMode(53, OUTPUT);
+	if (SD.begin(53)) {
+		isSdCardPresent = true;
+
+		// Load settings from the SD Card
+		if (SD.exists("settings.txt")) {
+			File settingsFile = SD.open("settings.txt");
+			if (settingsFile) {
+
+				seaLevelPressureSetting = readSeaLevelPressureSettings(settingsFile);
+				oxygenRateSetting = readOxygenRateSetting(settingsFile);
+				testModeSetting = isTestModeSetting(settingsFile);
+				soundSetting = isSoundSetting(settingsFile);
+				imperialUnitsSetting = isImperialUnitsSetting(settingsFile);
+
+				settingsFile.close();
+			}
+		} else {
+			setSettingsToDefault();
+		}
+	} else {
+		setSettingsToDefault();
+	}
+
+	if (testModeSetting) {
 		Serial.begin(19200);
-		Serial.println("START");
+		Serial.println("");
+		Serial.println("DiveIno - START");
+		Serial.println("");
+
+		Serial.print("SD Card present: ");
+		if (isSdCardPresent) {
+			Serial.println("YES");
+		} else {
+			Serial.println("NO");
+		}
+		Serial.println("");
+
+		Serial.println("Settings: ");
+		Serial.println("");
+		Serial.print("seaLevelPressure: ");
+		Serial.println(seaLevelPressureSetting, 2);
+		Serial.print("oxygenRate: ");
+		Serial.println(oxygenRateSetting, 2);
+
+		Serial.print("testMode: ");
+		if (testModeSetting) {
+			Serial.println("On");
+		} else {
+			Serial.println("Off");
+		}
+
+		Serial.print("sound: ");
+		if (soundSetting) {
+			Serial.println("On");
+		} else {
+			Serial.println("Off");
+		}
+
+		Serial.print("units: ");
+		if (imperialUnitsSetting) {
+			Serial.println("Imperial");
+		} else {
+			Serial.println("Metric");
+		}
+		Serial.println("");
 	}
 
 	Wire.begin();         //Start the I2C interface
@@ -126,6 +207,60 @@ void setup() {
 	displayScreen(MENU_SCREEN);
 
 	diveDurationTimeStamp = millis();
+}
+
+float readSeaLevelPressureSettings(File settingsFile)
+{
+	settingsFile.seek(19);
+	char digits[8];
+	digits[0] = settingsFile.read();
+	digits[1] = settingsFile.read();
+	digits[2] = settingsFile.read();
+	digits[3] = settingsFile.read();
+	digits[4] = settingsFile.read();
+	digits[5] = settingsFile.read();
+	digits[6] = settingsFile.read();
+	digits[7] = '\0';
+	return String(digits).toFloat();
+}
+
+float readOxygenRateSetting(File settingsFile)
+{
+	settingsFile.seek(41);
+	char digits[5];
+	digits[0] = settingsFile.read();
+	digits[1] = settingsFile.read();
+	digits[2] = settingsFile.read();
+	digits[3] = settingsFile.read();
+	digits[4] = '\0';
+	return String(digits).toFloat();
+}
+
+bool isTestModeSetting(File settingsFile)
+{
+	settingsFile.seek(58);
+	if (settingsFile.read() == '0') {
+		return false;
+	}
+	return true;
+}
+
+bool isSoundSetting(File settingsFile)
+{
+	settingsFile.seek(69);
+	if (settingsFile.read() == '0') {
+		return false;
+	}
+	return true;
+}
+
+bool isImperialUnitsSetting(File settingsFile)
+{
+	settingsFile.seek(80);
+	if (settingsFile.read() == '0') {
+		return false;
+	}
+	return true;
 }
 
 // The loop function is called in an endless loop
@@ -151,7 +286,7 @@ void loop() {
 			float temperatureInCelsius;
 			float depthInMeter;
 
-			if (!testMode) {
+			if (!testModeSetting) {
 				pressureInMillibar = sensor.getPressure(ADC_4096);
 				if (pressureInMillibar > seaLevelAtmosphericPressure) {
 					depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
@@ -226,7 +361,7 @@ void loop() {
 			float temperatureInCelsius;
 			float depthInMeter;
 
-			if (!testMode) {
+			if (!testModeSetting) {
 				pressureInMillibar = sensor.getPressure(ADC_4096);
 				depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
 				temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
@@ -326,7 +461,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 	}
 
 	if (seaLevelAtmosphericPressure >= pressureInMillibar) {
-		if (testMode) {
+		if (testModeSetting) {
 //			Serial.println("STOP");
 		}
 
@@ -344,44 +479,58 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 void processRemoteButtonPress(decode_results *results) {
 	if (results->value == 0xFD8877 || results->value == 0xFF629D) {
-		if (testMode) {
+		if (testModeSetting) {
 			Serial.println("Up");
+		}
+		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		upButtonPressed();
 	} else if (results->value == 0xFD9867 || results->value == 0xFFA857) {
-		if (testMode) {
+		if (testModeSetting) {
 			Serial.println("Down");
+		}
+		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		downButtonPressed();
 	} else if (results->value == 0xFD28D7) {
-		if (testMode) {
+		if (testModeSetting) {
 			Serial.println("Left");
+		}
+		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		leftButtonPressed();
 	} else if (results->value == 0xFD6897) {
-		if (testMode) {
+		if (testModeSetting) {
 			Serial.println("Right");
+		}
+		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		rightButtonPressed();
 	} else if (results->value == 0xFDA857 || results->value == 0xFF02FD) {
-		if (testMode) {
+		if (testModeSetting) {
 			Serial.println("OK");
+		}
+		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		selectButtonPressed();
 	} else if (results->value == 0xFD30CF) {
-		if (testMode) {
+		if (testModeSetting) {
 			Serial.println("*");
+		}
+		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		asterixButtonPressed();
 	} else if (results->value == 0xFD708F) {
-		if (testMode) {
+		if (testModeSetting) {
 			Serial.println("#");
+		}
+		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		hashButtonPressed();
@@ -409,8 +558,10 @@ void processRemoteButtonPress(decode_results *results) {
 }
 
 void numericButtonPressed(byte number) {
-	if (testMode) {
+	if (testModeSetting) {
 		Serial.println(number);
+	}
+	if (soundSetting) {
 		tone(speakerPin, 261, 10);
 	}
 
@@ -419,7 +570,10 @@ void numericButtonPressed(byte number) {
 
 void hashButtonPressed()
 {
-	// DO NOTHING
+	if (currentScreen == SETTINGS_SCREEN) {
+		currentMode = SURFACE_MODE;
+		displayScreen(MENU_SCREEN);
+	}
 }
 
 void asterixButtonPressed()
@@ -470,8 +624,16 @@ void selectButtonPressed()
 		currentMode = SURFACE_MODE;
 		displayScreen(MENU_SCREEN);
 	} else if (currentScreen == SETTINGS_SCREEN) {
-		currentMode = SURFACE_MODE;
-		displayScreen(MENU_SCREEN);
+		if (selectedSettingIndex == 5) { // Save
+			currentMode = SURFACE_MODE;
+			displayScreen(MENU_SCREEN);
+			saveSettingsToSdCard();
+		}
+		if (selectedSettingIndex == 6) { // Default
+			currentMode = SURFACE_MODE;
+			displayScreen(MENU_SCREEN);
+			setSettingsToDefault();
+		}
 	} else if (currentScreen == ABOUT_SCREEN) {
 		currentMode = SURFACE_MODE;
 		displayScreen(MENU_SCREEN);
@@ -481,39 +643,131 @@ void selectButtonPressed()
 // This is the Up or the Mode button on the IR Remote Control
 void upButtonPressed()
 {
-	if (currentScreen == MENU_SCREEN) {
-		if (selectedMenuItemIndex == 1) {
-			// Position to the last menu item
-			menuSelect(MENU_SIZE);
-		} else {
-			// Move down the selection
-			menuSelect(selectedMenuItemIndex - 1);
+	switch (currentScreen) {
+		case MENU_SCREEN: {
+			if (selectedMenuItemIndex == 1) {
+				// Position to the last menu item
+				menuSelect(MENU_SIZE);
+			} else {
+				// Move down the selection
+				menuSelect(selectedMenuItemIndex - 1);
+			}
 		}
+		break;
+		case SETTINGS_SCREEN: {
+			if (selectedSettingIndex == 0) {
+				settingsSelect(6);
+			} else {
+				settingsSelect(selectedSettingIndex - 1);
+			}
+		}
+		break;
 	}
 }
 
 // This is the Down or the - button on the IR Remote Control
 void downButtonPressed()
 {
-	if (currentScreen == MENU_SCREEN) {
-		if (selectedMenuItemIndex < MENU_SIZE) {
-			// Move down the selection
-			menuSelect(selectedMenuItemIndex + 1);
-		} else {
-			// Position to the first menu item
-			menuSelect(1);
+	switch (currentScreen) {
+		case MENU_SCREEN: {
+			if (selectedMenuItemIndex < MENU_SIZE) {
+				// Move down the selection
+				menuSelect(selectedMenuItemIndex + 1);
+			} else {
+				// Position to the first menu item
+				menuSelect(1);
+			}
 		}
+		break;
+		case SETTINGS_SCREEN: {
+			if (selectedSettingIndex < 6) {
+				settingsSelect(selectedSettingIndex + 1);
+			} else {
+				settingsSelect(0);
+			}
+		}
+		break;
 	}
 }
 
 void leftButtonPressed()
 {
-	// DO NOTHING
+	switch (currentScreen) {
+		case SETTINGS_SCREEN: {
+			switch (selectedSettingIndex) {
+				case 0: {
+					if (seaLevelPressureSetting > 1001) {
+						seaLevelPressureSetting = seaLevelPressureSetting - 0.05;
+					}
+					settingsSelect(0);
+				}
+				break;
+				case 1: {
+					if (oxygenRateSetting > 0.16) {
+						oxygenRateSetting = oxygenRateSetting - 0.01;
+					}
+					settingsSelect(1);
+				}
+				break;
+				case 2: {
+					testModeSetting = !testModeSetting;
+					settingsSelect(2);
+				}
+				break;
+				case 3: {
+					soundSetting = !soundSetting;
+					settingsSelect(3);
+				}
+				break;
+				case 4: {
+					imperialUnitsSetting = !imperialUnitsSetting;
+					settingsSelect(4);
+				}
+				break;
+			}
+		}
+		break;
+	}
 }
 
 void rightButtonPressed()
 {
-	// DO NOTHING
+	switch (currentScreen) {
+		case SETTINGS_SCREEN: {
+			switch (selectedSettingIndex) {
+				case 0: {
+					if (seaLevelPressureSetting < 1100) {
+						seaLevelPressureSetting = seaLevelPressureSetting + 0.05;
+					}
+					settingsSelect(0);
+				}
+				break;
+				case 1: {
+					if (oxygenRateSetting < 0.50) {
+						oxygenRateSetting = oxygenRateSetting + 0.01;
+					}
+					settingsSelect(1);
+				}
+				break;
+				case 2: {
+					testModeSetting = !testModeSetting;
+					settingsSelect(2);
+				}
+				break;
+				case 3: {
+					soundSetting = !soundSetting;
+					settingsSelect(3);
+				}
+				break;
+				case 4: {
+					imperialUnitsSetting = !imperialUnitsSetting;
+					settingsSelect(4);
+				}
+				break;
+			}
+		}
+		break;
+	}
 }
 
 void startDive() { // NOW NOT USED !!!
@@ -546,8 +800,8 @@ void startDive() { // NOW NOT USED !!!
 
 ///////////////////////////////////////////////////////////////
 
-void menuSelect(byte menuItemIndex) {
-
+void menuSelect(byte menuItemIndex)
+{
 	tft.setColor(VGA_YELLOW);
 
 	// Remove the highlight from the currently selected menu item
@@ -581,7 +835,7 @@ void displayScreen(byte screen) {
 			displayGaugeScreen();
 			break;
 		case SETTINGS_SCREEN:
-			displaySettingsScreen();
+			displaySettingsScreen(0);
 			break;
 		case ABOUT_SCREEN:
 			displayAboutScreen();
@@ -641,13 +895,13 @@ void displayGaugeScreen()
 	tft.setColor(VGA_GREEN);
 	tft.print("GAUGE", paddingLeft + tft.getFontXsize() * 4, 215);
 
-	if (testMode) {
+	if (testModeSetting) {
 		tft.setColor(VGA_RED);
 		tft.print("TEST", paddingLeft + tft.getFontXsize() * 15, 215);
 	}
 }
 
-void displaySettingsScreen()
+void displaySettingsScreen(byte selectionIndex)
 {
 	// Settings:
 	//
@@ -666,8 +920,167 @@ void displaySettingsScreen()
 	tft.setBackColor(VGA_BLACK);
 	tft.setFont(Grotesk16x32);
 
-	tft.setColor(VGA_OLIVE);
-	tft.print("Settings", CENTER, 100);
+	// Display the header of the screen
+	tft.setColor(VGA_LIME);
+	tft.print("DiveIno - Settings", 48, 10);
+
+	// Draw separation line
+	tft.drawLine(0, SETTINGS_TOP-10, tft.getDisplayXSize()-1, SETTINGS_TOP-10);
+
+	// Display settings
+	tft.setColor(VGA_YELLOW);
+	for (int i = 0; i < SETTINGS_SIZE; i++) {
+		tft.print(settingsList[i], 0, (i * 40) + SETTINGS_TOP);
+	}
+
+	displaySettings(selectionIndex);
+}
+
+void settingsSelect(byte settingIndex)
+{
+	displaySettings(settingIndex);
+	selectedSettingIndex = settingIndex;
+}
+
+void displaySettings(byte settingIndex)
+{
+	if (settingIndex == 0) {
+		tft.setColor(VGA_WHITE);
+		tft.setBackColor(VGA_BLUE);
+	} else {
+		tft.setColor(VGA_AQUA);
+		tft.setBackColor(VGA_BLACK);
+	}
+	tft.printNumF(seaLevelPressureSetting, 2, 240, SETTINGS_TOP);
+
+	if (settingIndex == 1) {
+		tft.setColor(VGA_WHITE);
+		tft.setBackColor(VGA_BLUE);
+	} else {
+		tft.setColor(VGA_AQUA);
+		tft.setBackColor(VGA_BLACK);
+	}
+	tft.printNumF(oxygenRateSetting, 2, 240, 40 + SETTINGS_TOP);
+
+	if (settingIndex == 2) {
+		tft.setColor(VGA_WHITE);
+		tft.setBackColor(VGA_BLUE);
+	} else {
+		tft.setColor(VGA_AQUA);
+		tft.setBackColor(VGA_BLACK);
+	}
+	if (testModeSetting) {
+		tft.print("On ", 240, 80 + SETTINGS_TOP);
+	} else {
+		tft.print("Off", 240, 80 + SETTINGS_TOP);
+	}
+
+	if (settingIndex == 3) {
+		tft.setColor(VGA_WHITE);
+		tft.setBackColor(VGA_BLUE);
+	} else {
+		tft.setColor(VGA_AQUA);
+		tft.setBackColor(VGA_BLACK);
+	}
+	if (soundSetting) {
+		tft.print("On ", 240, 120 + SETTINGS_TOP);
+	} else {
+		tft.print("Off", 240, 120 + SETTINGS_TOP);
+	}
+
+	if (settingIndex == 4) {
+		tft.setColor(VGA_WHITE);
+		tft.setBackColor(VGA_BLUE);
+	} else {
+		tft.setColor(VGA_AQUA);
+		tft.setBackColor(VGA_BLACK);
+	}
+	if (imperialUnitsSetting) {
+		tft.print("Imperial", 240, 160 + SETTINGS_TOP);
+	} else {
+		tft.print("Metric  ", 240, 160 + SETTINGS_TOP);
+	}
+
+	if (settingIndex == 5) {
+		tft.setColor(VGA_WHITE);
+		tft.setBackColor(VGA_BLUE);
+	} else {
+		tft.setColor(VGA_GREEN);
+		tft.setBackColor(VGA_BLACK);
+	}
+	tft.print("Save", 120, 210 + SETTINGS_TOP);
+
+	if (settingIndex == 6) {
+		tft.setColor(VGA_WHITE);
+		tft.setBackColor(VGA_BLUE);
+	} else {
+		tft.setColor(VGA_MAROON);
+		tft.setBackColor(VGA_BLACK);
+	}
+	tft.print("Default", 210, 210 + SETTINGS_TOP);
+}
+
+void setSettingsToDefault()
+{
+	seaLevelPressureSetting = 1013.25;
+	oxygenRateSetting = 0.21;
+	testModeSetting = true;
+	soundSetting = true;
+	imperialUnitsSetting = false;
+}
+
+void saveSettingsToSdCard()
+{
+	if (isSdCardPresent) {
+
+		File settingsFile = SD.open("settings.txt", FILE_WRITE);
+		if (settingsFile) {
+
+			if (testModeSetting) {
+				Serial.println("Save settings to the SD Card.");
+			}
+
+			String seaLevelPressureToSave = String(seaLevelPressureSetting, 2);
+			settingsFile.seek(19);
+			settingsFile.write(seaLevelPressureToSave.charAt(0));
+			settingsFile.write(seaLevelPressureToSave.charAt(1));
+			settingsFile.write(seaLevelPressureToSave.charAt(2));
+			settingsFile.write(seaLevelPressureToSave.charAt(3));
+			settingsFile.write(seaLevelPressureToSave.charAt(4));
+			settingsFile.write(seaLevelPressureToSave.charAt(5));
+			settingsFile.write(seaLevelPressureToSave.charAt(6));
+
+			String oxygenRateToSave = String(oxygenRateSetting, 2);
+			settingsFile.seek(41);
+			settingsFile.write(oxygenRateToSave.charAt(0));
+			settingsFile.write(oxygenRateToSave.charAt(1));
+			settingsFile.write(oxygenRateToSave.charAt(2));
+			settingsFile.write(oxygenRateToSave.charAt(3));
+
+			settingsFile.seek(58);
+			if (!testModeSetting) {
+				settingsFile.write('0');
+			} else {
+				settingsFile.write('1');
+			}
+
+			settingsFile.seek(69);
+			if (!soundSetting) {
+				settingsFile.write('0');
+			} else {
+				settingsFile.write('1');
+			}
+
+			settingsFile.seek(80);
+			if (!imperialUnitsSetting) {
+				settingsFile.write('0');
+			} else {
+				settingsFile.write('1');
+			}
+
+			settingsFile.close();
+		}
+	}
 }
 
 void displayAboutScreen()
@@ -749,7 +1162,7 @@ void drawCurrentPressure(int currentPressure)
 		int paddingLeft = 10; // 10
 		int paddingTop = 70;  // 10 + 50 + 10
 
-		tft.printNumI(currentPressure, paddingLeft, paddingTop, 4); // Always four digits
+		tft.printNumI(currentPressure, paddingLeft, paddingTop, 4, '/');
 
 		tft.setFont(BigFont);
 		tft.setColor(VGA_SILVER);
