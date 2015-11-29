@@ -7,6 +7,8 @@
 #include "IRremote.h"
 #include "SD.h"
 
+#include "Settings.h"
+
 //DS3231 Real Time Clock initialization
 DS3231 Clock;
 bool Century=false;
@@ -96,9 +98,7 @@ byte currentMode = SURFACE_MODE;
 
 byte currentScreen = MENU_SCREEN;
 
-const float seaLevelAtmosphericPressure = 1013.25;
-//Create a new instance from the library - the default atmospheric pressure on sea level was passed in milliBar
-DiveDeco diveDeco = DiveDeco(seaLevelAtmosphericPressure, 0.79, 400, 56.7);
+DiveDeco diveDeco = DiveDeco(400, 56.7);
 
 bool isSdCardPresent = false;
 
@@ -124,34 +124,30 @@ unsigned int safetyStopDurationInSeconds;
 unsigned long diveDurationTimeStamp;
 unsigned int diveDurationInSeconds;
 
+Settings settings = Settings();
+
 //The setup function is called once at startup of the sketch
 void setup() {
 
+	// SD Card initialization
 	pinMode(53, OUTPUT);
 	if (SD.begin(53)) {
 		isSdCardPresent = true;
 
-		// Load settings from the SD Card
-		if (SD.exists("settings.txt")) {
-			File settingsFile = SD.open("settings.txt");
-			if (settingsFile) {
-
-				seaLevelPressureSetting = readSeaLevelPressureSettings(settingsFile);
-				oxygenRateSetting = readOxygenRateSetting(settingsFile);
-				testModeSetting = isTestModeSetting(settingsFile);
-				soundSetting = isSoundSetting(settingsFile);
-				imperialUnitsSetting = isImperialUnitsSetting(settingsFile);
-
-				settingsFile.close();
-			}
-		} else {
-			setSettingsToDefault();
-		}
-	} else {
-		setSettingsToDefault();
+		DiveInoSettings* diveInoSettings = settings.loadDiveInoSettings();
+		seaLevelPressureSetting = diveInoSettings->seaLevelPressureSetting;
+		oxygenRateSetting = diveInoSettings->oxygenRateSetting;
+		testModeSetting = diveInoSettings->testModeSetting;
+		soundSetting = diveInoSettings->soundSetting;
+		imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
 	}
 
+	// Initialize the DiveDeco library based on the settings
+	diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+	diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
+
 	if (testModeSetting) {
+
 		Serial.begin(19200);
 		Serial.println("");
 		Serial.println("DiveIno - START");
@@ -209,61 +205,6 @@ void setup() {
 	diveDurationTimeStamp = millis();
 }
 
-float readSeaLevelPressureSettings(File settingsFile)
-{
-	settingsFile.seek(19);
-	char digits[8];
-	digits[0] = settingsFile.read();
-	digits[1] = settingsFile.read();
-	digits[2] = settingsFile.read();
-	digits[3] = settingsFile.read();
-	digits[4] = settingsFile.read();
-	digits[5] = settingsFile.read();
-	digits[6] = settingsFile.read();
-	digits[7] = '\0';
-	return String(digits).toFloat();
-}
-
-float readOxygenRateSetting(File settingsFile)
-{
-	settingsFile.seek(41);
-	char digits[5];
-	digits[0] = settingsFile.read();
-	digits[1] = settingsFile.read();
-	digits[2] = settingsFile.read();
-	digits[3] = settingsFile.read();
-	digits[4] = '\0';
-	return String(digits).toFloat();
-}
-
-bool isTestModeSetting(File settingsFile)
-{
-	settingsFile.seek(58);
-	if (settingsFile.read() == '0') {
-		return false;
-	}
-	return true;
-}
-
-bool isSoundSetting(File settingsFile)
-{
-	settingsFile.seek(69);
-	if (settingsFile.read() == '0') {
-		return false;
-	}
-	return true;
-}
-
-bool isImperialUnitsSetting(File settingsFile)
-{
-	settingsFile.seek(80);
-	if (settingsFile.read() == '0') {
-		return false;
-	}
-	return true;
-}
-
-// The loop function is called in an endless loop
 void loop() {
 
 	/////////////////////
@@ -288,7 +229,7 @@ void loop() {
 
 			if (!testModeSetting) {
 				pressureInMillibar = sensor.getPressure(ADC_4096);
-				if (pressureInMillibar > seaLevelAtmosphericPressure) {
+				if (pressureInMillibar > seaLevelPressureSetting) {
 					depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
 				} else {
 					depthInMeter = 0;
@@ -460,7 +401,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		drawDecoArea(diveInfo);
 	}
 
-	if (seaLevelAtmosphericPressure >= pressureInMillibar) {
+	if (seaLevelPressureSetting >= pressureInMillibar) {
 		if (testModeSetting) {
 //			Serial.println("STOP");
 		}
@@ -627,7 +568,7 @@ void selectButtonPressed()
 		if (selectedSettingIndex == 5) { // Save
 			currentMode = SURFACE_MODE;
 			displayScreen(MENU_SCREEN);
-			saveSettingsToSdCard();
+			saveSettings();
 		}
 		if (selectedSettingIndex == 6) { // Default
 			currentMode = SURFACE_MODE;
@@ -1029,58 +970,24 @@ void setSettingsToDefault()
 	imperialUnitsSetting = false;
 }
 
-void saveSettingsToSdCard()
+void saveSettings()
 {
 	if (isSdCardPresent) {
+		DiveInoSettings* diveInoSettings = new DiveInoSettings;
+		diveInoSettings->seaLevelPressureSetting = seaLevelPressureSetting;
+		diveInoSettings->oxygenRateSetting = oxygenRateSetting;
+		diveInoSettings->testModeSetting = testModeSetting;
+		diveInoSettings->soundSetting = soundSetting;
+		diveInoSettings->imperialUnitsSetting = imperialUnitsSetting;
+		settings.saveDiveInoSettings(diveInoSettings);
 
-		File settingsFile = SD.open("settings.txt", FILE_WRITE);
-		if (settingsFile) {
-
-			if (testModeSetting) {
-				Serial.println("Save settings to the SD Card.");
-			}
-
-			String seaLevelPressureToSave = String(seaLevelPressureSetting, 2);
-			settingsFile.seek(19);
-			settingsFile.write(seaLevelPressureToSave.charAt(0));
-			settingsFile.write(seaLevelPressureToSave.charAt(1));
-			settingsFile.write(seaLevelPressureToSave.charAt(2));
-			settingsFile.write(seaLevelPressureToSave.charAt(3));
-			settingsFile.write(seaLevelPressureToSave.charAt(4));
-			settingsFile.write(seaLevelPressureToSave.charAt(5));
-			settingsFile.write(seaLevelPressureToSave.charAt(6));
-
-			String oxygenRateToSave = String(oxygenRateSetting, 2);
-			settingsFile.seek(41);
-			settingsFile.write(oxygenRateToSave.charAt(0));
-			settingsFile.write(oxygenRateToSave.charAt(1));
-			settingsFile.write(oxygenRateToSave.charAt(2));
-			settingsFile.write(oxygenRateToSave.charAt(3));
-
-			settingsFile.seek(58);
-			if (!testModeSetting) {
-				settingsFile.write('0');
-			} else {
-				settingsFile.write('1');
-			}
-
-			settingsFile.seek(69);
-			if (!soundSetting) {
-				settingsFile.write('0');
-			} else {
-				settingsFile.write('1');
-			}
-
-			settingsFile.seek(80);
-			if (!imperialUnitsSetting) {
-				settingsFile.write('0');
-			} else {
-				settingsFile.write('1');
-			}
-
-			settingsFile.close();
+		if (diveInoSettings->testModeSetting) {
+			Serial.println("Settings were saved to the SD Card.");
 		}
 	}
+
+	diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+	diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
 }
 
 void displayAboutScreen()
