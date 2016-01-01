@@ -558,6 +558,12 @@ void selectButtonPressed()
 			}
 			break;
 		}
+	} else if (currentScreen == DIVE_SCREEN) {
+		currentMode = SURFACE_MODE;
+		displayScreen(MENU_SCREEN);
+	} else if (currentScreen == LOGBOOK_SCREEN) {
+		currentMode = SURFACE_MODE;
+		displayScreen(MENU_SCREEN);
 	} else if (currentScreen == SURFACE_TIME_SCREEN) {
 		currentMode = SURFACE_MODE;
 		displayScreen(MENU_SCREEN);
@@ -769,6 +775,12 @@ void displayScreen(byte screen) {
 			selectedMenuItemIndex = 1;
 			menuSelect(selectedMenuItemIndex);
 			break;
+		case DIVE_SCREEN:
+			displayDiveScreen();
+			break;
+		case LOGBOOK_SCREEN:
+			displayLogbookScreen();
+			break;
 		case SURFACE_TIME_SCREEN:
 			displaySurfaceTimeScreen();
 			break;
@@ -808,6 +820,28 @@ void displayMenuScreen()
 
 	//Reset the maximum depth
 	maxDepthInMeter = 0;
+}
+
+void displayDiveScreen()
+{
+	tft.clrScr();
+
+	tft.setColor(VGA_SILVER);
+	tft.setBackColor(VGA_BLACK);
+	tft.drawRect(0, 0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
+
+	tft.drawLine(0, 190, tft.getDisplayXSize()-1, 190);
+	tft.drawLine(220, 0, 220, 190);
+}
+
+void displayLogbookScreen()
+{
+	tft.clrScr();
+	tft.setBackColor(VGA_BLACK);
+	tft.setFont(Grotesk16x32);
+
+	tft.setColor(VGA_MAROON);
+	tft.print("Logbook", CENTER, 100);
 }
 
 void displaySurfaceTimeScreen()
@@ -1006,7 +1040,7 @@ void displayAboutScreen()
 
 void drawDepth(float depth)
 {
-	if (currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
 		tft.setFont(SevenSeg_XXXL);
 		tft.setColor(VGA_YELLOW);
 
@@ -1028,7 +1062,7 @@ void drawDepth(float depth)
 
 void drawMaximumDepth(float maximumDepth)
 {
-	if (currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_PURPLE);
 
@@ -1045,7 +1079,7 @@ void drawMaximumDepth(float maximumDepth)
 
 void drawCurrentTemperature(float currentTemperature)
 {
-	if (currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_LIME);
 
@@ -1062,7 +1096,7 @@ void drawCurrentTemperature(float currentTemperature)
 
 void drawCurrentPressure(int currentPressure)
 {
-	if (currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_AQUA);
 
@@ -1079,7 +1113,7 @@ void drawCurrentPressure(int currentPressure)
 
 void drawDiveDuration(int duration) // The dive duration is always in seconds
 {
-	if (currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_WHITE);
 
