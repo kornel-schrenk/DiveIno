@@ -31,6 +31,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/SD/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/UTFT}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/MS5803_I2C}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/CountUpDownTimer}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.cpp.sketch.input.941807293" name="CPP source files" superClass="it.baeyens.arduino.compiler.cpp.sketch.input"/>
 							</tool>
@@ -48,6 +49,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/SD/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/UTFT}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/MS5803_I2C}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/CountUpDownTimer}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.c.sketch.input.124135098" name="C Source Files" superClass="it.baeyens.arduino.compiler.c.sketch.input"/>
 							</tool>
