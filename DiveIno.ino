@@ -6,7 +6,7 @@
 #include "DS3231.h"
 #include "IRremote.h"
 #include "SD.h"
-#include "CountUpDownTimer.h"
+#include "SimpleTimer.h"
 
 #include "Settings.h"
 
@@ -24,7 +24,7 @@ decode_results results;
 //Pressure Sensor initialization
 MS5803 sensor(ADDRESS_HIGH);
 
-// Pin number for the piezo buzzer
+// Pin number of the piezo buzzer
 int speakerPin = 8;
 
 // TFT setup - 480x320 pixel
@@ -114,9 +114,11 @@ bool isDecoNeeded = true;
 
 byte safetyStopState = SAFETY_STOP_NOT_STARTED;
 
-unsigned int safetyStopDurationInSeconds;
+unsigned long diveDurationInSeconds;
+unsigned long safetyStopDurationInSeconds;
+unsigned long testPreviousDiveDurationInSeconds;
 
-CountUpDownTimer DIVE_DURATION_TIMER(UP);
+SimpleTimer diveDurationTimer;
 
 //The setup function is called once at startup of the sketch
 void setup() {
@@ -192,6 +194,10 @@ void setup() {
 	tft.InitLCD();
 	tft.clrScr();
 
+    // Set the function, which will be called in every second, if the timer is enabled
+	diveDurationTimer.setTimer(1000, diveUnderWater, diveDurationTimer.RUN_FOREVER);
+	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
+
 	displayScreen(MENU_SCREEN);
 }
 
@@ -206,115 +212,128 @@ void loop() {
 		irrecv.resume(); // Receive the next value
 	}
 
-	/////////////////////
-	// Sensor handling //
-	/////////////////////
+	///////////////
+	// Go Diving //
+	///////////////
 
-	float pressureInMillibar;
-	float temperatureInCelsius;
-	float depthInMeter;
-
-	unsigned long diveDurationInSeconds;
-
-	switch (currentScreen) {
-		case GAUGE_SCREEN: {
-			if (!testModeSetting) {
-				if (DIVE_DURATION_TIMER.TimeHasChanged()) {
-
-					diveDurationInSeconds = DIVE_DURATION_TIMER.ShowTotalSeconds();
-
-					pressureInMillibar = sensor.getPressure(ADC_4096);
-					if (pressureInMillibar > seaLevelPressureSetting) {
-						depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
-					} else {
-						depthInMeter = 0;
-					}
-					temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
-
-					drawCurrentPressure(pressureInMillibar);
-					drawDepth(depthInMeter);
-					drawCurrentTemperature(temperatureInCelsius);
-
-					drawDiveDuration(diveDurationInSeconds);
-					drawCurrentTime();
-
-					//Calculate minimum and maximum values during the dive
-					if (maxDepthInMeter < depthInMeter) {
-						maxDepthInMeter = depthInMeter;
-						drawMaximumDepth(maxDepthInMeter);
-					}
-				}
-			} else {
-				//We are in test - simulation - mode, where the data comes from the serial interface
-				if (Serial.available() > 0) {
-					pressureInMillibar = Serial.parseFloat();
-					depthInMeter = Serial.parseFloat();
-					diveDurationInSeconds = Serial.parseInt();
-					temperatureInCelsius = Serial.parseFloat();
-
-					Serial.print("Pressure: ");
-					Serial.print(pressureInMillibar, 2);
-					drawCurrentPressure(pressureInMillibar);
-
-					Serial.print(" Depth: ");
-					Serial.print(depthInMeter, 2);
-					drawDepth(depthInMeter);
-
-					Serial.print(" Temperature: ");
-					Serial.print(temperatureInCelsius, 2);
-					drawCurrentTemperature(temperatureInCelsius);
-
-					Serial.print(" Duration: ");
-					Serial.println(diveDurationInSeconds);
-					drawDiveDuration(diveDurationInSeconds);
-
-					drawCurrentTime();
-
-					//Calculate minimum and maximum values during the dive
-					if (maxDepthInMeter < depthInMeter) {
-						maxDepthInMeter = depthInMeter;
-						drawMaximumDepth(maxDepthInMeter);
-					}
-				}
-			}
+	if (currentScreen == GAUGE_SCREEN || currentScreen == DIVE_SCREEN) {
+		if (testModeSetting) {
+			diveSurface();
+		} else {
+			diveDurationTimer.run();
 		}
-		break;
-		case DIVE_SCREEN: {
-			if (!testModeSetting) {
-				if (DIVE_DURATION_TIMER.TimeHasChanged()) {
-					pressureInMillibar = sensor.getPressure(ADC_4096);
-					depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
-					temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
-					diveDurationInSeconds = DIVE_DURATION_TIMER.ShowTotalSeconds();
+	}
+
+}
+
+void diveSurface()
+{
+	// Check if test data is available, which comes through the serial interface
+	if (Serial.available() > 0) {
+		float pressureInMillibar = Serial.parseFloat();
+		float depthInMeter = Serial.parseFloat();
+		diveDurationInSeconds = Serial.parseInt();
+		float temperatureInCelsius = Serial.parseFloat();
+
+		Serial.print("Pressure: ");
+		Serial.print(pressureInMillibar, 2);
+		drawCurrentPressure(pressureInMillibar);
+
+		Serial.print(" Depth: ");
+		Serial.print(depthInMeter, 2);
+		drawDepth(depthInMeter);
+
+		Serial.print(" Temperature: ");
+		Serial.print(temperatureInCelsius, 2);
+		drawCurrentTemperature(temperatureInCelsius);
+
+		Serial.print(" Duration: ");
+		Serial.println(diveDurationInSeconds);
+		drawDiveDuration(diveDurationInSeconds);
+
+		//Calculate minimum and maximum values during the dive
+		if (maxDepthInMeter < depthInMeter) {
+			maxDepthInMeter = depthInMeter;
+			drawMaximumDepth(maxDepthInMeter);
+		}
+		if (maxTemperatureInCelsius < temperatureInCelsius) {
+			maxTemperatureInCelsius = temperatureInCelsius;
+		}
+		if (minTemperatureInCelsius > temperatureInCelsius) {
+			minTemperatureInCelsius = temperatureInCelsius;
+		}
+
+		switch (currentScreen) {
+			case GAUGE_SCREEN: {
+
+				//Instead of dive information we will display the current time
+				drawCurrentTime();
+			}
+			break;
+			case DIVE_SCREEN: {
+
+				//Calculate the delta between the current and the previous duration information
+				if (diveDurationInSeconds > testPreviousDiveDurationInSeconds) {
+					unsigned long intervalDuration = diveDurationInSeconds - testPreviousDiveDurationInSeconds;
+
+					testPreviousDiveDurationInSeconds = diveDurationInSeconds;
 
 					//The timer fires in every second
-					calculateSafetyStop(maxDepthInMeter, depthInMeter, 1);
+					calculateSafetyStop(maxDepthInMeter, depthInMeter, intervalDuration);
 
 					//Progress with the algorithm in every second
 					diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);
 				}
-			} else {
-				//We are in test - simulation - mode, where the data comes from the serial interface
-				if (Serial.available() > 0) {
-					pressureInMillibar = Serial.parseFloat();
-					depthInMeter = Serial.parseFloat();
-					unsigned int testDiveDurationInSeconds = Serial.parseInt();
-					temperatureInCelsius = Serial.parseFloat();
-
-					unsigned int intervalDuration = 0;
-					//Calculate the delta between the current and the previous duration information
-					if (diveDurationInSeconds < testDiveDurationInSeconds) {
-						intervalDuration = testDiveDurationInSeconds - diveDurationInSeconds;
-					}
-					diveDurationInSeconds = testDiveDurationInSeconds;
-
-					Serial.print(" Test data available at ");
-					Serial.println(depthInMeter);
-
-					calculateSafetyStop(maxDepthInMeter, depthInMeter, intervalDuration);
-					diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);
-				}
 			}
+			break;
+		}
+	}
+}
+
+void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
+{
+	diveDurationInSeconds++;
+
+	float pressureInMillibar = sensor.getPressure(ADC_4096);
+	float temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
+
+	float depthInMeter = 0;
+	if (pressureInMillibar > seaLevelPressureSetting) {
+		depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
+	}
+
+	//Draw the data to the screen
+	drawCurrentTemperature(temperatureInCelsius);
+	drawCurrentPressure(pressureInMillibar);
+	drawDepth(depthInMeter);
+	drawDiveDuration(diveDurationInSeconds);
+
+	//Calculate minimum and maximum values during the dive
+	if (maxDepthInMeter < depthInMeter) {
+		maxDepthInMeter = depthInMeter;
+		drawMaximumDepth(maxDepthInMeter);
+	}
+	if (maxTemperatureInCelsius < temperatureInCelsius) {
+		maxTemperatureInCelsius = temperatureInCelsius;
+	}
+	if (minTemperatureInCelsius > temperatureInCelsius) {
+		minTemperatureInCelsius = temperatureInCelsius;
+	}
+
+	switch (currentScreen) {
+		case GAUGE_SCREEN: {
+
+			//Instead of dive information we will display the current time
+			drawCurrentTime();
+		}
+		break;
+		case DIVE_SCREEN: {
+
+			//The timer fires in every second
+			calculateSafetyStop(maxDepthInMeter, depthInMeter, 1);
+
+			//Progress with the algorithm in every second
+			diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);
 		}
 		break;
 	}
@@ -377,9 +396,7 @@ void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int
 
 void startDive()
 {
-	if (!testModeSetting) {
-		DIVE_DURATION_TIMER.StartTimer();
-	}
+	diveDurationTimer.enable(diveDurationTimer.RUN_FOREVER);
 
 	//Set default values before the dive
 	maxDepthInMeter = 0;
@@ -388,43 +405,28 @@ void startDive()
 
 	safetyStopState = SAFETY_STOP_NOT_STARTED;
 	safetyStopDurationInSeconds = 0;
+	diveDurationInSeconds = 0;
+	testPreviousDiveDurationInSeconds = 0;
 
-//	if (previousDiveResult == NULL) {
-//		//No previous dive result is available, so do the default compartment initialization
-//		diveDeco.startDive(diveDeco.initializeCompartments());
-//	} else {
-//		diveDeco.startDive(previousDiveResult);
-//	}
+	if (currentScreen == DIVE_SCREEN) {
 
-	//currentMode = DIVE_PROGRESS_MODE;
+		//	if (previousDiveResult == NULL) {
+		//		//No previous dive result is available, so do the default compartment initialization
+		//		diveDeco.startDive(diveDeco.initializeCompartments());
+		//	} else {
+		//		diveDeco.startDive(previousDiveResult);
+		//	}
+
+			//currentMode = DIVE_PROGRESS_MODE;
+	}
 }
 
 void stopDive()
 {
-	if (!testModeSetting) {
-		DIVE_DURATION_TIMER.StopTimer();
-	}
+	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
 }
 
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
-
-	//Draw the data to the screen
-	drawCurrentTemperature(temperatureInCelsius);
-	drawCurrentPressure(pressureInMillibar);
-	drawDepth(depthInMeter);
-	drawDiveDuration(durationInSeconds);
-
-	//Calculate minimum and maximum values during the dive
-	if (maxDepthInMeter < depthInMeter) {
-		maxDepthInMeter = depthInMeter;
-		drawMaximumDepth(maxDepthInMeter);
-	}
-	if (maxTemperatureInCelsius < temperatureInCelsius) {
-		maxTemperatureInCelsius = temperatureInCelsius;
-	}
-	if (minTemperatureInCelsius > temperatureInCelsius) {
-		minTemperatureInCelsius = temperatureInCelsius;
-	}
 
 //	DiveData diveData = {pressureInMillibar, durationInSeconds};
 //	DiveInfo diveInfo = diveDeco.progressDive(&diveData);
@@ -448,8 +450,6 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 //		//TODO Start surface time counter
 //	}
 }
-
-////////////////////////////////////////////////////////////////////
 
 void processRemoteButtonPress(decode_results *results) {
 	if (results->value == 0xFD8877 || results->value == 0xFF629D) {
@@ -578,6 +578,7 @@ void selectButtonPressed()
 			break;
 			case 4: { // Gauge
 				currentMode = GAUGE_MODE;
+				startDive();
 				displayScreen(GAUGE_SCREEN);
 			}
 			break;
@@ -604,6 +605,7 @@ void selectButtonPressed()
 		displayScreen(MENU_SCREEN);
 	} else if (currentScreen == GAUGE_SCREEN) {
 		currentMode = SURFACE_MODE;
+		stopDive();
 		displayScreen(MENU_SCREEN);
 	} else if (currentScreen == SETTINGS_SCREEN) {
 		if (selectedSettingIndex == 5) { // Save
@@ -1037,9 +1039,9 @@ void displayAboutScreen()
 	tft.setColor(VGA_YELLOW);
 	tft.print("DiveIno", CENTER, 100);
 	tft.setColor(VGA_WHITE);
-	tft.print("Version: 1.3.1", CENTER, 150);
+	tft.print("Version: 0.7.1", CENTER, 150);
 	tft.setColor(VGA_GREEN);
-	tft.print("kornel@schrenk.hu", CENTER, 200);
+	tft.print("info@diveino.hu", CENTER, 200);
 }
 
 void drawDepth(float depth)

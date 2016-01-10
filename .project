@@ -27,11 +27,6 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Libraries/CountUpDownTimer</name>
-			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/CountUpDownTimer</locationURI>
-		</link>
-		<link>
 			<name>Libraries/DS3231</name>
 			<type>2</type>
 			<locationURI>ArduinoPrivateLibPath/DS3231</locationURI>
@@ -60,6 +55,11 @@
 			<name>Libraries/SPI</name>
 			<type>2</type>
 			<locationURI>ArduinoHardwareLibPath/SPI</locationURI>
+		</link>
+		<link>
+			<name>Libraries/SimpleTimer</name>
+			<type>2</type>
+			<locationURI>ArduinoPrivateLibPath/SimpleTimer</locationURI>
 		</link>
 		<link>
 			<name>Libraries/UTFT</name>
