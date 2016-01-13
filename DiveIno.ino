@@ -37,13 +37,6 @@ extern uint8_t Grotesk16x32[];
 
 UTFT tft(HX8357B,38,39,40,41);
 
-const char* MAX = "Max";
-const char* MIN = "min";
-const char* MILLIBAR_SHORT = "mb";
-const char* METER_SHORT = "m";
-const char* METER = "meter";
-const char* CEL_SHORT = "cel";
-
 char* mainMenu[] = {" DiveIno - Main Menu ",
                 " Dive          ",
                 " Logbook       ",
@@ -93,6 +86,7 @@ byte currentMode = SURFACE_MODE;
 #define GAUGE_SCREEN     	4
 #define SETTINGS_SCREEN     5
 #define ABOUT_SCREEN        6
+#define UI_TEST_SCREEN      7
 
 byte currentScreen = MENU_SCREEN;
 
@@ -135,10 +129,6 @@ void setup() {
 		soundSetting = diveInoSettings->soundSetting;
 		imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
 	}
-
-	// Initialize the DiveDeco library based on the settings
-	diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
-	diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
 
 	Serial.begin(19200);
 	Serial.println("");
@@ -410,14 +400,16 @@ void startDive()
 
 	if (currentScreen == DIVE_SCREEN) {
 
-		//	if (previousDiveResult == NULL) {
-		//		//No previous dive result is available, so do the default compartment initialization
-		//		diveDeco.startDive(diveDeco.initializeCompartments());
-		//	} else {
-		//		diveDeco.startDive(previousDiveResult);
-		//	}
+		// Initialize the DiveDeco library based on the settings
+		diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+		diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
 
-			//currentMode = DIVE_PROGRESS_MODE;
+		if (previousDiveResult == NULL) {
+			//No previous dive result is available, so do the default compartment initialization
+			diveDeco.startDive(diveDeco.initializeCompartments());
+		} else {
+			diveDeco.startDive(previousDiveResult);
+		}
 	}
 }
 
@@ -428,27 +420,27 @@ void stopDive()
 
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
 
-//	DiveData diveData = {pressureInMillibar, durationInSeconds};
-//	DiveInfo diveInfo = diveDeco.progressDive(&diveData);
-//	drawAscend(diveInfo.ascendRate);
-//
-//	if (safetyStopState != SAFETY_STOP_IN_PROGRESS) {
-//		drawDecoArea(diveInfo);
-//	}
-//
-//	if (seaLevelPressureSetting >= pressureInMillibar) {
-//		if (testModeSetting) {
-//			Serial.println("STOP");
-//		}
-//
-//		previousDiveResult = diveDeco.stopDive();
-//
-//		//Switch to DIVE_STOP mode
-//		currentMode = DIVE_STOP_MODE;
-//		//displayScreen(DIVE_STOP_SCREEN);
-//
-//		//TODO Start surface time counter
-//	}
+	DiveData diveData = {pressureInMillibar, durationInSeconds};
+	DiveInfo diveInfo = diveDeco.progressDive(&diveData);
+	drawAscend(diveInfo.ascendRate);
+
+	if (safetyStopState != SAFETY_STOP_IN_PROGRESS) {
+		drawDecoArea(diveInfo);
+	}
+
+	if (seaLevelPressureSetting >= pressureInMillibar) {
+		if (testModeSetting) {
+			Serial.println("STOP");
+		}
+
+		previousDiveResult = diveDeco.stopDive();
+
+		//Switch to DIVE_STOP mode
+		currentMode = DIVE_STOP_MODE;
+		//displayScreen(DIVE_STOP_SCREEN);
+
+		//TODO Start surface time counter
+	}
 }
 
 void processRemoteButtonPress(decode_results *results) {
@@ -552,7 +544,10 @@ void hashButtonPressed()
 
 void asterixButtonPressed()
 {
-	// DO NOTHING
+	if (currentScreen == ABOUT_SCREEN) {
+		currentMode = SURFACE_MODE;
+		displayScreen(UI_TEST_SCREEN);
+	}
 }
 
 // This is the OK or the Prev button on the IR Remote Control
@@ -621,6 +616,9 @@ void selectButtonPressed()
 	} else if (currentScreen == ABOUT_SCREEN) {
 		currentMode = SURFACE_MODE;
 		displayScreen(MENU_SCREEN);
+	} else if (currentScreen == UI_TEST_SCREEN) {
+		currentMode = SURFACE_MODE;
+		displayScreen(ABOUT_SCREEN);
 	}
 }
 
@@ -802,6 +800,9 @@ void displayScreen(byte screen) {
 		case ABOUT_SCREEN:
 			displayAboutScreen();
 			break;
+		case UI_TEST_SCREEN:
+			displayTestScreen();
+			break;
 	}
 }
 
@@ -838,6 +839,8 @@ void displayDiveScreen()
 
 	tft.drawLine(0, 190, tft.getDisplayXSize()-1, 190);
 	tft.drawLine(220, 0, 220, 190);
+
+	drawOxigenPercentage(oxygenRateSetting * 100);
 }
 
 void displayLogbookScreen()
@@ -1044,9 +1047,40 @@ void displayAboutScreen()
 	tft.print("info@diveino.hu", CENTER, 200);
 }
 
+void displayTestScreen()
+{
+	displayDiveScreen();
+
+	drawCurrentPressure(2345.67);
+	drawCurrentTemperature(22.4);
+	drawMaximumDepth(36.5);
+
+	drawDepth(24.3);
+	drawDiveDuration(2048);
+
+	drawStaticDecoArea(false);
+
+	DiveInfo diveInfo;
+
+	diveInfo.decoNeeded = false;
+	diveInfo.minutesToDeco = 46;
+	drawDecoArea(diveInfo);
+
+	diveInfo.decoNeeded = true;
+    diveInfo.decoStopInMeters = 24;
+    diveInfo.decoStopDurationInMinutes = 36;
+	drawDecoArea(diveInfo);
+
+	drawSafetyStop(134);
+	drawAscend(ASCEND_NORMAL);
+
+	drawOxigenPercentage(21);
+	drawPartialPressureWarning();
+}
+
 void drawDepth(float depth)
 {
-	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 		tft.setFont(SevenSeg_XXXL);
 		tft.setColor(VGA_YELLOW);
 
@@ -1068,7 +1102,7 @@ void drawDepth(float depth)
 
 void drawMaximumDepth(float maximumDepth)
 {
-	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_PURPLE);
 
@@ -1085,24 +1119,26 @@ void drawMaximumDepth(float maximumDepth)
 
 void drawCurrentTemperature(float currentTemperature)
 {
-	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_LIME);
 
-		int paddingLeft = 74; // 10 + 2*32
+		//int paddingLeft = 74; // 10 + 2*32
+		int paddingLeft = 10; // 10
 		int paddingTop = 10;
 
-		tft.printNumI(currentTemperature, paddingLeft, paddingTop, 2, '/'); // Two digits - the / is the SPACE in the font
+		tft.printNumF(currentTemperature, 1, paddingLeft, paddingTop, '.', 4, '/');
+		//tft.printNumI(currentTemperature, paddingLeft, paddingTop, 2, '/'); // Two digits - the / is the SPACE in the font
 
 		tft.setFont(BigFont);
 		tft.setColor(VGA_SILVER);
-		tft.print("cel", paddingLeft + 32*2 + 5, paddingTop + 50 - tft.getFontYsize());
+		tft.print("cel", paddingLeft + 32*4 + 5, paddingTop + 50 - tft.getFontYsize());
 	}
 }
 
 void drawCurrentPressure(int currentPressure)
 {
-	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_AQUA);
 
@@ -1119,7 +1155,7 @@ void drawCurrentPressure(int currentPressure)
 
 void drawDiveDuration(int duration) // The dive duration is always in seconds
 {
-	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == GAUGE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 		tft.setFont(SevenSegNumFontPlusPlus);
 		tft.setColor(VGA_WHITE);
 
@@ -1141,7 +1177,7 @@ void drawDiveDuration(int duration) // The dive duration is always in seconds
 
 void drawCurrentTime()
 {
-	if (currentScreen == GAUGE_SCREEN) {
+	if (currentScreen == GAUGE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 		tft.setFont(Grotesk16x32);
 		tft.setColor(VGA_TEAL);
 
@@ -1169,20 +1205,42 @@ void drawCurrentTime()
 	}
 }
 
-void drawOxigenPercentage(int oxigenPercentage)
+void drawOxigenPercentage(float oxigenPercentage)
 {
-	//TODO
+	int paddingLeft = 290;
+	int paddingTop = 277;
+
+	tft.setFont(BigFont);
+
+	if (oxigenPercentage <= 23) {
+		tft.setColor(VGA_GREEN);
+	} else {
+		tft.setColor(VGA_MAROON);
+	}
+	tft.printNumI(oxigenPercentage, paddingLeft + tft.getFontXsize() * 3, paddingTop, 2, ' ');
+
+	tft.setColor(VGA_WHITE);
+	tft.print("%", paddingLeft + tft.getFontXsize() * 5, paddingTop);
+}
+
+void drawPartialPressureWarning()
+{
+	tft.setFont(Grotesk16x32);
+	tft.setColor(VGA_MAROON);
+	tft.print("PPO2", 280, 209); // Overrides the safe deco text
 }
 
 void drawStaticDecoArea(bool decoNeeded)
 {
-	//Clear deco area
+	tft.setFont(Grotesk16x32);
 
 	//Draw the static text
 	if (!decoNeeded) {
-		//tft.print("Safe");
+		tft.setColor(VGA_WHITE);
+		tft.print("Safe", 280, 209);
 	} else {
-		//tft.print("Deco");
+		tft.setColor(VGA_RED);
+		tft.print("Deco", 10, 269);
 	}
 }
 
@@ -1193,54 +1251,74 @@ void drawDecoArea(DiveInfo diveInfo)
 	}
 	isDecoNeeded = diveInfo.decoNeeded;
 
-	//Draw the numbers, which are changing
 	if (!isDecoNeeded) {
-		if (diveInfo.minutesToDeco < 10) {
-			//tft.print(SPACE);
-		}
-		//diveInfo.minutesToDeco;
-	} else {
-		if (diveInfo.decoStopInMeters < 10) {
-			//tft.print(SPACE);
-		}
-		//diveInfo.decoStopInMeters;
+		int paddingLeft = 360;
+		int paddingTop = 200;
 
-		if (diveInfo.decoStopDurationInMinutes < 10) {
-			//tft.print(SPACE);
-		}
-		//diveInfo.decoStopDurationInMinutes;
+		tft.setFont(SevenSegNumFontPlusPlus);
+		tft.setColor(VGA_YELLOW);
+		tft.printNumI(diveInfo.minutesToDeco, paddingLeft, paddingTop, 2, '0');
+
+		tft.setFont(BigFont);
+		tft.setColor(VGA_SILVER);
+		tft.print("min", paddingLeft + 32*2 + 5, paddingTop + 50 - tft.getFontYsize());
+	} else {
+		int paddingLeft = 90;
+		int paddingTop = 260;
+
+		tft.setFont(SevenSegNumFontPlusPlus);
+		tft.setColor(VGA_FUCHSIA);
+		tft.printNumI(diveInfo.decoStopInMeters, paddingLeft, paddingTop, 2, '/');
+		tft.setColor(VGA_LIME);
+		tft.printNumI(diveInfo.decoStopDurationInMinutes, paddingLeft + tft.getFontXsize() * 3, paddingTop, 2, '/');
+
+		tft.setFont(BigFont);
+		tft.setColor(VGA_SILVER);
+		tft.print("m", paddingLeft + 32*2 + 5, paddingTop + 50 - tft.getFontYsize());
+		tft.print("min", paddingLeft + 32*5 + 5, paddingTop + 50 - tft.getFontYsize());
 	}
 }
 
 void drawSafetyStop(unsigned int safetyStopDurationInSeconds)
 {
-	if (currentScreen == DIVE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 
 		tft.setFont(Grotesk16x32);
-		tft.setColor(VGA_LIME);
-		tft.print("Stay", 10, 230);
+
+		if (safetyStopDurationInSeconds < 180) {
+			tft.setColor(VGA_BLUE);
+			tft.print("Stay", 10, 209);
+		} else {
+			tft.setColor(VGA_GREEN);
+			tft.print("Done", 10, 209);
+		}
 
 		tft.setFont(SevenSegNumFontPlusPlus);
+		tft.setColor(VGA_AQUA);
 
-		unsigned int duration = safetyStopDurationInSeconds % 3600;
+		unsigned int duration = 0;
+		if (safetyStopDurationInSeconds <= 180) {
+			duration = 180 - safetyStopDurationInSeconds; // Counting backwards
+		}
+
 		byte minutes = duration / 60;
 		byte seconds = duration % 60;
 
-		int paddingLeft = 80;
-		int paddingTop = 230;
+		int paddingLeft = 90;
+		int paddingTop = 200;
 
-		tft.printNumI(seconds, paddingLeft + tft.getFontXsize() * 5, paddingTop, 2, '0');
-		tft.print(":", paddingLeft + tft.getFontXsize() * 4, paddingTop, 1);
-		tft.printNumI(minutes, paddingLeft + tft.getFontXsize() * 2, paddingTop, 2, '0');
+		tft.printNumI(seconds, paddingLeft + tft.getFontXsize() * 3, paddingTop, 2, '0');
+		tft.print(":", paddingLeft + tft.getFontXsize() * 2, paddingTop, 1);
+		tft.printNumI(minutes, paddingLeft, paddingTop, 2, '0');
 	}
 }
 
 void drawAscend(int ascendRate)
 {
-	if (currentScreen == DIVE_SCREEN) {
+	if (currentScreen == DIVE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 
-		int paddingLeft = 350;
-		int paddingTop = 200;
+		int paddingLeft = 400;
+		int paddingTop = 270;
 
 		tft.setFont(Grotesk16x32);
 		switch (ascendRate) {
@@ -1253,15 +1331,15 @@ void drawAscend(int ascendRate)
 				tft.print("---|", paddingLeft, paddingTop);
 				break;
 			case ASCEND_NORMAL:
-				tft.setColor(VGA_WHITE);
+				tft.setColor(VGA_YELLOW);
 				tft.print("--||", paddingLeft, paddingTop);
 				break;
 			case ASCEND_ATTENTION:
-				tft.setColor(VGA_YELLOW);
+				tft.setColor(VGA_MAROON);
 				tft.print("-|||", paddingLeft, paddingTop);
 				break;
 			case ASCEND_CRITICAL:
-				tft.setColor(VGA_YELLOW);
+				tft.setColor(VGA_RED);
 				tft.print("||||", paddingLeft, paddingTop);
 				break;
 			case ASCEND_DANGER:
