@@ -32,11 +32,6 @@
 			<locationURI>ArduinoPrivateLibPath/DS3231</locationURI>
 		</link>
 		<link>
-			<name>Libraries/DiveDeco</name>
-			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/DiveDeco</locationURI>
-		</link>
-		<link>
 			<name>Libraries/IRremote</name>
 			<type>2</type>
 			<locationURI>ArduinoPrivateLibPath/IRremote</locationURI>
