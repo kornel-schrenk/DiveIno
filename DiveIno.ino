@@ -130,7 +130,7 @@ void setup() {
 		imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
 	}
 
-	Serial.begin(19200);
+	Serial.begin(115200);
 	Serial.println("");
 	Serial.println("DiveIno - START");
 	Serial.println("");

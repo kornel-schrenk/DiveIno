@@ -305,13 +305,13 @@ DiveInfo DiveDeco::progressDive(DiveData* diveData) {
             _maxDepth = _currentDepth;
         }
 
-//        Serial.print("STEP ");
-//        Serial.print(_currentDiveDuration);
-//        Serial.print(" sec ");
-//        Serial.print(_currentDepth);
-//        Serial.print(" m ");
-//        Serial.print(currentPressure, 0);
-//        Serial.print(" mb");
+        Serial.print("STEP ");
+        Serial.print(_currentDiveDuration);
+        Serial.print(" sec ");
+        Serial.print(_currentDepth);
+        Serial.print(" m ");
+        Serial.print(currentPressure, 0);
+        Serial.print(" mb");
 
         diveInfo.ascendRate = ascendRate;
 
@@ -335,28 +335,29 @@ DiveInfo DiveDeco::progressDive(DiveData* diveData) {
                 //Calculate minutes can be spent in the current depth
                 minutesNeededToDecoArray[i] = getMinutesNeededTillDeco(i, currentPressure);
 
-//                Serial.print(i);
-//                Serial.print(" - ppN2: ");
-//                Serial.print(getCompartmentPartialPressure(i), 2);
-//                Serial.print(" mb | ac ppN2: ");
-//                Serial.print(ascentCeilingArray[i], 2);
-//                Serial.print(" mb | no deco: ");
-//                Serial.println(minutesNeededToDecoArray[i]);
+                Serial.print(i);
+                Serial.print(" - ppN2: ");
+                Serial.print(getCompartmentPartialPressure(i), 2);
+                Serial.print(" mb | ac ppN2: ");
+                Serial.print(ascentCeilingArray[i], 2);
+                Serial.print(" mb | no deco: ");
+                Serial.println(minutesNeededToDecoArray[i]);
             } else {
                 minutesNeededToDecoArray[i] = 0;
                 //Calculate first deco stop
                 float firstDecoStop = calculateDepthFromPressure(ascentCeilingArray[i]);
-//                Serial.print(i);
-//                Serial.print(" - ppN2: ");
-//                Serial.print(getCompartmentPartialPressure(i), 2);
-//                Serial.print(" mb | ac ppN2: ");
-//                Serial.print(ascentCeilingArray[i], 2);
-//                Serial.print(" mb | DECO: ");
-//                Serial.print(firstDecoStop);
-//                Serial.print(" m ");
-//                Serial.print(ascentCeilingArray[i]);
-//                Serial.println(" mb");
+                Serial.print(i);
+                Serial.print(" - ppN2: ");
+                Serial.print(getCompartmentPartialPressure(i), 2);
+                Serial.print(" mb | ac ppN2: ");
+                Serial.print(ascentCeilingArray[i], 2);
+                Serial.print(" mb | DECO: ");
+                Serial.print(firstDecoStop);
+                Serial.print(" m ");
+                Serial.print(ascentCeilingArray[i]);
+                Serial.println(" mb");
             }
+            Serial.println("");
         }
 
         //Calculate if DECO is needed for all compartments
@@ -367,14 +368,14 @@ DiveInfo DiveDeco::progressDive(DiveData* diveData) {
                 break;
             }
         }
-//        Serial.println("");
+        Serial.println("");
 
         diveInfo.decoNeeded = decoNeeded;
         if (!decoNeeded) {
         	int minutesToDeco = minSearch(minutesNeededToDecoArray, COMPARTMENT_COUNT);
         	diveInfo.minutesToDeco = minutesToDeco;
-//            Serial.print("NO DECO | Min to deco: ");
-//            Serial.println(minutesToDeco);
+            Serial.print("NO DECO | Min to deco: ");
+            Serial.println(minutesToDeco);
         } else {
             //Find the deepest ascent ceiling (the biggest pressure)
             float ascentCeiling = maxSearch(ascentCeilingArray, COMPARTMENT_COUNT);
@@ -399,13 +400,13 @@ DiveInfo DiveDeco::progressDive(DiveData* diveData) {
             diveInfo.decoStopInMeters = newDecoStop;
             diveInfo.decoStopDurationInMinutes = decoStopDurationInMinutes;
 
-//            Serial.print("DECO ");
-//            Serial.print(newDecoStop);
-//            Serial.print(" m ");
-//            Serial.print(decoStopDurationInMinutes);
-//            Serial.print(" min");
+            Serial.print("DECO ");
+            Serial.print(newDecoStop);
+            Serial.print(" m ");
+            Serial.print(decoStopDurationInMinutes);
+            Serial.print(" min");
         }
-//        Serial.println("");
+        Serial.println("");
     }
     return diveInfo;
 }
