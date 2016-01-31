@@ -99,8 +99,6 @@ float maxDepthInMeter;
 float maxTemperatureInCelsius;
 float minTemperatureInCelsius;
 
-bool isDecoNeeded = true;
-
 #define SAFETY_STOP_NOT_STARTED 0
 #define SAFETY_STOP_IN_PROGRESS 1
 #define SAFETY_STOP_DONE 		2
@@ -557,8 +555,8 @@ void selectButtonPressed()
 		switch (selectedMenuItemIndex) {
 			case 1: { // Dive
 				currentMode = DIVE_START_MODE;
-				startDive();
 				displayScreen(DIVE_SCREEN);
+				startDive();
 			}
 			break;
 			case 2: { // Logbook
@@ -573,8 +571,8 @@ void selectButtonPressed()
 			break;
 			case 4: { // Gauge
 				currentMode = GAUGE_MODE;
-				startDive();
 				displayScreen(GAUGE_SCREEN);
+				startDive();
 			}
 			break;
 			case 5: { // Settings
@@ -1058,24 +1056,22 @@ void displayTestScreen()
 	drawDepth(24.3);
 	drawDiveDuration(2048);
 
-	drawStaticDecoArea(false);
-
 	DiveInfo diveInfo;
 
-	diveInfo.decoNeeded = false;
-	diveInfo.minutesToDeco = 46;
-	drawDecoArea(diveInfo);
+//	diveInfo.decoNeeded = false;
+//	diveInfo.minutesToDeco = 46;
+//	drawDecoArea(diveInfo);
 
 	diveInfo.decoNeeded = true;
     diveInfo.decoStopInMeters = 24;
-    diveInfo.decoStopDurationInMinutes = 36;
+    diveInfo.decoStopDurationInMinutes = 367;
 	drawDecoArea(diveInfo);
 
 	drawSafetyStop(134);
 	drawAscend(ASCEND_NORMAL);
 
 	drawOxigenPercentage(21);
-	drawPartialPressureWarning();
+	//drawPartialPressureWarning();
 }
 
 void drawDepth(float depth)
@@ -1208,7 +1204,7 @@ void drawCurrentTime()
 void drawOxigenPercentage(float oxigenPercentage)
 {
 	int paddingLeft = 290;
-	int paddingTop = 277;
+	int paddingTop = 217;
 
 	tft.setFont(BigFont);
 
@@ -1227,32 +1223,18 @@ void drawPartialPressureWarning()
 {
 	tft.setFont(Grotesk16x32);
 	tft.setColor(VGA_MAROON);
-	tft.print("PPO2", 280, 209); // Overrides the safe deco text
-}
-
-void drawStaticDecoArea(bool decoNeeded)
-{
-	tft.setFont(Grotesk16x32);
-
-	//Draw the static text
-	if (!decoNeeded) {
-		tft.setColor(VGA_WHITE);
-		tft.print("Safe", 280, 209);
-	} else {
-		tft.setColor(VGA_RED);
-		tft.print("Deco", 10, 269);
-	}
+	tft.print("PPO2", 10, 269); // Overrides the stay in the safety stop text
 }
 
 void drawDecoArea(DiveInfo diveInfo)
 {
-	if (diveInfo.decoNeeded != isDecoNeeded) {
-		drawStaticDecoArea(diveInfo.decoNeeded);
-	}
-	isDecoNeeded = diveInfo.decoNeeded;
+	if (!diveInfo.decoNeeded) {
 
-	if (!isDecoNeeded) {
-		int paddingLeft = 360;
+		tft.setFont(Grotesk16x32);
+		tft.setColor(VGA_WHITE);
+		tft.print("Safe", 10, 209);
+
+		int paddingLeft = 90;
 		int paddingTop = 200;
 
 		tft.setFont(SevenSegNumFontPlusPlus);
@@ -1263,19 +1245,28 @@ void drawDecoArea(DiveInfo diveInfo)
 		tft.setColor(VGA_SILVER);
 		tft.print("min", paddingLeft + 32*2 + 5, paddingTop + 50 - tft.getFontYsize());
 	} else {
+
+		tft.setFont(Grotesk16x32);
+		tft.setColor(VGA_RED);
+		tft.print("Deco", 10, 209);
+
 		int paddingLeft = 90;
-		int paddingTop = 260;
+		int paddingTop = 200;
 
 		tft.setFont(SevenSegNumFontPlusPlus);
-		tft.setColor(VGA_FUCHSIA);
-		tft.printNumI(diveInfo.decoStopInMeters, paddingLeft, paddingTop, 2, '/');
 		tft.setColor(VGA_LIME);
-		tft.printNumI(diveInfo.decoStopDurationInMinutes, paddingLeft + tft.getFontXsize() * 3, paddingTop, 2, '/');
+		if (diveInfo.decoStopDurationInMinutes < 100) {
+			tft.printNumI(diveInfo.decoStopDurationInMinutes, paddingLeft , paddingTop, 2, '/');
+		} else {
+			tft.printNumI(99, paddingLeft , paddingTop, 2, '/');
+		}
+		tft.setColor(VGA_FUCHSIA);
+		tft.printNumI(diveInfo.decoStopInMeters, paddingLeft + tft.getFontXsize() * 4, paddingTop, 2, '/');
 
 		tft.setFont(BigFont);
 		tft.setColor(VGA_SILVER);
-		tft.print("m", paddingLeft + 32*2 + 5, paddingTop + 50 - tft.getFontYsize());
-		tft.print("min", paddingLeft + 32*5 + 5, paddingTop + 50 - tft.getFontYsize());
+		tft.print("m", paddingLeft + 32*6 + 5, paddingTop + 50 - tft.getFontYsize());
+		tft.print("min", paddingLeft + 32*2 + 5, paddingTop + 50 - tft.getFontYsize());
 	}
 }
 
@@ -1287,10 +1278,10 @@ void drawSafetyStop(unsigned int safetyStopDurationInSeconds)
 
 		if (safetyStopDurationInSeconds < 180) {
 			tft.setColor(VGA_BLUE);
-			tft.print("Stay", 10, 209);
+			tft.print("Stay", 10, 269);
 		} else {
 			tft.setColor(VGA_GREEN);
-			tft.print("Done", 10, 209);
+			tft.print("Done", 10, 269);
 		}
 
 		tft.setFont(SevenSegNumFontPlusPlus);
@@ -1305,7 +1296,7 @@ void drawSafetyStop(unsigned int safetyStopDurationInSeconds)
 		byte seconds = duration % 60;
 
 		int paddingLeft = 90;
-		int paddingTop = 200;
+		int paddingTop = 260;
 
 		tft.printNumI(seconds, paddingLeft + tft.getFontXsize() * 3, paddingTop, 2, '0');
 		tft.print(":", paddingLeft + tft.getFontXsize() * 2, paddingTop, 1);
@@ -1318,7 +1309,7 @@ void drawAscend(int ascendRate)
 	if (currentScreen == DIVE_SCREEN || currentScreen == UI_TEST_SCREEN) {
 
 		int paddingLeft = 400;
-		int paddingTop = 270;
+		int paddingTop = 210;
 
 		tft.setFont(Grotesk16x32);
 		switch (ascendRate) {

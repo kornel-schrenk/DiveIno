@@ -265,7 +265,9 @@ DiveResult* DiveDeco::surfaceInterval(int surfaceIntervalInMinutes, DiveResult* 
 
 DiveResult* DiveDeco::initializeCompartments() {
 
-    DiveResult * diveResult = new DiveResult;
+	Serial.println("Compartment initialization - START");
+
+    DiveResult* diveResult = new DiveResult;
     diveResult->maxDepthInMeters = 0;
     diveResult->durationInSeconds = 0;
     diveResult->noFlyTimeInMinutes = 0;
@@ -273,7 +275,17 @@ DiveResult* DiveDeco::initializeCompartments() {
     //Initialize the compartments with the initial partial pressure value - it assumes that the inert gases were cleared off from the compartments
     for (int i=0; i < COMPARTMENT_COUNT; i++) {
         diveResult->compartmentPartialPressures[i] = calculateNitrogenPartialPressureInLung(_seaLevelAtmosphericPressure);
+
+        Serial.print("Compartment ");
+        Serial.print(i);
+        Serial.print(": ");
+        Serial.print(diveResult->compartmentPartialPressures[i], 0);
+        Serial.println(" ppN2");
     }
+
+    Serial.println("Compartment initialization - DONE");
+    Serial.println("");
+
     return diveResult;
 }
 
@@ -357,7 +369,6 @@ DiveInfo DiveDeco::progressDive(DiveData* diveData) {
                 Serial.print(ascentCeilingArray[i]);
                 Serial.println(" mb");
             }
-            Serial.println("");
         }
 
         //Calculate if DECO is needed for all compartments
@@ -368,7 +379,6 @@ DiveInfo DiveDeco::progressDive(DiveData* diveData) {
                 break;
             }
         }
-        Serial.println("");
 
         diveInfo.decoNeeded = decoNeeded;
         if (!decoNeeded) {
