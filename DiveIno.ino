@@ -10,6 +10,7 @@
 #include "DiveDeco.h"
 #include "View.h"
 #include "Settings.h"
+#include "Logbook.h"
 
 //DS3231 Real Time Clock initialization
 DS3231 Clock;
@@ -75,6 +76,8 @@ unsigned long safetyStopDurationInSeconds;
 unsigned long testPreviousDiveDurationInSeconds;
 
 SimpleTimer diveDurationTimer;
+
+Logbook logbook = Logbook();
 
 void setup() {
 
@@ -780,6 +783,9 @@ void menuSelect(byte menuItemIndex)
 }
 
 void displayScreen(byte screen) {
+	LogbookData* logbookData;
+	ProfileData* profileData;
+
 	currentScreen = screen;
 	switch (screen) {
 		case MENU_SCREEN:
@@ -793,7 +799,45 @@ void displayScreen(byte screen) {
 			view.displayDiveScreen(oxygenRateSetting);
 			break;
 		case LOGBOOK_SCREEN:
-			view.displayLogbookScreen();
+			logbookData = logbook.loadLogbookData();
+
+			if (testModeSetting) {
+				Serial.print("Number of dives = ");
+				Serial.println(logbookData->totalNumberOfDives);
+				Serial.print("Logged dive hours = ");
+				Serial.println(logbookData->totalDiveHours);
+				Serial.print("Logged dive minutes = ");
+				Serial.println(logbookData->totalDiveMinutes);
+				Serial.print("Maximum depth (meter) = ");
+				Serial.println(logbookData->totalMaximumDepth, 1);
+				Serial.print("Last dive = ");
+				Serial.println(logbookData->lastDiveDateTime);
+				Serial.print("Number of stored profiles: ");
+				Serial.println(logbookData->numberOfStoredProfiles);
+
+				String profileName = logbook.getProfileFileName(1);
+				Serial.print("Profile name: ");
+				Serial.println(profileName);
+
+				profileData = logbook.loadProfileDataFromFile("DIVE0001.TXT");
+				Serial.print("Duration (seconds) = ");
+				Serial.println(profileData->diveDuration);
+				Serial.print("Maximum depth (meter) = ");
+				Serial.println(profileData->maximumDepth, 1);
+				Serial.print("Minimum temperature (celsius) = ");
+				Serial.println(profileData->minimumTemperature, 1);
+				Serial.print("Oxigen percentage = ");
+				Serial.println(profileData->oxigenPercentage);
+				Serial.print("Dive date = ");
+				Serial.println(profileData->diveDate);
+				Serial.print("Dive time = ");
+				Serial.println(profileData->diveTime);
+				Serial.print("Number of profile items: ");
+				Serial.println(profileData->numberOfProfileItems);
+			}
+
+			view.displayLogbookScreen(logbookData->totalNumberOfDives, logbookData->totalDiveHours, logbookData->totalDiveMinutes,
+					logbookData->totalMaximumDepth, logbookData->lastDiveDateTime, logbookData->numberOfStoredProfiles);
 			break;
 		case SURFACE_TIME_SCREEN:
 			view.displaySurfaceTimeScreen();

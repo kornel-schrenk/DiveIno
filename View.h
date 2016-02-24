@@ -29,7 +29,7 @@ public:
 
 	void displayMenuScreen();
 	void displayDiveScreen(float oxygenRateSetting);
-	void displayLogbookScreen();
+	void displayLogbookScreen(int totalNumberOfDives, int totalDiveHours, int totalDiveMinutes, float totalMaximumDepth, String lastDiveDateTime, int numberOfStoredProfiles);
 	void displaySurfaceTimeScreen();
 	void displayGaugeScreen(bool testModeSetting);
 	void displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting,	bool testModeSetting, bool soundSetting, bool imperialUnitsSetting);

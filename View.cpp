@@ -71,14 +71,30 @@ void View::displayDiveScreen(float oxygenRateSetting)
 	drawOxigenPercentage(oxygenRateSetting * 100);
 }
 
-void View::displayLogbookScreen()
+void View::displayLogbookScreen(int totalNumberOfDives, int totalDiveHours, int totalDiveMinutes, float totalMaximumDepth, String lastDiveDateTime, int numberOfStoredProfiles)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
+	tft->setColor(VGA_SILVER);
+	tft->drawRect(0, 0, tft->getDisplayXSize()-1, tft->getDisplayYSize()-1);
+
 	tft->setFont(Grotesk16x32);
 
-	tft->setColor(VGA_MAROON);
-	tft->print("Logbook", CENTER, 100);
+	tft->setColor(VGA_WHITE);
+	tft->print("Dives: ", 20, 20);
+	tft->print("Duration: ", 20, 60);
+	tft->print("Maximum:  ", 20, 100);
+	tft->print("Last: ", 20, 140);
+	tft->print("Profiles: ", 20, 180);
+
+	tft->setColor(VGA_YELLOW);
+	tft->printNumI(totalNumberOfDives, 132, 20);
+	tft->printNumI(totalDiveHours, 180, 60);
+	tft->print(":", 212, 60);
+	tft->printNumI(totalDiveMinutes, 228, 60);
+	tft->printNumF(totalMaximumDepth, 1, 180, 100);
+	tft->print(lastDiveDateTime, 116, 140);
+	tft->printNumI(numberOfStoredProfiles, 180, 180);
 }
 
 void View::displaySurfaceTimeScreen()
