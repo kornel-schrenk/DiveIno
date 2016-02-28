@@ -78,6 +78,8 @@ unsigned long testPreviousDiveDurationInSeconds;
 SimpleTimer diveDurationTimer;
 
 Logbook logbook = Logbook();
+int currentProfileNumber = 0; //There is no stored profile - default state
+int maximumProfileNumber = 0;
 
 void setup() {
 
@@ -623,6 +625,10 @@ void upButtonPressed()
 			}
 		}
 		break;
+		case PROFILE_SCREEN: {
+			displayScreen(LOGBOOK_SCREEN);
+		}
+		break;
 	}
 }
 
@@ -646,6 +652,10 @@ void downButtonPressed()
 			} else {
 				settingsSelect(0);
 			}
+		}
+		break;
+		case LOGBOOK_SCREEN: {
+			displayScreen(PROFILE_SCREEN);
 		}
 		break;
 	}
@@ -685,6 +695,17 @@ void leftButtonPressed()
 					settingsSelect(4);
 				}
 				break;
+			}
+		}
+		break;
+		case PROFILE_SCREEN: {
+			if (currentProfileNumber != 0) {
+				if (currentProfileNumber > 1) {
+					currentProfileNumber--;
+				} else {
+					currentProfileNumber = maximumProfileNumber;
+				}
+				displayScreen(PROFILE_SCREEN);
 			}
 		}
 		break;
@@ -728,6 +749,16 @@ void rightButtonPressed()
 			}
 		}
 		break;
+		case PROFILE_SCREEN: {
+			if (currentProfileNumber != 0 && maximumProfileNumber > 1) {
+				if (currentProfileNumber == maximumProfileNumber) {
+					currentProfileNumber = 1;
+				} else {
+					currentProfileNumber++;
+				}
+				displayScreen(PROFILE_SCREEN);
+			}
+		}
 	}
 }
 
@@ -800,44 +831,17 @@ void displayScreen(byte screen) {
 			break;
 		case LOGBOOK_SCREEN:
 			logbookData = logbook.loadLogbookData();
-
-			if (testModeSetting) {
-				Serial.print("Number of dives = ");
-				Serial.println(logbookData->totalNumberOfDives);
-				Serial.print("Logged dive hours = ");
-				Serial.println(logbookData->totalDiveHours);
-				Serial.print("Logged dive minutes = ");
-				Serial.println(logbookData->totalDiveMinutes);
-				Serial.print("Maximum depth (meter) = ");
-				Serial.println(logbookData->totalMaximumDepth, 1);
-				Serial.print("Last dive = ");
-				Serial.println(logbookData->lastDiveDateTime);
-				Serial.print("Number of stored profiles: ");
-				Serial.println(logbookData->numberOfStoredProfiles);
-
-				String profileName = logbook.getProfileFileName(1);
-				Serial.print("Profile name: ");
-				Serial.println(profileName);
-
-				profileData = logbook.loadProfileDataFromFile("DIVE0001.TXT");
-				Serial.print("Duration (seconds) = ");
-				Serial.println(profileData->diveDuration);
-				Serial.print("Maximum depth (meter) = ");
-				Serial.println(profileData->maximumDepth, 1);
-				Serial.print("Minimum temperature (celsius) = ");
-				Serial.println(profileData->minimumTemperature, 1);
-				Serial.print("Oxigen percentage = ");
-				Serial.println(profileData->oxigenPercentage);
-				Serial.print("Dive date = ");
-				Serial.println(profileData->diveDate);
-				Serial.print("Dive time = ");
-				Serial.println(profileData->diveTime);
-				Serial.print("Number of profile items: ");
-				Serial.println(profileData->numberOfProfileItems);
+			maximumProfileNumber = logbookData->numberOfStoredProfiles;
+			if (maximumProfileNumber > 0 && currentProfileNumber == 0) {
+				//In the default case move to the first profile screen
+				currentProfileNumber = 1;
 			}
-
-			view.displayLogbookScreen(logbookData->totalNumberOfDives, logbookData->totalDiveHours, logbookData->totalDiveMinutes,
-					logbookData->totalMaximumDepth, logbookData->lastDiveDateTime, logbookData->numberOfStoredProfiles);
+			view.displayLogbookScreen(logbookData);
+			break;
+		case PROFILE_SCREEN:
+			if (maximumProfileNumber != 0 && currentProfileNumber != 0) {
+				view.displayProfileScreen(logbook.loadProfileDataFromFile(logbook.getProfileFileName(currentProfileNumber)) , currentProfileNumber);
+			}
 			break;
 		case SURFACE_TIME_SCREEN:
 			view.displaySurfaceTimeScreen();

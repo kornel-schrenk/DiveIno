@@ -71,30 +71,78 @@ void View::displayDiveScreen(float oxygenRateSetting)
 	drawOxigenPercentage(oxygenRateSetting * 100);
 }
 
-void View::displayLogbookScreen(int totalNumberOfDives, int totalDiveHours, int totalDiveMinutes, float totalMaximumDepth, String lastDiveDateTime, int numberOfStoredProfiles)
+void View::displayLogbookScreen(LogbookData* logbookData)
+{
+	tft->clrScr();
+	tft->setBackColor(VGA_BLACK);
+	tft->setFont(Grotesk16x32);
+
+	// Display the header of the menu - the header is the first item
+	tft->setColor(VGA_LIME);
+	tft->print(" Logbook - Summary ", 48, 10);
+
+	// Draw separation line
+	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
+
+	tft->setColor(VGA_WHITE);
+	tft->print("Dives no:  ", 20, 80);
+	tft->print("Duration:  ", 20, 120);
+	tft->print("Max depth: ", 20, 160);
+	tft->print("Last dive: ", 20, 200);
+	tft->print("Profiles:  ", 20, 240);
+
+	int paddingLeft = 200;
+
+	tft->setColor(VGA_AQUA);
+	tft->printNumI(logbookData->totalNumberOfDives, paddingLeft, 80);
+	tft->setColor(VGA_YELLOW);
+	tft->printNumI(logbookData->totalDiveHours, paddingLeft, 120);
+	tft->print(":", paddingLeft + 32, 120);
+	tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 48, 120);
+	tft->setColor(VGA_PURPLE);
+	tft->printNumF(logbookData->totalMaximumDepth, 1, paddingLeft, 160);
+	tft->setColor(VGA_TEAL);
+	tft->print(logbookData->lastDiveDateTime, paddingLeft, 200);
+	tft->setColor(VGA_LIME);
+	tft->printNumI(logbookData->numberOfStoredProfiles, paddingLeft, 240);
+}
+
+void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
 	tft->setColor(VGA_SILVER);
 	tft->drawRect(0, 0, tft->getDisplayXSize()-1, tft->getDisplayYSize()-1);
+	tft->drawLine(0, 150, tft->getDisplayXSize()-1, 150);
 
+	tft->setColor(VGA_LIME);
+	tft->setFont(SevenSegNumFontPlusPlus);
+	tft->printNumI(profileNumber, 25, 52, 3, '0');
+
+	int paddingLeft = 150;
+
+	tft->setColor(VGA_TEAL);
 	tft->setFont(Grotesk16x32);
+	tft->print(profileData->diveDate, paddingLeft, 20);
+	tft->print(profileData->diveTime, paddingLeft+176, 20);
+	tft->setColor(VGA_PURPLE);
+	tft->printNumF(profileData->maximumDepth, 1, paddingLeft, 60);
+	tft->setColor(VGA_YELLOW);
+	tft->printNumI(profileData->diveDuration/60, 280, 60, 3);
+	tft->print(":", 328, 60);
+	tft->printNumI(profileData->diveDuration%60, 344, 60, 2 , '0');
+	tft->setColor(VGA_BLUE);
+	tft->printNumF(profileData->minimumTemperature, 1, paddingLeft, 100);
+	tft->setColor(VGA_OLIVE);
+	tft->printNumF(profileData->oxigenPercentage, 1, 296, 100);
 
 	tft->setColor(VGA_WHITE);
-	tft->print("Dives: ", 20, 20);
-	tft->print("Duration: ", 20, 60);
-	tft->print("Maximum:  ", 20, 100);
-	tft->print("Last: ", 20, 140);
-	tft->print("Profiles: ", 20, 180);
+	tft->setFont(BigFont);
+	tft->print("m", paddingLeft + 68, 74);
+	tft->print("hh:mm", 380, 74);
+	tft->print("cel", paddingLeft + 68, 114);
+	tft->print("O2%", 364, 114);
 
-	tft->setColor(VGA_YELLOW);
-	tft->printNumI(totalNumberOfDives, 132, 20);
-	tft->printNumI(totalDiveHours, 180, 60);
-	tft->print(":", 212, 60);
-	tft->printNumI(totalDiveMinutes, 228, 60);
-	tft->printNumF(totalMaximumDepth, 1, 180, 100);
-	tft->print(lastDiveDateTime, 116, 140);
-	tft->printNumI(numberOfStoredProfiles, 180, 180);
 }
 
 void View::displaySurfaceTimeScreen()
@@ -103,8 +151,12 @@ void View::displaySurfaceTimeScreen()
 	tft->setBackColor(VGA_BLACK);
 	tft->setFont(Grotesk16x32);
 
-	tft->setColor(VGA_MAROON);
-	tft->print("Surface Time", CENTER, 100);
+	// Display the header of the menu - the header is the first item
+	tft->setColor(VGA_LIME);
+	tft->print("Surface time", 64, 10);
+
+	// Draw separation line
+	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
 }
 
 void View::displayGaugeScreen(bool testModeSetting)
@@ -248,12 +300,17 @@ void View::displayAboutScreen()
 	tft->setBackColor(VGA_BLACK);
 	tft->setFont(Grotesk16x32);
 
-	tft->setColor(VGA_YELLOW);
-	tft->print("DiveIno", CENTER, 100);
+	// Display the header of the menu - the header is the first item
+	tft->setColor(VGA_LIME);
+	tft->print("DiveIno - About", 64, 10);
+
+	// Draw separation line
+	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);	tft->setFont(Grotesk16x32);
+
 	tft->setColor(VGA_WHITE);
-	tft->print("Version: 0.7.1", CENTER, 150);
+	tft->print("Version: 0.8.2", CENTER, 140);
 	tft->setColor(VGA_GREEN);
-	tft->print("info@diveino.hu", CENTER, 200);
+	tft->print("info@diveino.hu", CENTER, 180);
 }
 
 void View::displayTestScreen()

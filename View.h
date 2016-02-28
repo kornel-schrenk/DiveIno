@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "UTFT.h"
 #include "DiveDeco.h"
+#include "Logbook.h"
 
 #define MENU_SCREEN 		0
 #define DIVE_SCREEN 	    1
@@ -13,6 +14,7 @@
 #define SETTINGS_SCREEN     5
 #define ABOUT_SCREEN        6
 #define UI_TEST_SCREEN      7
+#define PROFILE_SCREEN      8
 
 // Position of first menu item from the top of the screen
 #define MENU_TOP 60
@@ -29,7 +31,8 @@ public:
 
 	void displayMenuScreen();
 	void displayDiveScreen(float oxygenRateSetting);
-	void displayLogbookScreen(int totalNumberOfDives, int totalDiveHours, int totalDiveMinutes, float totalMaximumDepth, String lastDiveDateTime, int numberOfStoredProfiles);
+	void displayLogbookScreen(LogbookData* logbookData);
+	void displayProfileScreen(ProfileData* profileData, int profileNumber);
 	void displaySurfaceTimeScreen();
 	void displayGaugeScreen(bool testModeSetting);
 	void displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting,	bool testModeSetting, bool soundSetting, bool imperialUnitsSetting);

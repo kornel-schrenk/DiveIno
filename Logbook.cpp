@@ -117,5 +117,5 @@ float Logbook::readFloatFromLineEnd(String line) {
 }
 
 String Logbook::readStringFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+1);
+	return line.substring(line.indexOf('=')+2);
 }
