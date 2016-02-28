@@ -104,9 +104,54 @@ ProfileData* Logbook::loadProfileDataFromFile(String profileFileName)
 	return profileData;
 }
 
+void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
+{
+	String profileFileName = getProfileFileName(profileNumber);
+	ProfileData* profileData = loadProfileDataFromFile(profileFileName);
+
+	//The String has to be converted into a char array, otherwise the board will reset itself
+	char fileName[profileFileName.length()+1];
+	profileFileName.toCharArray(fileName, profileFileName.length()+1);
+
+	if (SD.exists(fileName)) {
+		File profileFile = SD.open(fileName);
+		if (profileFile) {
+			//Skip the Summary section
+			profileFile.seek(40);
+
+			int firstLineNumberOnPage = 24 + ((pageNumber-1) * 460);
+			int lastLineNumberOnPage = 24 + (pageNumber * 460);
+			float heightUnit = 150/profileData->maximumDepth;
+
+			tft->setColor(VGA_BLACK);
+			tft->fillRect(10,160,470,315);
+			tft->setColor(VGA_FUCHSIA);
+
+			String line;
+			int counter = 0;
+			int positionOnPage = 0;
+			while (profileFile.available()) {
+				line = profileFile.readStringUntil('\n');
+
+				if (firstLineNumberOnPage < counter && counter <= lastLineNumberOnPage) {
+					tft->drawLine(10+positionOnPage, 160 + heightUnit*getDepthFromProfileLine(line), 10+positionOnPage, 310);
+					positionOnPage++;
+				}
+				counter ++;
+			}
+			profileFile.close();
+		}
+	}
+}
+
 /////////////////////
 // Private methods //
 /////////////////////
+
+float Logbook::getDepthFromProfileLine(String line)
+{
+	return line.substring(line.indexOf(',')+1).substring(0, line.indexOf(',')).toFloat();
+}
 
 int Logbook::readIntFromLineEnd(String line) {
 	return line.substring(line.indexOf('=')+1).toInt();

@@ -512,7 +512,9 @@ void numericButtonPressed(byte number) {
 		tone(speakerPin, 261, 10);
 	}
 
-	// TODO
+	if (currentScreen == PROFILE_SCREEN) {
+		logbook.drawProfileItems(&tft, currentProfileNumber, number);
+	}
 }
 
 void hashButtonPressed()

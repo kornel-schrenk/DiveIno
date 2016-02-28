@@ -142,7 +142,6 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
 	tft->print("hh:mm", 380, 74);
 	tft->print("cel", paddingLeft + 68, 114);
 	tft->print("O2%", 364, 114);
-
 }
 
 void View::displaySurfaceTimeScreen()

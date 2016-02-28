@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "SD.h"
+#include "UTFT.h"
 
 typedef struct LogbookData {
 	int totalNumberOfDives = 0;
@@ -23,22 +24,15 @@ typedef struct ProfileData {
 	int numberOfProfileItems = 0;
 };
 
-typedef struct ProfileItem {
-	float pressure = 0.0;
-	float depth = 0.0;
-	float temperature = 0.0;
-	unsigned int duration = 0;
-};
-
 class Logbook {
 public:
 	Logbook();
 	LogbookData* loadLogbookData();
 	String getProfileFileName(int profileNumber);
-
 	ProfileData* loadProfileDataFromFile(String profileFileName);
-
+    void drawProfileItems(UTFT* tft, int profileNumber, int pageNumber);
 private:
+    float getDepthFromProfileLine(String line);
 	int readIntFromLineEnd(String line);
 	float readFloatFromLineEnd(String line);
 	String readStringFromLineEnd(String line);
