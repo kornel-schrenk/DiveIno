@@ -414,7 +414,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		//Switch to DIVE_STOP mode
 		currentMode = DIVE_STOP_MODE;
-		//displayScreen(DIVE_STOP_SCREEN);
+		displayScreen(SURFACE_TIME_SCREEN);
 
 		//TODO Start surface time counter
 	}
@@ -846,7 +846,13 @@ void displayScreen(byte screen) {
 			}
 			break;
 		case SURFACE_TIME_SCREEN:
-			view.displaySurfaceTimeScreen();
+			if (previousDiveResult == NULL) {
+				previousDiveResult = new DiveResult;
+				previousDiveResult->maxDepthInMeters = 36.9;
+				previousDiveResult->durationInSeconds = 3445;
+				previousDiveResult->noFlyTimeInMinutes = 1603;
+			}
+			view.displaySurfaceTimeScreen(previousDiveResult);
 			break;
 		case GAUGE_SCREEN:
 			view.displayGaugeScreen(testModeSetting);

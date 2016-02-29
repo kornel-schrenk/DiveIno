@@ -79,17 +79,17 @@ void View::displayLogbookScreen(LogbookData* logbookData)
 
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
-	tft->print(" Logbook - Summary ", 48, 10);
+	tft->print(" Logbook - Summary", 48, 10);
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
 
 	tft->setColor(VGA_WHITE);
-	tft->print("Dives no:  ", 20, 80);
-	tft->print("Duration:  ", 20, 120);
-	tft->print("Max depth: ", 20, 160);
-	tft->print("Last dive: ", 20, 200);
-	tft->print("Profiles:  ", 20, 240);
+	tft->print("Dives no:", 20, 80);
+	tft->print("Duration:", 20, 120);
+	tft->print("Max depth:", 20, 160);
+	tft->print("Last dive:", 20, 200);
+	tft->print("Profiles:", 20, 240);
 
 	int paddingLeft = 200;
 
@@ -139,12 +139,12 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
 	tft->setColor(VGA_WHITE);
 	tft->setFont(BigFont);
 	tft->print("m", paddingLeft + 68, 74);
-	tft->print("hh:mm", 380, 74);
+	tft->print("mm:ss", 380, 74);
 	tft->print("cel", paddingLeft + 68, 114);
 	tft->print("O2%", 364, 114);
 }
 
-void View::displaySurfaceTimeScreen()
+void View::displaySurfaceTimeScreen(DiveResult* previousDiveResult)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
@@ -156,6 +156,37 @@ void View::displaySurfaceTimeScreen()
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
+
+	tft->setColor(VGA_WHITE);
+	tft->print("No fly:", 20, 70);
+	tft->print("Max depth:", 20, 110);
+	tft->print("Duration:", 20, 150);
+
+	if (previousDiveResult != NULL) {
+		tft->setColor(VGA_RED);
+		tft->printNumI(previousDiveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
+		tft->print(":", 252, 70);
+		tft->printNumI(previousDiveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
+		tft->setColor(VGA_PURPLE);
+		tft->printNumF(previousDiveResult->maxDepthInMeters, 1, 220, 110);
+		tft->setColor(VGA_YELLOW);
+		tft->printNumI(previousDiveResult->durationInSeconds/60, 204, 150, 3, ' ');
+		tft->print(":", 252, 150);
+		tft->printNumI(previousDiveResult->durationInSeconds%60, 268, 150, 2 , '0');
+
+		tft->setColor(VGA_WHITE);
+		tft->setFont(BigFont);
+		tft->print("hh:mm", 310, 83);
+		tft->print("m", 310, 123);
+		tft->print("mm:ss", 310, 163);
+	} else {
+		tft->setColor(VGA_RED);
+		tft->print("N/A", 220, 70);
+		tft->setColor(VGA_PURPLE);
+		tft->print("N/A", 220, 110);
+		tft->setColor(VGA_YELLOW);
+		tft->print("N/A", 220, 150);
+	}
 }
 
 void View::displayGaugeScreen(bool testModeSetting)
