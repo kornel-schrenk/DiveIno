@@ -848,6 +848,22 @@ void displayScreen(byte screen) {
 		case SURFACE_TIME_SCREEN:
 			if (previousDiveResult == NULL) {
 				previousDiveResult = new DiveResult;
+				previousDiveResult->compartmentPartialPressures[0] = 1234;
+				previousDiveResult->compartmentPartialPressures[1] = 2343;
+				previousDiveResult->compartmentPartialPressures[2] = 3847;
+				previousDiveResult->compartmentPartialPressures[3] = 2345;
+				previousDiveResult->compartmentPartialPressures[4] = 1231;
+				previousDiveResult->compartmentPartialPressures[5] = 1123;
+				previousDiveResult->compartmentPartialPressures[6] = 1452;
+				previousDiveResult->compartmentPartialPressures[7] = 1556;
+				previousDiveResult->compartmentPartialPressures[8] = 2345;
+				previousDiveResult->compartmentPartialPressures[9] = 3453;
+				previousDiveResult->compartmentPartialPressures[10] = 1234;
+				previousDiveResult->compartmentPartialPressures[11] = 2678;
+				previousDiveResult->compartmentPartialPressures[12] = 3425;
+				previousDiveResult->compartmentPartialPressures[13] = 2567;
+				previousDiveResult->compartmentPartialPressures[14] = 1745;
+				previousDiveResult->compartmentPartialPressures[15] = 1834;
 				previousDiveResult->maxDepthInMeters = 36.9;
 				previousDiveResult->durationInSeconds = 3445;
 				previousDiveResult->noFlyTimeInMinutes = 1603;

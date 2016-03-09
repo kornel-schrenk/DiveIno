@@ -179,6 +179,30 @@ void View::displaySurfaceTimeScreen(DiveResult* previousDiveResult)
 		tft->print("hh:mm", 310, 83);
 		tft->print("m", 310, 123);
 		tft->print("mm:ss", 310, 163);
+
+		//Draw the remaining compartment ppN2 values
+
+		float max = previousDiveResult->compartmentPartialPressures[0];
+		for (int i=1; i < COMPARTMENT_COUNT; i++) {
+			Serial.print(i);
+			Serial.print(" - ppN2: ");
+			Serial.println(previousDiveResult->compartmentPartialPressures[i], 0);
+
+			if (max < previousDiveResult->compartmentPartialPressures[i]) {
+				max = previousDiveResult->compartmentPartialPressures[i];
+			}
+		}
+		Serial.print("Maximum ppN2: ");
+		Serial.println(max, 0);
+
+		tft->setColor(VGA_AQUA);
+		for (int i=0; i < COMPARTMENT_COUNT; i++) {
+			int x1 = i*30+13;
+			int y1 = tft->getDisplayYSize()-((130/(max-755))*(previousDiveResult->compartmentPartialPressures[i]-755));
+			int x2 = (i+1)*30+10;
+			int y2 = tft->getDisplayYSize()-1;
+			tft->fillRect(x1, y1, x2, y2);
+		}
 	} else {
 		tft->setColor(VGA_RED);
 		tft->print("N/A", 220, 70);

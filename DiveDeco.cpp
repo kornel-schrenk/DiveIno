@@ -5,10 +5,6 @@ DiveDeco::DiveDeco(float minimumAircraftCabinPressure, float waterVapourPressure
 	_minimumAircraftCabinPressure = minimumAircraftCabinPressure;
 	_waterVapourPressureCorrection = waterVapourPressureCorrection;
 
-	// TODO Move these as dive algorithm calculation variables
-	_seaLevelAtmosphericPressure = 1013.25;
-	_nitrogenRateInGas = 0.21;
-
 	//Coefficients of the ZH-L16C-GF algorithm
 	_halfTimesNitrogen[0] = 4.0;
 	_halfTimesNitrogen[1] = 8.0;
@@ -229,10 +225,10 @@ int DiveDeco::calculateAscentRate(float timeSpentInLevelInSeconds, float previou
 
 DiveResult* DiveDeco::surfaceInterval(int surfaceIntervalInMinutes, DiveResult* previousDiveResult) {
 
-	//memcpy(destination, source, number_of_bytes)
-    //memcpy(previousDiveResult->compartmentPartialPressures, _compartmentCurrentPartialPressures, 4 * COMPARTMENT_COUNT);
-
-    //Set the given compartment pressure data
+	//Set the given compartment pressure data
+    for (byte j = 0; j < COMPARTMENT_COUNT; j++) {
+    	_compartmentCurrentPartialPressures[j] = previousDiveResult->compartmentPartialPressures[j];
+    }
 
 	//For each compartment calculate the new partial pressures after spent X amount of time on the surface
 	for (int i=0; i < COMPARTMENT_COUNT; i++) {
@@ -250,9 +246,11 @@ DiveResult* DiveDeco::surfaceInterval(int surfaceIntervalInMinutes, DiveResult* 
 			setCompartmentPartialPressure(i, initialPartialPressureWithoutDive);
 		}
 	}
-	DiveResult* diveResult = new DiveResult;
-    memcpy(_compartmentCurrentPartialPressures, diveResult->compartmentPartialPressures, 4 * COMPARTMENT_COUNT);
 
+	DiveResult* diveResult = new DiveResult;
+    for (byte j = 0; j < COMPARTMENT_COUNT; j++) {
+    	diveResult->compartmentPartialPressures[j] = _compartmentCurrentPartialPressures[j];
+    }
     diveResult->maxDepthInMeters = 0;
 	diveResult->durationInSeconds = surfaceIntervalInMinutes * 60;
 	if (previousDiveResult->noFlyTimeInMinutes > surfaceIntervalInMinutes) {
@@ -294,7 +292,9 @@ void DiveDeco::startDive(DiveResult* previousDiveResult) {
     _currentDiveDuration = 0;
 
     //Initialize the compartments based on the previous compartment partial pressure values
-    memcpy(_compartmentCurrentPartialPressures, previousDiveResult->compartmentPartialPressures, 4 * COMPARTMENT_COUNT);
+    for (byte j = 0; j < COMPARTMENT_COUNT; j++) {
+    	_compartmentCurrentPartialPressures[j] = previousDiveResult->compartmentPartialPressures[j];
+    }
 }
 
 DiveInfo DiveDeco::progressDive(DiveData* diveData) {
@@ -316,14 +316,6 @@ DiveInfo DiveDeco::progressDive(DiveData* diveData) {
         if (_maxDepth < _currentDepth) {
             _maxDepth = _currentDepth;
         }
-
-        Serial.print("STEP ");
-        Serial.print(_currentDiveDuration);
-        Serial.print(" sec ");
-        Serial.print(_currentDepth);
-        Serial.print(" m ");
-        Serial.print(currentPressure, 0);
-        Serial.print(" mb");
 
         diveInfo.ascendRate = ascendRate;
 
@@ -427,7 +419,9 @@ DiveResult* DiveDeco::stopDive() {
     int noFlyTimeInMinutes = calculateMinutesRequiredToReachCertainPressure(_minimumAircraftCabinPressure);
 
     DiveResult * diveResult = new DiveResult;
-    memcpy(_compartmentCurrentPartialPressures, diveResult->compartmentPartialPressures, 4 * COMPARTMENT_COUNT);
+    for (byte j = 0; j < COMPARTMENT_COUNT; j++) {
+    	diveResult->compartmentPartialPressures[j] = _compartmentCurrentPartialPressures[j];
+    }
     diveResult->maxDepthInMeters = _maxDepth;
     diveResult->durationInSeconds = _currentDiveDuration;
     diveResult->noFlyTimeInMinutes = noFlyTimeInMinutes;

@@ -58,6 +58,8 @@ public:
     DiveInfo progressDive(DiveData* diveData);
     DiveResult* stopDive();
 
+    float calculateNitrogenPartialPressureInLung(float currentPressure);
+
 private:
 	int _seaLevelAtmosphericPressure;
 	float _nitrogenRateInGas;
@@ -77,7 +79,6 @@ private:
 	float getCompartmentPartialPressure(int compartmentIndex);
 	void setCompartmentPartialPressure(int compartmentIndex, float partialPressure);
 
-	float calculateNitrogenPartialPressureInLung(float currentPressure);
 	float calculateCompartmentInertGasPartialPressure(float timeInSeconds, float halfTimeInSeconds, float currentInertGasPartialPressureInCompartment, float currentInertGasPartialPressureInLung);
 	float getAscendToPartialPressureForCompartment(int compartmentIndex, float compartmentPartialPressure);
 	bool isDecoNeeded(float ascendToPartialPressure);
