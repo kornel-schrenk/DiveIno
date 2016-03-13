@@ -30,7 +30,8 @@ MS5803 sensor(ADDRESS_HIGH);
 int speakerPin = 8;
 
 // TFT setup - 480x320 pixel
-UTFT tft(HX8357B,38,39,40,41);
+//UTFT tft(HX8357B,38,39,40,41);    //Banggood
+UTFT tft(ILI9481,38,39,40,41); //Deal Extreme
 View view(&tft);
 
 // Currently elected menu item
