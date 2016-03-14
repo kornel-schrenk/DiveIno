@@ -31,7 +31,7 @@ int speakerPin = 8;
 
 // TFT setup - 480x320 pixel
 //UTFT tft(HX8357B,38,39,40,41);    //Banggood
-UTFT tft(ILI9481,38,39,40,41); //Deal Extreme
+UTFT tft(ILI9481,38,39,40,41);      //Deal Extreme
 View view(&tft);
 
 // Currently elected menu item
@@ -428,7 +428,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 void processRemoteButtonPress(decode_results *results) {
 	if (results->value == 0xFD8877 || results->value == 0xFF629D) {
 		if (testModeSetting) {
-			Serial.println("Up");
+			Serial.println("Up || Mode");
 		}
 		if (soundSetting) {
 			tone(speakerPin, 261, 10);
@@ -436,23 +436,23 @@ void processRemoteButtonPress(decode_results *results) {
 		upButtonPressed();
 	} else if (results->value == 0xFD9867 || results->value == 0xFFA857) {
 		if (testModeSetting) {
-			Serial.println("Down");
+			Serial.println("Down || -");
 		}
 		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		downButtonPressed();
-	} else if (results->value == 0xFD28D7) {
+	} else if (results->value == 0xFD28D7 || results->value == 0xFF22DD) {
 		if (testModeSetting) {
-			Serial.println("Left");
+			Serial.println("Left || Play");
 		}
 		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		leftButtonPressed();
-	} else if (results->value == 0xFD6897) {
+	} else if (results->value == 0xFD6897 || results->value == 0xFFC23D) {
 		if (testModeSetting) {
-			Serial.println("Right");
+			Serial.println("Right || Forward");
 		}
 		if (soundSetting) {
 			tone(speakerPin, 261, 10);
@@ -460,23 +460,23 @@ void processRemoteButtonPress(decode_results *results) {
 		rightButtonPressed();
 	} else if (results->value == 0xFDA857 || results->value == 0xFF02FD) {
 		if (testModeSetting) {
-			Serial.println("OK");
+			Serial.println("OK || Previous");
 		}
 		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		selectButtonPressed();
-	} else if (results->value == 0xFD30CF) {
+	} else if (results->value == 0xFD30CF || results->value == 0xFFE01F) {
 		if (testModeSetting) {
-			Serial.println("*");
+			Serial.println("* || EQ");
 		}
 		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
 		asterixButtonPressed();
-	} else if (results->value == 0xFD708F) {
+	} else if (results->value == 0xFD708F || results->value == 0xFF906F) {
 		if (testModeSetting) {
-			Serial.println("#");
+			Serial.println("# || +");
 		}
 		if (soundSetting) {
 			tone(speakerPin, 261, 10);
