@@ -473,7 +473,6 @@ void processRemoteButtonPress(decode_results *results) {
 		if (soundSetting) {
 			tone(speakerPin, 261, 10);
 		}
-		asterixButtonPressed();
 	} else if (results->value == 0xFD708F || results->value == 0xFF906F) {
 		if (testModeSetting) {
 			Serial.println("# || +");
@@ -526,14 +525,6 @@ void hashButtonPressed()
 	}
 }
 
-void asterixButtonPressed()
-{
-	if (currentScreen == ABOUT_SCREEN) {
-		currentMode = SURFACE_MODE;
-		displayScreen(UI_TEST_SCREEN);
-	}
-}
-
 // This is the OK or the Prev button on the IR Remote Control
 void selectButtonPressed()
 {
@@ -576,12 +567,6 @@ void selectButtonPressed()
 		currentMode = SURFACE_MODE;
 		stopDive();
 		displayScreen(MENU_SCREEN);
-	} else if (currentScreen == LOGBOOK_SCREEN) {
-		currentMode = SURFACE_MODE;
-		displayScreen(MENU_SCREEN);
-	} else if (currentScreen == SURFACE_TIME_SCREEN) {
-		currentMode = SURFACE_MODE;
-		displayScreen(MENU_SCREEN);
 	} else if (currentScreen == GAUGE_SCREEN) {
 		currentMode = SURFACE_MODE;
 		stopDive();
@@ -597,12 +582,6 @@ void selectButtonPressed()
 			displayScreen(MENU_SCREEN);
 			setSettingsToDefault();
 		}
-	} else if (currentScreen == ABOUT_SCREEN) {
-		currentMode = SURFACE_MODE;
-		displayScreen(MENU_SCREEN);
-	} else if (currentScreen == UI_TEST_SCREEN) {
-		currentMode = SURFACE_MODE;
-		displayScreen(ABOUT_SCREEN);
 	}
 }
 
@@ -620,6 +599,20 @@ void upButtonPressed()
 			}
 		}
 		break;
+		case LOGBOOK_SCREEN: {
+			currentMode = SURFACE_MODE;
+			displayScreen(MENU_SCREEN);
+		}
+		break;
+		case PROFILE_SCREEN: {
+			displayScreen(LOGBOOK_SCREEN);
+		}
+		break;
+		case SURFACE_TIME_SCREEN: {
+			currentMode = SURFACE_MODE;
+			displayScreen(MENU_SCREEN);
+		}
+		break;
 		case SETTINGS_SCREEN: {
 			if (selectedSettingIndex == 0) {
 				settingsSelect(6);
@@ -628,8 +621,14 @@ void upButtonPressed()
 			}
 		}
 		break;
-		case PROFILE_SCREEN: {
-			displayScreen(LOGBOOK_SCREEN);
+		case ABOUT_SCREEN: {
+			currentMode = SURFACE_MODE;
+			displayScreen(MENU_SCREEN);
+		}
+		break;
+		case UI_TEST_SCREEN: {
+			currentMode = SURFACE_MODE;
+			displayScreen(ABOUT_SCREEN);
 		}
 		break;
 	}
@@ -659,6 +658,11 @@ void downButtonPressed()
 		break;
 		case LOGBOOK_SCREEN: {
 			displayScreen(PROFILE_SCREEN);
+		}
+		break;
+		case ABOUT_SCREEN: {
+			currentMode = SURFACE_MODE;
+			displayScreen(UI_TEST_SCREEN);
 		}
 		break;
 	}
