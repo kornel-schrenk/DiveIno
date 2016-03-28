@@ -1,6 +1,7 @@
 #include "Logbook.h"
 
 #define LOGBOOK_FILE_NAME "LOGBOOK.TXT"
+#define PROFILE_TEMP_FILE_NAME "DIVETEMP.TXT"
 
 Logbook::Logbook() {
 }
@@ -61,6 +62,97 @@ String Logbook::getProfileFileName(int profileNumber)
 		}
 	}
 	return fileName;
+}
+
+File Logbook::createNewProfileFile(int profileNumber)
+{
+	return SD.open(getFileNameFromProfileNumber(profileNumber, true), FILE_WRITE);
+}
+
+void Logbook::storeProfileItem(File profileFile, float pressure, float depth, float temperature, int duration)
+{
+	profileFile.print(pressure, 2);
+	profileFile.print(", ");
+	profileFile.print(depth, 1);
+	profileFile.print(", ");
+	profileFile.print(temperature, 1);
+	profileFile.print(", ");
+	profileFile.println(duration);
+
+	profileFile.flush();
+}
+
+void Logbook::storeDiveSummary(int profileNumber, File profileFile, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time)
+{
+	File finalFile = SD.open(getFileNameFromProfileNumber(profileNumber, false), FILE_WRITE);
+
+	finalFile.println("************");
+	finalFile.println("* Summary: *");
+	finalFile.println("************");
+	finalFile.println("");
+	finalFile.print("Duration (seconds) = ");
+	finalFile.println(duration);
+	finalFile.print("Maximum depth (meter) = ");
+	finalFile.println(maxDepth, 1);
+	finalFile.print("Minimum temperature (celsius) = ");
+	finalFile.println(minTemperature, 1);
+	finalFile.print("Oxygen percentage = ");
+	finalFile.println(oxigenPercentage, 1);
+	finalFile.print("Dive date = ");
+	finalFile.println(date);
+	finalFile.print("Dive time = ");
+	finalFile.println(date);
+	finalFile.println("");
+	finalFile.println("**********");
+	finalFile.println("* Notes: *");
+	finalFile.println("**********");
+	finalFile.println("");
+	finalFile.println("");
+	finalFile.println("");
+	finalFile.println("");
+	finalFile.println("************");
+	finalFile.println("* Profile: *");
+	finalFile.println("************");
+	finalFile.println("");
+	finalFile.println("Pressure (milliBar), Depth (meter), Temperature (celsius), Duration (seconds)");
+	finalFile.println("-----------------------------------------------------------------------------");
+	finalFile.flush();
+
+	profileFile.seek(0);
+	String line;
+	while (profileFile.available()) {
+		line = profileFile.readStringUntil('\n');
+		finalFile.print(line);
+		finalFile.flush();
+	}
+
+	profileFile.close();
+	finalFile.close();
+
+	//Remove the temporary dive profile file
+
+	//String to char* conversion has to be done, because remove() only works with char*
+	String tempFileName = getFileNameFromProfileNumber(profileNumber, true);
+	char* tempFileRef = new char[tempFileName.length()+1];
+	tempFileName.toCharArray(tempFileRef, tempFileName.length()+1, 0);
+
+	if (SD.exists(tempFileRef)) {
+		SD.remove(tempFileRef);
+	}
+}
+
+void Logbook::printFile(String fileName)
+{
+	File file = SD.open(fileName, FILE_READ);
+	if (file) {
+		String line;
+		while (file.available()) {
+			line = file.readStringUntil('\n');
+			Serial.print(line);
+			file.print(line);
+		}
+		file.close();
+	}
 }
 
 ProfileData* Logbook::loadProfileDataFromFile(String profileFileName)
@@ -147,6 +239,29 @@ void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 /////////////////////
 // Private methods //
 /////////////////////
+
+String Logbook::getFileNameFromProfileNumber(int profileNumber, bool isTemp)
+{
+	//Create the name of the new profile file
+	String fileName = "";
+	if (isTemp) {
+		fileName += "TEMP";
+	} else {
+		fileName += "DIVE";
+	}
+
+	if (profileNumber < 10) {
+		fileName += "000";
+	} else if (profileNumber < 100) {
+		fileName += "00";
+	} else if (profileNumber < 1000) {
+		fileName += "0";
+	}
+	fileName += profileNumber;
+	fileName += ".TXT";
+
+	return fileName;
+}
 
 float Logbook::getDepthFromProfileLine(String line)
 {

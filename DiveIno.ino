@@ -378,6 +378,8 @@ void startDive()
 
 	if (currentScreen == DIVE_SCREEN) {
 
+		//TODO Start dive profile logging - create a new file
+
 		// Initialize the DiveDeco library based on the settings
 		diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
 		diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
@@ -394,6 +396,8 @@ void startDive()
 void stopDive()
 {
 	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
+
+	//TODO Stop dive profile logging
 }
 
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
@@ -885,7 +889,34 @@ void displayScreen(byte screen) {
 			view.displayAboutScreen();
 			break;
 		case UI_TEST_SCREEN:
+
+//			if (maximumProfileNumber <= 0) {
+//				maximumProfileNumber = logbook.loadLogbookData()->numberOfStoredProfiles;
+//			}
+
+			File profileFile = logbook.createNewProfileFile(24);
+
+			float pressure = 1435.46;
+			float depth = 4.2;
+			float temperature = 15.3;
+			int duration = 20;
+
+			//Append the new profile information
+			logbook.storeProfileItem(profileFile, pressure, depth, temperature, duration);
+
+			pressure = 1525.89;
+			depth = 5.1;
+			temperature = 15.3;
+			duration = 40;
+
+			//Append the new profile information
+			logbook.storeProfileItem(profileFile, pressure, depth, temperature, duration);
+
 			view.displayTestScreen();
+
+			logbook.storeDiveSummary(24, profileFile, 45, 36.9, 16.7, 21.4, "2016-06-19", "10:36");
+			//logbook.printFile("DIVE0024.TXT");
+
 			break;
 	}
 }
