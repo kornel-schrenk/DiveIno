@@ -28,7 +28,8 @@ class Logbook {
 public:
 	Logbook();
 	LogbookData* loadLogbookData();
-	String getProfileFileName(int profileNumber);
+	void updateLogbookData(LogbookData* logbookData);
+	String getFileNameFromProfileNumber(int profileNumber, bool isTemp);
 	File createNewProfileFile(int profileNumber);
 	void storeProfileItem(File profileFile, float pressure, float depth, float temperature, int duration);
 	void storeDiveSummary(int profileNumber, File profileFile, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time);
@@ -36,7 +37,6 @@ public:
 	ProfileData* loadProfileDataFromFile(String profileFileName);
     void drawProfileItems(UTFT* tft, int profileNumber, int pageNumber);
 private:
-    String getFileNameFromProfileNumber(int profileNumber, bool isTemp);
     float getDepthFromProfileLine(String line);
 	int readIntFromLineEnd(String line);
 	float readFloatFromLineEnd(String line);

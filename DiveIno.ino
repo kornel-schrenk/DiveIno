@@ -81,6 +81,7 @@ SimpleTimer diveDurationTimer;
 Logbook logbook = Logbook();
 int currentProfileNumber = 0; //There is no stored profile - default state
 int maximumProfileNumber = 0;
+File profileFile;
 
 void setup() {
 
@@ -225,9 +226,7 @@ void diveSurface()
 		switch (currentScreen) {
 			case GAUGE_SCREEN: {
 				//Instead of dive information we will display the current time
-				byte year, month, date, DoW, hour, minute, second;
-				Clock.getTime(year, month, date, DoW, hour, minute, second);
-				view.drawCurrentTime(year, month, date, DoW, hour, minute, second);
+				view.drawCurrentTime(getCurrentTimeText());
 			}
 			break;
 			case DIVE_SCREEN: {
@@ -283,9 +282,7 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 	switch (currentScreen) {
 		case GAUGE_SCREEN: {
 			//Instead of dive information we will display the current time
-			byte year, month, date, DoW, hour, minute, second;
-			Clock.getTime(year, month, date, DoW, hour, minute, second);
-			view.drawCurrentTime(year, month, date, DoW, hour, minute, second);
+			view.drawCurrentTime(getCurrentTimeText());
 		}
 		break;
 		case DIVE_SCREEN: {
@@ -378,7 +375,11 @@ void startDive()
 
 	if (currentScreen == DIVE_SCREEN) {
 
-		//TODO Start dive profile logging - create a new file
+		//Start dive profile logging - create a new file
+		if (maximumProfileNumber <= 0) {
+			maximumProfileNumber = logbook.loadLogbookData()->numberOfStoredProfiles;
+		}
+		profileFile = logbook.createNewProfileFile(maximumProfileNumber+1);
 
 		// Initialize the DiveDeco library based on the settings
 		diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
@@ -396,8 +397,6 @@ void startDive()
 void stopDive()
 {
 	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
-
-	//TODO Stop dive profile logging
 }
 
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
@@ -410,6 +409,9 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		view.drawDecoArea(diveInfo);
 	}
 
+	//Store the current dive data in the dive profile
+	logbook.storeProfileItem(profileFile, pressureInMillibar, depthInMeter, temperatureInCelsius, durationInSeconds);
+
 	if (seaLevelPressureSetting >= pressureInMillibar) {
 		if (testModeSetting) {
 			Serial.println("STOP");
@@ -417,12 +419,75 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		previousDiveResult = diveDeco.stopDive();
 
+		// Stop dive profile logging
+		maximumProfileNumber = maximumProfileNumber+1;
+		logbook.storeDiveSummary(maximumProfileNumber, profileFile,
+				previousDiveResult->durationInSeconds, previousDiveResult->maxDepthInMeters, minTemperatureInCelsius,
+				oxygenRateSetting*100, "2016-06-19", "10:36");
+
+		int durationInMinutes = previousDiveResult->durationInSeconds / 60;
+
+		LogbookData* logbookData = logbook.loadLogbookData();
+		logbookData->totalNumberOfDives++;
+		logbookData->numberOfStoredProfiles++;
+		logbookData->lastDiveDateTime = getCurrentTimeText();
+
+		//Add the dive duration to the overall logged duration
+		durationInMinutes = logbookData->totalDiveMinutes + durationInMinutes;
+		logbookData->totalDiveHours += durationInMinutes / 60;
+		logbookData->totalDiveMinutes += durationInMinutes % 60;
+
+		if (previousDiveResult->maxDepthInMeters > logbookData->totalMaximumDepth) {
+			logbookData->totalMaximumDepth = previousDiveResult->maxDepthInMeters;
+		}
+		logbook.updateLogbookData(logbookData);
+
 		//Switch to DIVE_STOP mode
 		currentMode = DIVE_STOP_MODE;
 		displayScreen(SURFACE_TIME_SCREEN);
 
 		//TODO Start surface time counter
 	}
+}
+
+String getCurrentTimeText() {
+	String time = "20";
+	//Instead of dive information we will display the current time
+	byte year, month, date, DoW, hour, minute, second;
+	Clock.getTime(year, month, date, DoW, hour, minute, second);
+
+	time+=year;
+	if (year<10) {
+		time+="0";
+	}
+	time+="-";
+	if (month <10) {
+		time+="0";
+	}
+	time+=month;
+	time+="-";
+	if (date<10) {
+		time+="0";
+	}
+	time+=date;
+	time+=" ";
+
+	if (hour<10) {
+		time+="0";
+	}
+	time+=hour;
+	time+=":";
+	if (minute<10) {
+		time+="0";
+	}
+	time+=minute;
+	time+=":";
+	if (second<10) {
+		time+="0";
+	}
+	time+=second;
+
+	return time;
 }
 
 /////////////
@@ -851,7 +916,7 @@ void displayScreen(byte screen) {
 			break;
 		case PROFILE_SCREEN:
 			if (maximumProfileNumber != 0 && currentProfileNumber != 0) {
-				view.displayProfileScreen(logbook.loadProfileDataFromFile(logbook.getProfileFileName(currentProfileNumber)) , currentProfileNumber);
+				view.displayProfileScreen(logbook.loadProfileDataFromFile(logbook.getFileNameFromProfileNumber(currentProfileNumber, false)), currentProfileNumber);
 			}
 			break;
 		case SURFACE_TIME_SCREEN:
@@ -887,35 +952,47 @@ void displayScreen(byte screen) {
 			break;
 		case ABOUT_SCREEN:
 			view.displayAboutScreen();
+			view.drawCurrentTime(getCurrentTimeText());
 			break;
 		case UI_TEST_SCREEN:
+			view.displayTestScreen();
 
 //			if (maximumProfileNumber <= 0) {
 //				maximumProfileNumber = logbook.loadLogbookData()->numberOfStoredProfiles;
 //			}
-
-			File profileFile = logbook.createNewProfileFile(24);
-
-			float pressure = 1435.46;
-			float depth = 4.2;
-			float temperature = 15.3;
-			int duration = 20;
-
-			//Append the new profile information
-			logbook.storeProfileItem(profileFile, pressure, depth, temperature, duration);
-
-			pressure = 1525.89;
-			depth = 5.1;
-			temperature = 15.3;
-			duration = 40;
-
-			//Append the new profile information
-			logbook.storeProfileItem(profileFile, pressure, depth, temperature, duration);
-
-			view.displayTestScreen();
-
-			logbook.storeDiveSummary(24, profileFile, 45, 36.9, 16.7, 21.4, "2016-06-19", "10:36");
-			//logbook.printFile("DIVE0024.TXT");
+//
+//			File profileFile = logbook.createNewProfileFile(17);
+//
+//			float pressure = 1435.46;
+//			float depth = 4.2;
+//			float temperature = 15.3;
+//			int duration = 20;
+//
+//			//Append the new profile information
+//			logbook.storeProfileItem(profileFile, pressure, depth, temperature, duration);
+//
+//			pressure = 1525.89;
+//			depth = 5.1;
+//			temperature = 15.3;
+//			duration = 40;
+//
+//			//Append the new profile information
+//			logbook.storeProfileItem(profileFile, pressure, depth, temperature, duration);
+//
+//			view.displayTestScreen();
+//
+//			logbook.storeDiveSummary(17, profileFile, 45, 36.9, 16.7, 21.4, "2016-06-19", "10:36");
+//
+//			LogbookData* logbookData = new LogbookData;
+//			logbookData->totalNumberOfDives = 56;
+//			logbookData->totalDiveHours = 12;
+//			logbookData->totalDiveMinutes = 45;
+//			logbookData->totalMaximumDepth = 42.3;
+//			logbookData->lastDiveDateTime = "2016-03-31 15:05";
+//			logbookData->numberOfStoredProfiles = 12;
+//
+//			logbook.updateLogbookData(logbookData);
+//			logbook.printFile("LOGBOOK.TXT");
 
 			break;
 	}

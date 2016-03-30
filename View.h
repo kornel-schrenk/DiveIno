@@ -45,7 +45,7 @@ public:
 	void drawCurrentTemperature(float currentTemperature);
 	void drawCurrentPressure(int currentPressure);
 	void drawDiveDuration(int duration);
-	void drawCurrentTime(byte year, byte month, byte date, byte DoW, byte hour, byte minute, byte second);
+	void drawCurrentTime(String time);
 	void drawOxigenPercentage(float oxigenPercentage);
 	void drawPartialPressureWarning();
 	void drawDecoArea(DiveInfo diveInfo);

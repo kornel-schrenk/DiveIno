@@ -481,29 +481,11 @@ void View::drawDiveDuration(int duration) // The dive duration is always in seco
 	tft->printNumI(hours, paddingLeft, paddingTop, 1); // Max 9 hours
 }
 
-void View::drawCurrentTime(byte year, byte month, byte date, byte DoW, byte hour, byte minute, byte second)
+void View::drawCurrentTime(String time)
 {
 	tft->setFont(Grotesk16x32);
 	tft->setColor(VGA_TEAL);
-
-	int paddingLeft = 50;
-	int paddingTop = 265;
-
-	tft->print("20", paddingLeft + tft->getFontXsize(), paddingTop);
-	tft->printNumI(year, paddingLeft + tft->getFontXsize() * 3, paddingTop, 2, '0');
-
-	tft->print("-", paddingLeft + tft->getFontXsize() * 5, paddingTop);
-	tft->printNumI(month, paddingLeft + tft->getFontXsize() * 6, paddingTop, 2, '0');
-	tft->print("-", paddingLeft + tft->getFontXsize() * 8, paddingTop);
-	tft->printNumI(date, paddingLeft + tft->getFontXsize() * 9, paddingTop, 2, '0');
-
-	tft->print(" ", paddingLeft + tft->getFontXsize() * 11, paddingTop);
-
-	tft->printNumI(hour, paddingLeft + tft->getFontXsize() * 13, paddingTop, 2, '0');
-	tft->print(":", paddingLeft + tft->getFontXsize() * 15, paddingTop);
-	tft->printNumI(minute, paddingLeft + tft->getFontXsize() * 16, paddingTop, 2, '0');
-	tft->print(":", paddingLeft + tft->getFontXsize() * 18, paddingTop);
-	tft->printNumI(second, paddingLeft + tft->getFontXsize() * 19, paddingTop, 2, '0');
+	tft->print(time, 80, 265);
 }
 
 void View::drawOxigenPercentage(float oxigenPercentage)

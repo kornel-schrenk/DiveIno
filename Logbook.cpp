@@ -1,7 +1,6 @@
 #include "Logbook.h"
 
 #define LOGBOOK_FILE_NAME "LOGBOOK.TXT"
-#define PROFILE_TEMP_FILE_NAME "DIVETEMP.TXT"
 
 Logbook::Logbook() {
 }
@@ -17,50 +16,89 @@ LogbookData* Logbook::loadLogbookData()
 	if (SD.exists(LOGBOOK_FILE_NAME)) {
 		File logbookFile = SD.open(LOGBOOK_FILE_NAME);
 		if (logbookFile) {
-			//Skip the Summary section
-			logbookFile.seek(40);
-
 			String line;
 			int counter = 0;
 			while (logbookFile.available()) {
 				line = logbookFile.readStringUntil('\n');
 
-				if (counter == 0) {
+				if (counter == 4) {
 					logbookData->totalNumberOfDives = readIntFromLineEnd(line);
-				} else if (counter == 1) {
+				} else if (counter == 5) {
 					logbookData->totalDiveHours = readIntFromLineEnd(line);
-				} else if (counter == 2) {
+				} else if (counter == 6) {
 					logbookData->totalDiveMinutes = readIntFromLineEnd(line);
-				} else if (counter == 3) {
+				} else if (counter == 7) {
 					logbookData->totalMaximumDepth = readFloatFromLineEnd(line);
-				} else if (counter == 4) {
+				} else if (counter == 8) {
 					logbookData->lastDiveDateTime = readStringFromLineEnd(line);
 				}
 				counter++;
 			}
 			// The first 4 lines were skipped - this is the Summary section
-			logbookData->numberOfStoredProfiles = counter - 10;
+			logbookData->numberOfStoredProfiles = counter - 14;
 			logbookFile.close();
 		}
 	}
 	return logbookData;
 }
 
-String Logbook::getProfileFileName(int profileNumber)
+void Logbook::updateLogbookData(LogbookData* logbookData)
 {
-	String fileName = "";
-	if (SD.exists(LOGBOOK_FILE_NAME)) {
-		File logbookFile = SD.open(LOGBOOK_FILE_NAME);
-		if (logbookFile) {
-			String line;
-			int counter = 0;
-			while (logbookFile.available() && counter < profileNumber + 14) {
-				fileName = logbookFile.readStringUntil('\n');
-				counter++;
-			}
-			logbookFile.close();
-		}
+	SD.remove(LOGBOOK_FILE_NAME);
+
+	File logbookFile = SD.open(LOGBOOK_FILE_NAME, FILE_WRITE);
+
+	logbookFile.println("************");
+	logbookFile.println("* Summary: *");
+	logbookFile.println("************");
+	logbookFile.println("");
+	logbookFile.print("Number of dives = ");
+	logbookFile.println(logbookData->totalNumberOfDives);
+	logbookFile.print("Logged dive hours = ");
+	logbookFile.println(logbookData->totalDiveHours);
+	logbookFile.print("Logged dive minutes = ");
+	logbookFile.println(logbookData->totalDiveMinutes);
+	logbookFile.print("Maximum depth (meter) = ");
+	logbookFile.println(logbookData->totalMaximumDepth, 1);
+	logbookFile.print("Last dive = ");
+	logbookFile.println(logbookData->lastDiveDateTime);
+	logbookFile.println("");
+	logbookFile.flush();
+
+	logbookFile.println("**********");
+	logbookFile.println("* Dives: *");
+	logbookFile.println("**********");
+	logbookFile.println("");
+	logbookFile.flush();
+
+	for (int i=1; i<=logbookData->numberOfStoredProfiles; i++) {
+		logbookFile.println(getFileNameFromProfileNumber(i, false));
 	}
+	logbookFile.flush();
+
+	logbookFile.close();
+}
+
+String Logbook::getFileNameFromProfileNumber(int profileNumber, bool isTemp)
+{
+	//Create the name of the new profile file
+	String fileName = "";
+	if (isTemp) {
+		fileName += "TEMP";
+	} else {
+		fileName += "DIVE";
+	}
+
+	if (profileNumber < 10) {
+		fileName += "000";
+	} else if (profileNumber < 100) {
+		fileName += "00";
+	} else if (profileNumber < 1000) {
+		fileName += "0";
+	}
+	fileName += profileNumber;
+	fileName += ".TXT";
+
 	return fileName;
 }
 
@@ -198,7 +236,7 @@ ProfileData* Logbook::loadProfileDataFromFile(String profileFileName)
 
 void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 {
-	String profileFileName = getProfileFileName(profileNumber);
+	String profileFileName = getFileNameFromProfileNumber(profileNumber, false);
 	ProfileData* profileData = loadProfileDataFromFile(profileFileName);
 
 	//The String has to be converted into a char array, otherwise the board will reset itself
@@ -239,29 +277,6 @@ void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 /////////////////////
 // Private methods //
 /////////////////////
-
-String Logbook::getFileNameFromProfileNumber(int profileNumber, bool isTemp)
-{
-	//Create the name of the new profile file
-	String fileName = "";
-	if (isTemp) {
-		fileName += "TEMP";
-	} else {
-		fileName += "DIVE";
-	}
-
-	if (profileNumber < 10) {
-		fileName += "000";
-	} else if (profileNumber < 100) {
-		fileName += "00";
-	} else if (profileNumber < 1000) {
-		fileName += "0";
-	}
-	fileName += profileNumber;
-	fileName += ".TXT";
-
-	return fileName;
-}
 
 float Logbook::getDepthFromProfileLine(String line)
 {
