@@ -359,7 +359,7 @@ void View::displayAboutScreen()
 	tft->print("DiveIno - About", 64, 10);
 
 	// Draw separation line
-	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);	tft->setFont(Grotesk16x32);
+	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);	tft->setFont(Grotesk16x32);
 
 	tft->setColor(VGA_WHITE);
 	tft->print("Version: 0.8.3", CENTER, 140);
@@ -379,14 +379,14 @@ void View::displayTestScreen()
 	drawDiveDuration(2048);
 
 	DiveInfo diveInfo;
-//	diveInfo.decoNeeded = false;
-//	diveInfo.minutesToDeco = 46;
-//	drawDecoArea(diveInfo);
-
-	diveInfo.decoNeeded = true;
-    diveInfo.decoStopInMeters = 24;
-    diveInfo.decoStopDurationInMinutes = 367;
+	diveInfo.decoNeeded = false;
+	diveInfo.minutesToDeco = 46;
 	drawDecoArea(diveInfo);
+
+//	diveInfo.decoNeeded = true;
+//    diveInfo.decoStopInMeters = 24;
+//    diveInfo.decoStopDurationInMinutes = 367;
+//	drawDecoArea(diveInfo);
 
 	drawSafetyStop(134);
 	drawAscend(ASCEND_NORMAL);
@@ -401,84 +401,63 @@ void View::drawDepth(float depth)
 	tft->setFont(SevenSeg_XXXL);
 	tft->setColor(VGA_YELLOW);
 
-	int paddingLeft = 240;
-	int paddingTop = 15;
-
-	tft->printNumI(depth, paddingLeft, paddingTop, 2, '/'); //Two digits - the / is the SPACE in the font
-
-	// Draw the decimal point
-	tft->fillRect(paddingLeft + tft->getFontXsize()*2 + 2, paddingTop + tft->getFontYsize() - 10, paddingLeft + tft->getFontXsize()*2 + 10, paddingTop + tft->getFontYsize() - 2);
-	// Draw the first decimal fraction digit
-	tft->printNumI(((int)(depth*10))%10, paddingLeft + tft->getFontXsize()*2 + 12, paddingTop, 1); //One digits
+	tft->printNumI(depth, 240, 15, 2, '/');           //Two digits - the / is the SPACE in the font
+	tft->fillRect(370, 105, 378, 113);	              // Draw the decimal point
+	tft->printNumI(((int)(depth*10))%10, 380, 15, 1); // Draw the first decimal fraction digit
 
 	tft->setFont(BigFont);
 	tft->setColor(VGA_SILVER);
-	tft->print("m", paddingLeft + 64*3 + 12, 100 + paddingTop - tft->getFontYsize());
+	tft->print("m", 444, 98);
 }
 
 void View::drawMaximumDepth(float maximumDepth)
 {
 	tft->setFont(SevenSegNumFontPlusPlus);
 	tft->setColor(VGA_PURPLE);
-
-	int paddingLeft = 10;
-	int paddingTop = 130;
-
-	tft->printNumF(maximumDepth, 1, paddingLeft, paddingTop, '.', 4, '/');
+	tft->printNumF(maximumDepth, 1, 10, 130, '.', 4, '/');
 
 	tft->setFont(BigFont);
 	tft->setColor(VGA_SILVER);
-	tft->print("m", paddingLeft + 32*4 + 5, paddingTop + 50 - tft->getFontYsize());
+	tft->print("m", 143, 164);
 }
 
 void View::drawCurrentTemperature(float currentTemperature)
 {
 	tft->setFont(SevenSegNumFontPlusPlus);
 	tft->setColor(VGA_LIME);
-
-	int paddingLeft = 10;
-	int paddingTop = 10;
-
-	tft->printNumF(currentTemperature, 1, paddingLeft, paddingTop, '.', 4, '/'); //the / is the SPACE in the font
+	tft->printNumF(currentTemperature, 1, 10, 10, '.', 4, '/'); //the / is the SPACE in the font
 
 	tft->setFont(BigFont);
 	tft->setColor(VGA_SILVER);
-	tft->print("cel", paddingLeft + 32*4 + 5, paddingTop + 50 - tft->getFontYsize());
+	tft->print("cel", 143, 44);
 }
 
 void View::drawCurrentPressure(int currentPressure)
 {
 	tft->setFont(SevenSegNumFontPlusPlus);
 	tft->setColor(VGA_AQUA);
-
-	int paddingLeft = 10; // 10
-	int paddingTop = 70;  // 10 + 50 + 10
-
-	tft->printNumI(currentPressure, paddingLeft, paddingTop, 4, '/');
+	tft->printNumI(currentPressure, 10, 70, 4, '/');
 
 	tft->setFont(BigFont);
 	tft->setColor(VGA_SILVER);
-	tft->print("mBar", paddingLeft + 32*4 + 5, paddingTop + 50 - tft->getFontYsize());
+	tft->print("mBar", 143, 104);
 }
 
 void View::drawDiveDuration(int duration) // The dive duration is always in seconds
 {
+	int hours = duration / 3600;
+	duration = duration % 3600;
+	int minutes = duration / 60;
+	int seconds = duration % 60;
+
 	tft->setFont(SevenSegNumFontPlusPlus);
 	tft->setColor(VGA_WHITE);
 
-	byte hours = duration / 3600;
-	duration = duration % 3600;
-	byte minutes = duration / 60;
-	byte seconds = duration % 60;
-
-	int paddingLeft = 240;
-	int paddingTop = 130;
-
-	tft->printNumI(seconds, paddingLeft + tft->getFontXsize() * 5, paddingTop, 2, '0');
-	tft->print(":", paddingLeft + tft->getFontXsize() * 4, paddingTop, 1);
-	tft->printNumI(minutes, paddingLeft + tft->getFontXsize() * 2, paddingTop, 2, '0');
-	tft->print(":", paddingLeft + tft->getFontXsize() * 1, paddingTop, 1);
-	tft->printNumI(hours, paddingLeft, paddingTop, 1); // Max 9 hours
+	tft->printNumI(hours, 240, 130, 1); // Max 9 hours
+	tft->print(":", 272, 130, 1);
+	tft->printNumI(minutes, 304, 130, 2, '0');
+	tft->print(":", 368, 130, 1);
+	tft->printNumI(seconds, 400, 130, 2, '0');
 }
 
 void View::drawCurrentTime(String time)
@@ -490,9 +469,6 @@ void View::drawCurrentTime(String time)
 
 void View::drawOxigenPercentage(float oxigenPercentage)
 {
-	int paddingLeft = 290;
-	int paddingTop = 217;
-
 	tft->setFont(BigFont);
 
 	if (oxigenPercentage <= 23) {
@@ -500,10 +476,10 @@ void View::drawOxigenPercentage(float oxigenPercentage)
 	} else {
 		tft->setColor(VGA_MAROON);
 	}
-	tft->printNumI(oxigenPercentage, paddingLeft + tft->getFontXsize() * 3, paddingTop, 2, ' ');
+	tft->printNumI(oxigenPercentage, 338, 217, 2, ' ');
 
 	tft->setColor(VGA_WHITE);
-	tft->print("%", paddingLeft + tft->getFontXsize() * 5, paddingTop);
+	tft->print("%", 370, 217);
 }
 
 void View::drawPartialPressureWarning()
@@ -521,39 +497,33 @@ void View::drawDecoArea(DiveInfo diveInfo)
 		tft->setColor(VGA_WHITE);
 		tft->print("Safe", 10, 209);
 
-		int paddingLeft = 90;
-		int paddingTop = 200;
-
 		tft->setFont(SevenSegNumFontPlusPlus);
 		tft->setColor(VGA_YELLOW);
-		tft->printNumI(diveInfo.minutesToDeco, paddingLeft, paddingTop, 2, '0');
+		tft->printNumI(diveInfo.minutesToDeco, 90, 200, 2, '0');
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("min", paddingLeft + 32*2 + 5, paddingTop + 50 - tft->getFontYsize());
+		tft->print("min", 159, 234);
 	} else {
 
 		tft->setFont(Grotesk16x32);
 		tft->setColor(VGA_RED);
 		tft->print("Deco", 10, 209);
 
-		int paddingLeft = 90;
-		int paddingTop = 200;
-
 		tft->setFont(SevenSegNumFontPlusPlus);
 		tft->setColor(VGA_LIME);
 		if (diveInfo.decoStopDurationInMinutes < 100) {
-			tft->printNumI(diveInfo.decoStopDurationInMinutes, paddingLeft , paddingTop, 2, '/');
+			tft->printNumI(diveInfo.decoStopDurationInMinutes, 90, 200, 2, '/');
 		} else {
-			tft->printNumI(99, paddingLeft , paddingTop, 2, '/');
+			tft->printNumI(99, 90, 200, 2, '/');
 		}
 		tft->setColor(VGA_FUCHSIA);
-		tft->printNumI(diveInfo.decoStopInMeters, paddingLeft + tft->getFontXsize() * 4, paddingTop, 2, '/');
+		tft->printNumI(diveInfo.decoStopInMeters, 218, 200, 2, '/');
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("m", paddingLeft + 32*6 + 5, paddingTop + 50 - tft->getFontYsize());
-		tft->print("min", paddingLeft + 32*2 + 5, paddingTop + 50 - tft->getFontYsize());
+		tft->print("m", 287, 234);
+		tft->print("min", 159, 234);
 	}
 }
 
@@ -577,51 +547,46 @@ void View::drawSafetyStop(unsigned int safetyStopDurationInSeconds)
 		duration = 180 - safetyStopDurationInSeconds; // Counting backwards
 	}
 
-	byte minutes = duration / 60;
-	byte seconds = duration % 60;
+	int minutes = duration / 60;
+	int seconds = duration % 60;
 
-	int paddingLeft = 90;
-	int paddingTop = 260;
-
-	tft->printNumI(seconds, paddingLeft + tft->getFontXsize() * 3, paddingTop, 2, '0');
-	tft->print(":", paddingLeft + tft->getFontXsize() * 2, paddingTop, 1);
-	tft->printNumI(minutes, paddingLeft, paddingTop, 2, '0');
+	tft->printNumI(minutes, 90, 260, 2, '0');
+	tft->print(":", 154, 260, 1);
+	tft->printNumI(seconds, 186, 260, 2, '0');
 }
 
 void View::drawAscend(int ascendRate)
 {
-	int paddingLeft = 400;
-	int paddingTop = 210;
 
 	tft->setFont(Grotesk16x32);
 	switch (ascendRate) {
 		case ASCEND_OK:
 			tft->setColor(VGA_GREEN);
-			tft->print("----", paddingLeft, paddingTop);
+			tft->print("----", 400, 210);
 			break;
 		case ASCEND_SLOW:
 			tft->setColor(VGA_WHITE);
-			tft->print("---|", paddingLeft, paddingTop);
+			tft->print("---|", 400, 210);
 			break;
 		case ASCEND_NORMAL:
 			tft->setColor(VGA_YELLOW);
-			tft->print("--||", paddingLeft, paddingTop);
+			tft->print("--||", 400, 210);
 			break;
 		case ASCEND_ATTENTION:
 			tft->setColor(VGA_MAROON);
-			tft->print("-|||", paddingLeft, paddingTop);
+			tft->print("-|||", 400, 210);
 			break;
 		case ASCEND_CRITICAL:
 			tft->setColor(VGA_RED);
-			tft->print("||||", paddingLeft, paddingTop);
+			tft->print("||||", 400, 210);
 			break;
 		case ASCEND_DANGER:
 			tft->setColor(VGA_RED);
-			tft->print("SLOW", paddingLeft, paddingTop);
+			tft->print("SLOW", 400, 210);
 			break;
 		default:
 			tft->setColor(VGA_GREEN);
-			tft->print("<<--", paddingLeft, paddingTop);
+			tft->print("<<--", 400, 210);
 	}
 }
 
