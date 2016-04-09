@@ -419,23 +419,33 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		previousDiveResult = diveDeco.stopDive();
 
+		String currentTimeText = getCurrentTimeText();
+
 		// Stop dive profile logging
 		maximumProfileNumber = maximumProfileNumber+1;
 		logbook.storeDiveSummary(maximumProfileNumber, profileFile,
 				previousDiveResult->durationInSeconds, previousDiveResult->maxDepthInMeters, minTemperatureInCelsius,
-				oxygenRateSetting*100, "2016-06-19", "10:36");
+				oxygenRateSetting*100, currentTimeText.substring(0, 10), currentTimeText.substring(11, 16));
 
 		int durationInMinutes = previousDiveResult->durationInSeconds / 60;
 
 		LogbookData* logbookData = logbook.loadLogbookData();
 		logbookData->totalNumberOfDives++;
 		logbookData->numberOfStoredProfiles++;
-		logbookData->lastDiveDateTime = getCurrentTimeText();
+		logbookData->lastDiveDateTime = currentTimeText.substring(0, 16);
 
 		//Add the dive duration to the overall logged duration
+		Serial.print("Dive duration (min): ");
+		Serial.println(durationInMinutes);
+		Serial.print("Previous duration (min): ");
+		Serial.println(logbookData->totalDiveMinutes);
+
 		durationInMinutes = logbookData->totalDiveMinutes + durationInMinutes;
+		Serial.print("New duration (min): ");
+		Serial.println(durationInMinutes);
+
 		logbookData->totalDiveHours += durationInMinutes / 60;
-		logbookData->totalDiveMinutes += durationInMinutes % 60;
+		logbookData->totalDiveMinutes = durationInMinutes % 60;
 
 		if (previousDiveResult->maxDepthInMeters > logbookData->totalMaximumDepth) {
 			logbookData->totalMaximumDepth = previousDiveResult->maxDepthInMeters;

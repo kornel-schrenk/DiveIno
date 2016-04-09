@@ -96,9 +96,17 @@ void View::displayLogbookScreen(LogbookData* logbookData)
 	tft->setColor(VGA_AQUA);
 	tft->printNumI(logbookData->totalNumberOfDives, paddingLeft, 80);
 	tft->setColor(VGA_YELLOW);
-	tft->printNumI(logbookData->totalDiveHours, paddingLeft, 120);
+	if (logbookData->totalDiveHours < 10) {
+		tft->printNumI(logbookData->totalDiveHours, paddingLeft + 16, 120);
+	} else {
+		tft->printNumI(logbookData->totalDiveHours, paddingLeft, 120);
+	}
 	tft->print(":", paddingLeft + 32, 120);
-	tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 48, 120);
+	if (logbookData->totalDiveMinutes < 10) {
+		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 64, 120);
+	} else {
+		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 48, 120);
+	}
 	tft->setColor(VGA_PURPLE);
 	tft->printNumF(logbookData->totalMaximumDepth, 1, paddingLeft, 160);
 	tft->setColor(VGA_TEAL);

@@ -48,31 +48,37 @@ void Logbook::updateLogbookData(LogbookData* logbookData)
 
 	File logbookFile = SD.open(LOGBOOK_FILE_NAME, FILE_WRITE);
 
-	logbookFile.println("************");
-	logbookFile.println("* Summary: *");
-	logbookFile.println("************");
-	logbookFile.println("");
+	logbookFile.print("************\n");
+	logbookFile.print("* Summary: *\n");
+	logbookFile.print("************\n");
+	logbookFile.print("\n");
 	logbookFile.print("Number of dives = ");
-	logbookFile.println(logbookData->totalNumberOfDives);
+	logbookFile.print(logbookData->totalNumberOfDives);
+	logbookFile.print("\n");
 	logbookFile.print("Logged dive hours = ");
-	logbookFile.println(logbookData->totalDiveHours);
+	logbookFile.print(logbookData->totalDiveHours);
+	logbookFile.print("\n");
 	logbookFile.print("Logged dive minutes = ");
-	logbookFile.println(logbookData->totalDiveMinutes);
+	logbookFile.print(logbookData->totalDiveMinutes);
+	logbookFile.print("\n");
 	logbookFile.print("Maximum depth (meter) = ");
-	logbookFile.println(logbookData->totalMaximumDepth, 1);
+	logbookFile.print(logbookData->totalMaximumDepth, 1);
+	logbookFile.print("\n");
 	logbookFile.print("Last dive = ");
-	logbookFile.println(logbookData->lastDiveDateTime);
-	logbookFile.println("");
+	logbookFile.print(logbookData->lastDiveDateTime);
+	logbookFile.print("\n");
+	logbookFile.print("\n");
 	logbookFile.flush();
 
-	logbookFile.println("**********");
-	logbookFile.println("* Dives: *");
-	logbookFile.println("**********");
-	logbookFile.println("");
+	logbookFile.print("**********\n");
+	logbookFile.print("* Dives: *\n");
+	logbookFile.print("**********\n");
+	logbookFile.print("\n");
 	logbookFile.flush();
 
 	for (int i=1; i<=logbookData->numberOfStoredProfiles; i++) {
-		logbookFile.println(getFileNameFromProfileNumber(i, false));
+		logbookFile.print(getFileNameFromProfileNumber(i, false));
+		logbookFile.print("\n");
 	}
 	logbookFile.flush();
 
@@ -109,12 +115,12 @@ File Logbook::createNewProfileFile(int profileNumber)
 
 void Logbook::storeProfileItem(File profileFile, float pressure, float depth, float temperature, int duration)
 {
-	profileFile.print(pressure, 2);
-	profileFile.print(", ");
+	profileFile.print(pressure, 0);
+	profileFile.print(",");
 	profileFile.print(depth, 1);
-	profileFile.print(", ");
+	profileFile.print(",");
 	profileFile.print(temperature, 1);
-	profileFile.print(", ");
+	profileFile.print(",");
 	profileFile.println(duration);
 
 	profileFile.flush();
@@ -137,10 +143,11 @@ void Logbook::storeDiveSummary(int profileNumber, File profileFile, unsigned int
 	finalFile.print("Oxygen percentage = ");
 	finalFile.println(oxigenPercentage, 1);
 	finalFile.print("Dive date = ");
-	finalFile.println(date);
+	finalFile.print(date);
+	finalFile.print('\n');
 	finalFile.print("Dive time = ");
-	finalFile.println(date);
-	finalFile.println("");
+	finalFile.print(time);
+	finalFile.print('\n');
 	finalFile.println("**********");
 	finalFile.println("* Notes: *");
 	finalFile.println("**********");
@@ -161,6 +168,7 @@ void Logbook::storeDiveSummary(int profileNumber, File profileFile, unsigned int
 	while (profileFile.available()) {
 		line = profileFile.readStringUntil('\n');
 		finalFile.print(line);
+		finalFile.print('\n');
 		finalFile.flush();
 	}
 
@@ -202,27 +210,27 @@ ProfileData* Logbook::loadProfileDataFromFile(String profileFileName)
 	profileFileName.toCharArray(fileName, profileFileName.length()+1);
 
 	if (SD.exists(fileName)) {
+		Serial.print("Exists: ");
+		Serial.println(fileName);
+
 		File profileFile = SD.open(fileName);
 		if (profileFile) {
-			//Skip the Summary section
-			profileFile.seek(40);
-
 			String line;
 			int counter = 0;
 			while (profileFile.available()) {
 				line = profileFile.readStringUntil('\n');
-
-				if (counter == 0) {
+				line.trim();
+				if (counter == 4) {
 					profileData->diveDuration = readIntFromLineEnd(line);
-				} else if (counter == 1) {
-					profileData->maximumDepth = readFloatFromLineEnd(line);
-				} else if (counter == 2) {
-					profileData->minimumTemperature = readFloatFromLineEnd(line);
-				} else if (counter == 3) {
-					profileData->oxigenPercentage = readFloatFromLineEnd(line);
-				} else if (counter == 4) {
-					profileData->diveDate = readStringFromLineEnd(line);
 				} else if (counter == 5) {
+					profileData->maximumDepth = readFloatFromLineEnd(line);
+				} else if (counter == 6) {
+					profileData->minimumTemperature = readFloatFromLineEnd(line);
+				} else if (counter == 7) {
+					profileData->oxigenPercentage = readFloatFromLineEnd(line);
+				} else if (counter == 8) {
+					profileData->diveDate = readStringFromLineEnd(line);
+				} else if (counter == 9) {
 					profileData->diveTime = readStringFromLineEnd(line);
 				}
 				counter ++;
