@@ -6,6 +6,11 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
+			<name>it.baeyens.arduino.core.inoToCpp</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
 			<triggers>clean,full,incremental,</triggers>
 			<arguments>
@@ -27,73 +32,59 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Libraries/ArduinoLib_MAX17043</name>
+			<name>core/core</name>
 			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/ArduinoLib_MAX17043</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/cores/arduino</location>
 		</link>
 		<link>
-			<name>Libraries/DS3231</name>
+			<name>core/variant</name>
 			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/DS3231</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/variants/mega</location>
 		</link>
 		<link>
-			<name>Libraries/IRremote</name>
+			<name>libraries/DS3231</name>
 			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/IRremote</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/DS3231</location>
 		</link>
 		<link>
-			<name>Libraries/MS5803_I2C</name>
+			<name>libraries/IRremote</name>
 			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/MS5803_I2C</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/IRremote</location>
 		</link>
 		<link>
-			<name>Libraries/SD</name>
+			<name>libraries/MAX17043</name>
 			<type>2</type>
-			<locationURI>ArduinoLibPath/SD</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/MAX17043</location>
 		</link>
 		<link>
-			<name>Libraries/SPI</name>
+			<name>libraries/MS5803_I2C</name>
 			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/SPI</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/MS5803_I2C</location>
 		</link>
 		<link>
-			<name>Libraries/SimpleTimer</name>
+			<name>libraries/SD</name>
 			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/SimpleTimer</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/libraries/SD/1.0.6</location>
 		</link>
 		<link>
-			<name>Libraries/UTFT</name>
+			<name>libraries/SPI</name>
 			<type>2</type>
-			<locationURI>ArduinoPrivateLibPath/UTFT</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/libraries/SPI</location>
 		</link>
 		<link>
-			<name>Libraries/Wire</name>
+			<name>libraries/SimpleTimer</name>
 			<type>2</type>
-			<locationURI>ArduinoHardwareLibPath/Wire</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/SimpleTimer</location>
 		</link>
 		<link>
-			<name>arduino/core</name>
+			<name>libraries/UTFT</name>
 			<type>2</type>
-			<locationURI>ArduinoPlatformPath/arduino</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/UTFT</location>
 		</link>
 		<link>
-			<name>arduino/variant</name>
+			<name>libraries/Wire</name>
 			<type>2</type>
-			<locationURI>ArduinoPinPath/mega</locationURI>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/libraries/Wire</location>
 		</link>
 	</linkedResources>
-	<variableList>
-		<variable>
-			<name>ArduinoHardwareLibPath</name>
-			<value>file:/home/kornel/Development/arduino-1.6.5/hardware/arduino/avr/libraries</value>
-		</variable>
-		<variable>
-			<name>ArduinoPinPath</name>
-			<value>file:/home/kornel/Development/arduino-1.6.5/hardware/arduino/avr/variants</value>
-		</variable>
-		<variable>
-			<name>ArduinoPlatformPath</name>
-			<value>file:/home/kornel/Development/arduino-1.6.5/hardware/arduino/avr/cores</value>
-		</variable>
-	</variableList>
 </projectDescription>
