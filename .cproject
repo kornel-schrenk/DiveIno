@@ -31,6 +31,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/UTFT}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/Wire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/Wire/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/ArduinoLib_MAX17043}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.cpp.sketch.input.955770964" name="CPP source files" superClass="it.baeyens.arduino.compiler.cpp.sketch.input"/>
 							</tool>
@@ -48,6 +49,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/UTFT}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/Wire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/Wire/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/Libraries/ArduinoLib_MAX17043}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.c.sketch.input.904276637" name="C Source Files" superClass="it.baeyens.arduino.compiler.c.sketch.input"/>
 							</tool>

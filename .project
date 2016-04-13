@@ -27,6 +27,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>Libraries/ArduinoLib_MAX17043</name>
+			<type>2</type>
+			<locationURI>ArduinoPrivateLibPath/ArduinoLib_MAX17043</locationURI>
+		</link>
+		<link>
 			<name>Libraries/DS3231</name>
 			<type>2</type>
 			<locationURI>ArduinoPrivateLibPath/DS3231</locationURI>

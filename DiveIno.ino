@@ -6,6 +6,7 @@
 #include "IRremote.h"
 #include "SD.h"
 #include "SimpleTimer.h"
+#include "MAX17043.h"
 
 #include "DiveDeco.h"
 #include "View.h"
@@ -78,6 +79,8 @@ unsigned long testPreviousDiveDurationInSeconds;
 
 SimpleTimer diveDurationTimer;
 
+MAX17043 batteryMonitor;
+
 Logbook logbook = Logbook();
 int currentProfileNumber = 0; //There is no stored profile - default state
 int maximumProfileNumber = 0;
@@ -145,6 +148,9 @@ void setup() {
 
 	Wire.begin();         //Start the I2C interface
 	irrecv.enableIRIn();  //Start the Infrared Receiver
+
+    batteryMonitor.reset();
+    batteryMonitor.quickStart();
 
 	sensor.reset();
 	sensor.begin();
@@ -963,6 +969,14 @@ void displayScreen(byte screen) {
 		case ABOUT_SCREEN:
 			view.displayAboutScreen();
 			view.drawCurrentTime(getCurrentTimeText());
+
+			Serial.print("Voltage:\t\t");
+			Serial.print(batteryMonitor.getVCell(), 4);
+			Serial.println("V");
+
+			Serial.print("State of charge:\t");
+			Serial.print(batteryMonitor.getSoC());
+			Serial.println("%");
 			break;
 		case UI_TEST_SCREEN:
 			view.displayTestScreen();
