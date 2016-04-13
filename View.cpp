@@ -379,6 +379,8 @@ void View::displayTestScreen()
 {
 	displayDiveScreen(0.21);
 
+	drawBatteryStateOfCharge(86.5);
+
 	drawCurrentPressure(2345.67);
 	drawCurrentTemperature(22.4);
 	drawMaximumDepth(36.5);
@@ -387,22 +389,62 @@ void View::displayTestScreen()
 	drawDiveDuration(2048);
 
 	DiveInfo diveInfo;
-	diveInfo.decoNeeded = false;
-	diveInfo.minutesToDeco = 46;
-	drawDecoArea(diveInfo);
-
-//	diveInfo.decoNeeded = true;
-//    diveInfo.decoStopInMeters = 24;
-//    diveInfo.decoStopDurationInMinutes = 367;
+//	diveInfo.decoNeeded = false;
+//	diveInfo.minutesToDeco = 46;
 //	drawDecoArea(diveInfo);
+
+	diveInfo.decoNeeded = true;
+    diveInfo.decoStopInMeters = 24;
+    diveInfo.decoStopDurationInMinutes = 367;
+	drawDecoArea(diveInfo);
 
 	drawSafetyStop(134);
 	drawAscend(ASCEND_NORMAL);
 
-	drawOxigenPercentage(21);
+	//drawOxigenPercentage(21);
 	//drawPartialPressureWarning();
 }
 
+void View::drawBatteryStateOfCharge(float soc)
+{
+	tft->setFont(BigFont); //16x16 pixel
+
+	if (100 <= soc && soc < 125) {
+		tft->setColor(VGA_AQUA);
+	} else if (75 <= soc && soc < 100) {
+		tft->setColor(VGA_GREEN);
+	} else if (50 <= soc && soc < 75) {
+		tft->setColor(VGA_LIME);
+	} else if (25 <= soc && soc < 50) {
+		tft->setColor(VGA_YELLOW);
+	} else if (soc < 25) {
+		tft->setColor(VGA_RED);
+	} else {
+		return;
+	}
+
+	tft->fillRect(401, 277, 410, 288);
+	tft->drawRect(410, 270, 470, 295);
+	tft->drawRect(411, 269, 469, 294);
+
+	if (100 <= soc && soc < 125) {
+		tft->print("OOO", 420, 275);
+	} else if (soc < 100) {
+		tft->printNumI(soc, 420, 275, 2, ' ');
+		tft->print("%", 452, 275);
+	}
+}
+
+void View::printBatteryData(float volt, float soc)
+{
+	tft->setFont(BigFont); //16x16 pixel
+
+	tft->setColor(VGA_WHITE);
+	tft->printNumI(soc, 420, 225, 3, ' ');
+
+	tft->setColor(VGA_FUCHSIA);
+	tft->printNumF(volt, 2, 420, 245, '.', 3);
+}
 
 void View::drawDepth(float depth)
 {
@@ -472,7 +514,7 @@ void View::drawCurrentTime(String time)
 {
 	tft->setFont(Grotesk16x32);
 	tft->setColor(VGA_TEAL);
-	tft->print(time, 80, 265);
+	tft->print(time, 55, 265);
 }
 
 void View::drawOxigenPercentage(float oxigenPercentage)

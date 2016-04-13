@@ -51,6 +51,9 @@ public:
 	void drawDecoArea(DiveInfo diveInfo);
 	void drawSafetyStop(unsigned int safetyStopDurationInSeconds);
 	void drawAscend(int ascendRate);
+	void drawBatteryStateOfCharge(float soc);
+
+	void printBatteryData(float volt, float soc);
 private:
 	UTFT* tft;
 };
