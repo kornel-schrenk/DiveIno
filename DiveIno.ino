@@ -80,6 +80,8 @@ unsigned long testPreviousDiveDurationInSeconds;
 SimpleTimer diveDurationTimer;
 
 MAX17043 batteryMonitor;
+float batterySoc = 255;
+float batteryVoltage = 5;
 
 Logbook logbook = Logbook();
 int currentProfileNumber = 0; //There is no stored profile - default state
@@ -176,6 +178,17 @@ void loop() {
 		irrecv.resume(); // Receive the next value
 	}
 
+	/////////////
+	// Battery //
+	/////////////
+
+	batterySoc = batteryMonitor.getSoC();
+	batteryVoltage = batteryMonitor.getVCell();
+
+	if (currentScreen == MENU_SCREEN) {
+		view.drawBatteryStateOfCharge(batterySoc);
+	}
+
 	///////////////
 	// Go Diving //
 	///////////////
@@ -202,9 +215,6 @@ void diveSurface()
 		diveDurationInSeconds = Serial.parseInt();
 		float temperatureInCelsius = Serial.parseFloat();
 
-		float batterySoc = batteryMonitor.getSoC();
-		float batteryVoltage = batteryMonitor.getVCell();
-
 		if (testModeSetting) {
 			Serial.print("Pressure: ");
 			Serial.print(pressureInMillibar, 2);
@@ -214,15 +224,6 @@ void diveSurface()
 			Serial.print(temperatureInCelsius, 2);
 			Serial.print(" Duration: ");
 			Serial.println(diveDurationInSeconds);
-
-			Serial.print("Voltage:\t\t");
-			Serial.print(batteryMonitor.getVCell(), 4);
-			Serial.println("V");
-
-			Serial.print("State of charge:\t");
-			Serial.print(batteryMonitor.getSoC());
-			Serial.println("%");
-
 		}
 		view.drawBatteryStateOfCharge(batterySoc);
 
@@ -247,7 +248,6 @@ void diveSurface()
 			case GAUGE_SCREEN: {
 				//Instead of dive information we will display the current time
 				view.drawCurrentTime(getCurrentTimeText());
-				view.printBatteryData(batteryVoltage, batterySoc);
 			}
 			break;
 			case DIVE_SCREEN: {
@@ -274,10 +274,7 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 {
 	diveDurationInSeconds++;
 
-	float batterySoc = batteryMonitor.getSoC();
-	float batteryVoltage = batteryMonitor.getVCell();
 	view.drawBatteryStateOfCharge(batterySoc);
-
 
 	float pressureInMillibar = sensor.getPressure(ADC_4096);
 	float temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
@@ -309,7 +306,6 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 		case GAUGE_SCREEN: {
 			//Instead of dive information we will display the current time
 			view.drawCurrentTime(getCurrentTimeText());
-			view.printBatteryData(batteryVoltage, batterySoc);
 		}
 		break;
 		case DIVE_SCREEN: {
@@ -990,8 +986,10 @@ void displayScreen(byte screen) {
 		case ABOUT_SCREEN:
 			view.displayAboutScreen();
 			view.drawCurrentTime(getCurrentTimeText());
-			view.drawBatteryStateOfCharge(batteryMonitor.getSoC());
-			view.printBatteryData(batteryMonitor.getVCell(), batteryMonitor.getSoC());
+			if (testModeSetting) {
+				view.drawBatteryStateOfCharge(batteryMonitor.getSoC());
+				view.printBatteryData(batteryMonitor.getVCell(), batteryMonitor.getSoC());
+			}
 			break;
 		case UI_TEST_SCREEN:
 			view.displayTestScreen();

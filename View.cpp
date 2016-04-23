@@ -26,6 +26,7 @@ View::View(UTFT* utft) {
 
 void View::moveMenuSelection(byte selectedMenuItemIndex, byte menuItemIndex)
 {
+	tft->setFont(Grotesk16x32);
 	tft->setColor(VGA_YELLOW);
 
 	// Remove the highlight from the currently selected menu item
@@ -408,6 +409,7 @@ void View::displayTestScreen()
 void View::drawBatteryStateOfCharge(float soc)
 {
 	tft->setFont(BigFont); //16x16 pixel
+	tft->setBackColor(VGA_BLACK);
 
 	if (100 <= soc && soc < 125) {
 		tft->setColor(VGA_AQUA);
