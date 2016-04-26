@@ -151,7 +151,6 @@ void setup() {
 	Wire.begin();         //Start the I2C interface
 	irrecv.enableIRIn();  //Start the Infrared Receiver
 
-	//TODO Find out when these should be called
     batteryMonitor.reset();
     batteryMonitor.quickStart();
 
@@ -206,6 +205,21 @@ void loop() {
 // Dive //
 //////////
 
+void calculateMinMaxValues(float depthInMeter, float temperatureInCelsius)
+{
+	//Calculate minimum and maximum values during the dive
+	if (maxDepthInMeter < depthInMeter) {
+		maxDepthInMeter = depthInMeter;
+		view.drawMaximumDepth(maxDepthInMeter);
+	}
+	if (maxTemperatureInCelsius < temperatureInCelsius) {
+		maxTemperatureInCelsius = temperatureInCelsius;
+	}
+	if (minTemperatureInCelsius > temperatureInCelsius) {
+		minTemperatureInCelsius = temperatureInCelsius;
+	}
+}
+
 void diveSurface()
 {
 	// Check if test data is available, which comes through the serial interface
@@ -215,34 +229,14 @@ void diveSurface()
 		diveDurationInSeconds = Serial.parseInt();
 		float temperatureInCelsius = Serial.parseFloat();
 
-		if (testModeSetting) {
-			Serial.print("Pressure: ");
-			Serial.print(pressureInMillibar, 2);
-			Serial.print(" Depth: ");
-			Serial.print(depthInMeter, 2);
-			Serial.print(" Temperature: ");
-			Serial.print(temperatureInCelsius, 2);
-			Serial.print(" Duration: ");
-			Serial.println(diveDurationInSeconds);
-		}
-		view.drawBatteryStateOfCharge(batterySoc);
-
 		view.drawCurrentPressure(pressureInMillibar);
 		view.drawDepth(depthInMeter);
 		view.drawCurrentTemperature(temperatureInCelsius);
 		view.drawDiveDuration(diveDurationInSeconds);
 
-		//Calculate minimum and maximum values during the dive
-		if (maxDepthInMeter < depthInMeter) {
-			maxDepthInMeter = depthInMeter;
-			view.drawMaximumDepth(maxDepthInMeter);
-		}
-		if (maxTemperatureInCelsius < temperatureInCelsius) {
-			maxTemperatureInCelsius = temperatureInCelsius;
-		}
-		if (minTemperatureInCelsius > temperatureInCelsius) {
-			minTemperatureInCelsius = temperatureInCelsius;
-		}
+		view.drawBatteryStateOfCharge(batterySoc);
+
+		calculateMinMaxValues(depthInMeter, temperatureInCelsius);
 
 		switch (currentScreen) {
 			case GAUGE_SCREEN: {
@@ -272,8 +266,6 @@ void diveSurface()
 
 void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 {
-	diveDurationInSeconds++;
-
 	view.drawBatteryStateOfCharge(batterySoc);
 
 	float pressureInMillibar = sensor.getPressure(ADC_4096);
@@ -288,33 +280,30 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 	view.drawCurrentTemperature(temperatureInCelsius);
 	view.drawCurrentPressure(pressureInMillibar);
 	view.drawDepth(depthInMeter);
-	view.drawDiveDuration(diveDurationInSeconds);
 
-	//Calculate minimum and maximum values during the dive
-	if (maxDepthInMeter < depthInMeter) {
-		maxDepthInMeter = depthInMeter;
-		view.drawMaximumDepth(maxDepthInMeter);
-	}
-	if (maxTemperatureInCelsius < temperatureInCelsius) {
-		maxTemperatureInCelsius = temperatureInCelsius;
-	}
-	if (minTemperatureInCelsius > temperatureInCelsius) {
-		minTemperatureInCelsius = temperatureInCelsius;
-	}
+	calculateMinMaxValues(depthInMeter, temperatureInCelsius);
 
 	switch (currentScreen) {
 		case GAUGE_SCREEN: {
 			//Instead of dive information we will display the current time
 			view.drawCurrentTime(getCurrentTimeText());
+
+			diveDurationInSeconds++;
+			view.drawDiveDuration(diveDurationInSeconds);
 		}
 		break;
 		case DIVE_SCREEN: {
+			//Progress with the dive, if we are deeper than 1.2 meter
+			if (pressureInMillibar > (seaLevelPressureSetting + 120) || diveDurationInSeconds > 60) {
+				diveDurationInSeconds++;
+				view.drawDiveDuration(diveDurationInSeconds);
 
-			//The timer fires in every second
-			calculateSafetyStop(maxDepthInMeter, depthInMeter, 1);
+				//The timer fires in every second
+				calculateSafetyStop(maxDepthInMeter, depthInMeter, 1);
 
-			//Progress with the algorithm in every second
-			diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);
+				//Progress with the algorithm in every second
+				diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);
+			}
 		}
 		break;
 	}
@@ -398,6 +387,8 @@ void startDive()
 
 	if (currentScreen == DIVE_SCREEN) {
 
+		Serial.println("DIVE - Started");
+
 		//Start dive profile logging - create a new file
 		if (maximumProfileNumber <= 0) {
 			maximumProfileNumber = logbook.loadLogbookData()->numberOfStoredProfiles;
@@ -420,6 +411,8 @@ void startDive()
 void stopDive()
 {
 	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
+
+	Serial.println("DIVE - Stopped");
 }
 
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
@@ -435,10 +428,12 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 	//Store the current dive data in the dive profile
 	logbook.storeProfileItem(profileFile, pressureInMillibar, depthInMeter, temperatureInCelsius, durationInSeconds);
 
-	if (seaLevelPressureSetting >= pressureInMillibar) {
-		if (testModeSetting) {
-			Serial.println("STOP");
-		}
+	//Finish the dive in about 1 m deep
+	if ((seaLevelPressureSetting + 100) > pressureInMillibar) {
+
+		Serial.println("DIVE - Finished");
+
+		diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
 
 		previousDiveResult = diveDeco.stopDive();
 
