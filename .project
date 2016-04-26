@@ -34,57 +34,57 @@
 		<link>
 			<name>core/core</name>
 			<type>2</type>
-			<location>/home/kornel/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/cores/arduino</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/cores/arduino</location>
 		</link>
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<location>/home/kornel/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/variants/mega</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/variants/mega</location>
 		</link>
 		<link>
 			<name>libraries/DS3231</name>
 			<type>2</type>
-			<location>/home/kornel/Arduino/libraries/DS3231</location>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/DS3231</location>
 		</link>
 		<link>
 			<name>libraries/IRremote</name>
 			<type>2</type>
-			<location>/home/kornel/Arduino/libraries/IRremote</location>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/IRremote</location>
 		</link>
 		<link>
 			<name>libraries/MAX17043</name>
 			<type>2</type>
-			<location>/home/kornel/Arduino/libraries/MAX17043</location>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/MAX17043</location>
 		</link>
 		<link>
 			<name>libraries/MS5803_I2C</name>
 			<type>2</type>
-			<location>/home/kornel/Arduino/libraries/MS5803_I2C</location>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/MS5803_I2C</location>
 		</link>
 		<link>
 			<name>libraries/SD</name>
 			<type>2</type>
-			<location>/home/kornel/Development/eclipseArduino/arduinoPlugin/libraries/SD/1.0.6</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/libraries/SD/1.0.6</location>
 		</link>
 		<link>
 			<name>libraries/SPI</name>
 			<type>2</type>
-			<location>/home/kornel/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/libraries/SPI</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/libraries/SPI</location>
 		</link>
 		<link>
 			<name>libraries/SimpleTimer</name>
 			<type>2</type>
-			<location>/home/kornel/Arduino/libraries/SimpleTimer</location>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/SimpleTimer</location>
 		</link>
 		<link>
 			<name>libraries/UTFT</name>
 			<type>2</type>
-			<location>/home/kornel/Arduino/libraries/UTFT</location>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/UTFT</location>
 		</link>
 		<link>
 			<name>libraries/Wire</name>
 			<type>2</type>
-			<location>/home/kornel/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/libraries/Wire</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/libraries/Wire</location>
 		</link>
 	</linkedResources>
 </projectDescription>

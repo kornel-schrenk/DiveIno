@@ -473,8 +473,6 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		//Switch to DIVE_STOP mode
 		currentMode = DIVE_STOP_MODE;
 		displayScreen(SURFACE_TIME_SCREEN);
-
-		//TODO Start surface time counter
 	}
 }
 
@@ -949,28 +947,47 @@ void displayScreen(byte screen) {
 			break;
 		case SURFACE_TIME_SCREEN:
 			if (previousDiveResult == NULL) {
+
+				// Initialize the DiveDeco library based on the settings
+				diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+				diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
+
 				previousDiveResult = new DiveResult;
-				previousDiveResult->compartmentPartialPressures[0] = 1234;
-				previousDiveResult->compartmentPartialPressures[1] = 2343;
-				previousDiveResult->compartmentPartialPressures[2] = 3847;
-				previousDiveResult->compartmentPartialPressures[3] = 2345;
-				previousDiveResult->compartmentPartialPressures[4] = 1231;
-				previousDiveResult->compartmentPartialPressures[5] = 1123;
-				previousDiveResult->compartmentPartialPressures[6] = 1452;
-				previousDiveResult->compartmentPartialPressures[7] = 1556;
-				previousDiveResult->compartmentPartialPressures[8] = 2345;
-				previousDiveResult->compartmentPartialPressures[9] = 3453;
-				previousDiveResult->compartmentPartialPressures[10] = 1234;
-				previousDiveResult->compartmentPartialPressures[11] = 2678;
-				previousDiveResult->compartmentPartialPressures[12] = 3425;
-				previousDiveResult->compartmentPartialPressures[13] = 2567;
-				previousDiveResult->compartmentPartialPressures[14] = 1745;
-				previousDiveResult->compartmentPartialPressures[15] = 1834;
-				previousDiveResult->maxDepthInMeters = 36.9;
-				previousDiveResult->durationInSeconds = 3445;
-				previousDiveResult->noFlyTimeInMinutes = 1603;
+				float initialPartialPressureWithoutDive = diveDeco.calculateNitrogenPartialPressureInLung(seaLevelPressureSetting);
+				previousDiveResult->compartmentPartialPressures[0] = 1402.88;
+				previousDiveResult->compartmentPartialPressures[1] = 1857.37;
+				previousDiveResult->compartmentPartialPressures[2] = 1930.71;
+				previousDiveResult->compartmentPartialPressures[3] = 1840.16;
+				previousDiveResult->compartmentPartialPressures[4] = 1673.69;
+				previousDiveResult->compartmentPartialPressures[5] = 1499.07;
+				previousDiveResult->compartmentPartialPressures[6] = 1334.55;
+				previousDiveResult->compartmentPartialPressures[7] = 1193.70;
+				previousDiveResult->compartmentPartialPressures[8] = 1080.91;
+				previousDiveResult->compartmentPartialPressures[9] = 1006.01;
+				previousDiveResult->compartmentPartialPressures[10] = 955.02;
+				previousDiveResult->compartmentPartialPressures[11] = 914.06;
+				previousDiveResult->compartmentPartialPressures[12] = 881.28;
+				previousDiveResult->compartmentPartialPressures[13] = 854.84;
+				previousDiveResult->compartmentPartialPressures[14] = 833.90;
+				previousDiveResult->compartmentPartialPressures[15] = 817.38;
+				previousDiveResult->maxDepthInMeters = 40.6;
+				previousDiveResult->durationInSeconds = 1800;
+				previousDiveResult->noFlyTimeInMinutes = 873;
+			} else {
+				if (previousDiveResult->noFlyTimeInMinutes > 0) {
+					//TODO Calculate the surface interval duration from the last dive
+					previousDiveResult = diveDeco.surfaceInterval(30, previousDiveResult);
+				}
 			}
 			view.displaySurfaceTimeScreen(previousDiveResult);
+
+			for (int i=0; i < COMPARTMENT_COUNT; i++) {
+		        Serial.print("Compartment ");
+		        Serial.print(i);
+		        Serial.print(": ");
+		        Serial.print(previousDiveResult->compartmentPartialPressures[i], 0);
+		        Serial.println(" ppN2");
+			}
 			break;
 		case GAUGE_SCREEN:
 			view.displayGaugeScreen(testModeSetting);

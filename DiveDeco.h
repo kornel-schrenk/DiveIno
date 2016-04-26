@@ -61,7 +61,7 @@ public:
     float calculateNitrogenPartialPressureInLung(float currentPressure);
 
 private:
-	int _seaLevelAtmosphericPressure;
+	float _seaLevelAtmosphericPressure;
 	float _nitrogenRateInGas;
 	float _minimumAircraftCabinPressure;
 	float _waterVapourPressureCorrection;

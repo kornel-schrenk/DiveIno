@@ -230,17 +230,18 @@ DiveResult* DiveDeco::surfaceInterval(int surfaceIntervalInMinutes, DiveResult* 
     	_compartmentCurrentPartialPressures[j] = previousDiveResult->compartmentPartialPressures[j];
     }
 
+    float initialPartialPressureWithoutDive = calculateNitrogenPartialPressureInLung(_seaLevelAtmosphericPressure);
+
 	//For each compartment calculate the new partial pressures after spent X amount of time on the surface
 	for (int i=0; i < COMPARTMENT_COUNT; i++) {
 		setCompartmentPartialPressure(i, calculateCompartmentInertGasPartialPressure(
 				surfaceIntervalInMinutes * 60,
 				getCompartmentHalfTimeInSeconds(i),
 				getCompartmentPartialPressure(i),
-				calculateNitrogenPartialPressureInLung(_seaLevelAtmosphericPressure)));
+				initialPartialPressureWithoutDive));
 	}
 
 	//If the partial pressure of the compartment becomes less than the no-dive initial partial pressure - set it as the initial partial pressure
-	float initialPartialPressureWithoutDive = calculateNitrogenPartialPressureInLung(_seaLevelAtmosphericPressure);
 	for (int i=0; i < COMPARTMENT_COUNT; i++) {
 		if (getCompartmentPartialPressure(i) < initialPartialPressureWithoutDive) {
 			setCompartmentPartialPressure(i, initialPartialPressureWithoutDive);

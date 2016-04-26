@@ -155,54 +155,59 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
 
 void View::displaySurfaceTimeScreen(DiveResult* previousDiveResult)
 {
+	bool isDiveStopDisplay = previousDiveResult != NULL && previousDiveResult->maxDepthInMeters > 0;
+
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
 	tft->setFont(Grotesk16x32);
 
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
-	tft->print("Surface time", 64, 10);
+	if (isDiveStopDisplay) {
+		tft->print("Dive time", 84, 10);
+	} else {
+		tft->print("Surface time", 64, 10);
+	}
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
 
 	tft->setColor(VGA_WHITE);
 	tft->print("No fly:", 20, 70);
-	tft->print("Max depth:", 20, 110);
-	tft->print("Duration:", 20, 150);
+	tft->print("Duration:", 20, 110);
 
 	if (previousDiveResult != NULL) {
 		tft->setColor(VGA_RED);
 		tft->printNumI(previousDiveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
 		tft->print(":", 252, 70);
 		tft->printNumI(previousDiveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
-		tft->setColor(VGA_PURPLE);
-		tft->printNumF(previousDiveResult->maxDepthInMeters, 1, 220, 110);
 		tft->setColor(VGA_YELLOW);
-		tft->printNumI(previousDiveResult->durationInSeconds/60, 204, 150, 3, ' ');
-		tft->print(":", 252, 150);
-		tft->printNumI(previousDiveResult->durationInSeconds%60, 268, 150, 2 , '0');
+		tft->printNumI(previousDiveResult->durationInSeconds/60, 204, 110, 3, ' ');
+		tft->print(":", 252, 110);
+		tft->printNumI(previousDiveResult->durationInSeconds%60, 268, 110, 2 , '0');
+
+		if (isDiveStopDisplay) {
+			tft->setColor(VGA_FUCHSIA);
+			tft->printNumF(previousDiveResult->maxDepthInMeters, 1, 220, 150);
+			tft->setColor(VGA_WHITE);
+			tft->print("Max depth:", 20, 150);
+			tft->setFont(BigFont);
+			tft->print("m", 310, 163);
+		}
 
 		tft->setColor(VGA_WHITE);
 		tft->setFont(BigFont);
 		tft->print("hh:mm", 310, 83);
-		tft->print("m", 310, 123);
-		tft->print("mm:ss", 310, 163);
+		tft->print("mm:ss", 310, 123);
 
 		//Draw the remaining compartment ppN2 values
 
 		float max = previousDiveResult->compartmentPartialPressures[0];
-		for (int i=1; i < COMPARTMENT_COUNT; i++) {
-			Serial.print(i);
-			Serial.print(" - ppN2: ");
-			Serial.println(previousDiveResult->compartmentPartialPressures[i], 0);
-
+		for (int i=0; i < COMPARTMENT_COUNT; i++) {
 			if (max < previousDiveResult->compartmentPartialPressures[i]) {
 				max = previousDiveResult->compartmentPartialPressures[i];
 			}
 		}
-		Serial.print("Maximum ppN2: ");
-		Serial.println(max, 0);
 
 		tft->setColor(VGA_AQUA);
 		for (int i=0; i < COMPARTMENT_COUNT; i++) {
