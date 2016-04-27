@@ -2,7 +2,8 @@
 #include "SPI.h"
 #include "Wire.h"
 #include "UTFT.h"
-#include "DS3231.h"
+#include "DS3232RTC.h"
+#include "Time.h"
 #include "IRremote.h"
 #include "SD.h"
 #include "SimpleTimer.h"
@@ -12,12 +13,6 @@
 #include "View.h"
 #include "Settings.h"
 #include "Logbook.h"
-
-//DS3231 Real Time Clock initialization
-DS3231 Clock;
-bool Century=false;
-bool h12 = false;
-bool PM = false;
 
 //Infrared Receiver initialization
 int RECV_PIN = 11;
@@ -108,45 +103,45 @@ void setup() {
 	Serial.println("DiveIno - START");
 	Serial.println("");
 
-	if (testModeSetting) {
-
-		Serial.print("SD Card present: ");
-		if (isSdCardPresent) {
-			Serial.println("YES");
-		} else {
-			Serial.println("NO");
-		}
-		Serial.println("");
-
-		Serial.println("Settings: ");
-		Serial.println("");
-		Serial.print("seaLevelPressure: ");
-		Serial.println(seaLevelPressureSetting, 2);
-		Serial.print("oxygenRate: ");
-		Serial.println(oxygenRateSetting, 2);
-
-		Serial.print("testMode: ");
-		if (testModeSetting) {
-			Serial.println("On");
-		} else {
-			Serial.println("Off");
-		}
-
-		Serial.print("sound: ");
-		if (soundSetting) {
-			Serial.println("On");
-		} else {
-			Serial.println("Off");
-		}
-
-		Serial.print("units: ");
-		if (imperialUnitsSetting) {
-			Serial.println("Imperial");
-		} else {
-			Serial.println("Metric");
-		}
-		Serial.println("");
+	Serial.print("SD Card present: ");
+	if (isSdCardPresent) {
+		Serial.println("YES");
+	} else {
+		Serial.println("NO");
 	}
+	Serial.println("");
+
+	Serial.println("Settings: ");
+	Serial.print("seaLevelPressure: ");
+	Serial.println(seaLevelPressureSetting, 2);
+	Serial.print("oxygenRate: ");
+	Serial.println(oxygenRateSetting, 2);
+	Serial.print("testMode: ");
+	if (testModeSetting) {
+		Serial.println("On");
+	} else {
+		Serial.println("Off");
+	}
+	Serial.print("sound: ");
+	if (soundSetting) {
+		Serial.println("On");
+	} else {
+		Serial.println("Off");
+	}
+	Serial.print("units: ");
+	if (imperialUnitsSetting) {
+		Serial.println("Imperial");
+	} else {
+		Serial.println("Metric");
+	}
+	Serial.println("");
+
+	setSyncProvider((unsigned long int (*)())RTC.get);
+    if(timeStatus() != timeSet){
+        Serial.println("RTC - time was not set!");
+    } else {
+        Serial.println("RTC - time was set");
+    }
 
 	Wire.begin();         //Start the I2C interface
 	irrecv.enableIRIn();  //Start the Infrared Receiver
@@ -477,41 +472,34 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 }
 
 String getCurrentTimeText() {
-	String time = "20";
-	//Instead of dive information we will display the current time
-	byte year, month, date, DoW, hour, minute, second;
-	Clock.getTime(year, month, date, DoW, hour, minute, second);
-
-	time+=year;
-	if (year<10) {
-		time+="0";
-	}
+	String time = "";
+	time+=year();
 	time+="-";
-	if (month <10) {
+	if (month() <10) {
 		time+="0";
 	}
-	time+=month;
+	time+=month();
 	time+="-";
-	if (date<10) {
+	if (day()<10) {
 		time+="0";
 	}
-	time+=date;
+	time+=day();
 	time+=" ";
 
-	if (hour<10) {
+	if (hour()<10) {
 		time+="0";
 	}
-	time+=hour;
+	time+=hour();
 	time+=":";
-	if (minute<10) {
+	if (minute()<10) {
 		time+="0";
 	}
-	time+=minute;
+	time+=minute();
 	time+=":";
-	if (second<10) {
+	if (second()<10) {
 		time+="0";
 	}
-	time+=second;
+	time+=second();
 
 	return time;
 }
@@ -1005,44 +993,6 @@ void displayScreen(byte screen) {
 			break;
 		case UI_TEST_SCREEN:
 			view.displayTestScreen();
-
-//			if (maximumProfileNumber <= 0) {
-//				maximumProfileNumber = logbook.loadLogbookData()->numberOfStoredProfiles;
-//			}
-//
-//			File profileFile = logbook.createNewProfileFile(17);
-//
-//			float pressure = 1435.46;
-//			float depth = 4.2;
-//			float temperature = 15.3;
-//			int duration = 20;
-//
-//			//Append the new profile information
-//			logbook.storeProfileItem(profileFile, pressure, depth, temperature, duration);
-//
-//			pressure = 1525.89;
-//			depth = 5.1;
-//			temperature = 15.3;
-//			duration = 40;
-//
-//			//Append the new profile information
-//			logbook.storeProfileItem(profileFile, pressure, depth, temperature, duration);
-//
-//			view.displayTestScreen();
-//
-//			logbook.storeDiveSummary(17, profileFile, 45, 36.9, 16.7, 21.4, "2016-06-19", "10:36");
-//
-//			LogbookData* logbookData = new LogbookData;
-//			logbookData->totalNumberOfDives = 56;
-//			logbookData->totalDiveHours = 12;
-//			logbookData->totalDiveMinutes = 45;
-//			logbookData->totalMaximumDepth = 42.3;
-//			logbookData->lastDiveDateTime = "2016-03-31 15:05";
-//			logbookData->numberOfStoredProfiles = 12;
-//
-//			logbook.updateLogbookData(logbookData);
-//			logbook.printFile("LOGBOOK.TXT");
-
 			break;
 	}
 }

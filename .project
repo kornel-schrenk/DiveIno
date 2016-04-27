@@ -42,9 +42,9 @@
 			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/variants/mega</location>
 		</link>
 		<link>
-			<name>libraries/DS3231</name>
+			<name>libraries/DS3232RTC</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/DS3231</location>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/DS3232RTC</location>
 		</link>
 		<link>
 			<name>libraries/IRremote</name>
@@ -75,6 +75,11 @@
 			<name>libraries/SimpleTimer</name>
 			<type>2</type>
 			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/SimpleTimer</location>
+		</link>
+		<link>
+			<name>libraries/Time</name>
+			<type>2</type>
+			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/Time</location>
 		</link>
 		<link>
 			<name>libraries/UTFT</name>
