@@ -13,6 +13,7 @@
 #include "View.h"
 #include "Settings.h"
 #include "Logbook.h"
+#include "LastDive.h"
 
 //Infrared Receiver initialization
 int RECV_PIN = 11;
@@ -55,7 +56,6 @@ byte currentScreen = MENU_SCREEN;
 DiveDeco diveDeco = DiveDeco(400, 56.7);
 
 //Utility variables
-DiveResult* previousDiveResult;
 
 float maxDepthInMeter;
 float maxTemperatureInCelsius;
@@ -82,6 +82,8 @@ Logbook logbook = Logbook();
 int currentProfileNumber = 0; //There is no stored profile - default state
 int maximumProfileNumber = 0;
 File profileFile;
+
+LastDive lastDive = LastDive();
 
 void setup() {
 
@@ -394,12 +396,29 @@ void startDive()
 		diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
 		diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
 
-		if (previousDiveResult == NULL) {
-			//No previous dive result is available, so do the default compartment initialization
-			diveDeco.startDive(diveDeco.initializeCompartments());
-		} else {
-			diveDeco.startDive(previousDiveResult);
+		DiveResult* diveResult = new DiveResult;
+		diveResult = diveDeco.initializeCompartments();
+
+		//Retrieve last dive data
+		LastDiveData* lastDiveData = lastDive.loadLastDiveData();
+
+		//Last dive happened within 48 hours and there is an active no fly time
+		if (lastDiveData != NULL &&	(lastDiveData->diveDateTimestamp + 172800) > now() && lastDiveData->noFlyTimeInMinutes > 0) {
+
+			//Copy Last Dive Data compartments
+			diveResult->noFlyTimeInMinutes = lastDiveData->noFlyTimeInMinutes;
+			for (byte i=0; i <COMPARTMENT_COUNT; i++) {
+				diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
+			}
+
+			//Calculate surface time in minutes
+			int surfaceTime = (now() - lastDiveData->diveDateTimestamp) / 60;
+
+			//Spend the time on the surface
+			diveResult = diveDeco.surfaceInterval(surfaceTime, diveResult);
 		}
+
+		diveDeco.startDive(diveResult);
 	}
 }
 
@@ -426,21 +445,26 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 	//Finish the dive in about 1 m deep
 	if ((seaLevelPressureSetting + 100) > pressureInMillibar) {
 
-		Serial.println("DIVE - Finished");
+		/////////////////////
+		// Finish the dive //
 
 		diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
 
-		previousDiveResult = diveDeco.stopDive();
+		Serial.println("DIVE - Finished");
+
+		DiveResult* diveResult = diveDeco.stopDive();
 
 		String currentTimeText = getCurrentTimeText();
 
-		// Stop dive profile logging
+		////////////////////
+		// Update Logbook //
+
 		maximumProfileNumber = maximumProfileNumber+1;
 		logbook.storeDiveSummary(maximumProfileNumber, profileFile,
-				previousDiveResult->durationInSeconds, previousDiveResult->maxDepthInMeters, minTemperatureInCelsius,
+				diveResult->durationInSeconds, diveResult->maxDepthInMeters, minTemperatureInCelsius,
 				oxygenRateSetting*100, currentTimeText.substring(0, 10), currentTimeText.substring(11, 16));
 
-		int durationInMinutes = previousDiveResult->durationInSeconds / 60;
+		int durationInMinutes = diveResult->durationInSeconds / 60;
 
 		LogbookData* logbookData = logbook.loadLogbookData();
 		logbookData->totalNumberOfDives++;
@@ -460,12 +484,30 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		logbookData->totalDiveHours += durationInMinutes / 60;
 		logbookData->totalDiveMinutes = durationInMinutes % 60;
 
-		if (previousDiveResult->maxDepthInMeters > logbookData->totalMaximumDepth) {
-			logbookData->totalMaximumDepth = previousDiveResult->maxDepthInMeters;
+		if (diveResult->maxDepthInMeters > logbookData->totalMaximumDepth) {
+			logbookData->totalMaximumDepth = diveResult->maxDepthInMeters;
 		}
 		logbook.updateLogbookData(logbookData);
 
-		//Switch to DIVE_STOP mode
+		///////////////////////////
+		// Update Last Dive Data //
+
+		LastDiveData* lastDiveData = new LastDiveData;
+		lastDiveData->diveDateTimestamp = now();
+		lastDiveData->diveDate = currentTimeText;
+		lastDiveData->maxDepthInMeters = diveResult->maxDepthInMeters;
+		lastDiveData->durationInSeconds = diveResult->durationInSeconds;
+		lastDiveData->noFlyTimeInMinutes = diveResult->noFlyTimeInMinutes;
+
+		for (byte i=0; i<COMPARTMENT_COUNT; i++) {
+			lastDiveData->compartmentPartialPressures[i] = diveResult->compartmentPartialPressures[i];
+		}
+
+		lastDive.storeLastDiveData(lastDiveData);
+
+		//////////////////////////////
+		// Switch to DIVE_STOP mode //
+
 		currentMode = DIVE_STOP_MODE;
 		displayScreen(SURFACE_TIME_SCREEN);
 	}
@@ -907,6 +949,9 @@ void displayScreen(byte screen) {
 	LogbookData* logbookData;
 	ProfileData* profileData;
 
+	DiveResult* diveResult;
+	LastDiveData* lastDiveData;
+
 	currentScreen = screen;
 	switch (screen) {
 		case MENU_SCREEN:
@@ -934,48 +979,41 @@ void displayScreen(byte screen) {
 			}
 			break;
 		case SURFACE_TIME_SCREEN:
-			if (previousDiveResult == NULL) {
+			diveResult = new DiveResult;
+			diveResult = diveDeco.initializeCompartments();
 
-				// Initialize the DiveDeco library based on the settings
-				diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
-				diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
+			lastDiveData = lastDive.loadLastDiveData();
+			if (lastDiveData != NULL) {
+				//Last dive happened within 48 hours
+				if ((lastDiveData->diveDateTimestamp + 172800) > now() && lastDiveData->noFlyTimeInMinutes > 0) {
 
-				previousDiveResult = new DiveResult;
-				float initialPartialPressureWithoutDive = diveDeco.calculateNitrogenPartialPressureInLung(seaLevelPressureSetting);
-				previousDiveResult->compartmentPartialPressures[0] = 1402.88;
-				previousDiveResult->compartmentPartialPressures[1] = 1857.37;
-				previousDiveResult->compartmentPartialPressures[2] = 1930.71;
-				previousDiveResult->compartmentPartialPressures[3] = 1840.16;
-				previousDiveResult->compartmentPartialPressures[4] = 1673.69;
-				previousDiveResult->compartmentPartialPressures[5] = 1499.07;
-				previousDiveResult->compartmentPartialPressures[6] = 1334.55;
-				previousDiveResult->compartmentPartialPressures[7] = 1193.70;
-				previousDiveResult->compartmentPartialPressures[8] = 1080.91;
-				previousDiveResult->compartmentPartialPressures[9] = 1006.01;
-				previousDiveResult->compartmentPartialPressures[10] = 955.02;
-				previousDiveResult->compartmentPartialPressures[11] = 914.06;
-				previousDiveResult->compartmentPartialPressures[12] = 881.28;
-				previousDiveResult->compartmentPartialPressures[13] = 854.84;
-				previousDiveResult->compartmentPartialPressures[14] = 833.90;
-				previousDiveResult->compartmentPartialPressures[15] = 817.38;
-				previousDiveResult->maxDepthInMeters = 40.6;
-				previousDiveResult->durationInSeconds = 1800;
-				previousDiveResult->noFlyTimeInMinutes = 873;
-			} else {
-				if (previousDiveResult->noFlyTimeInMinutes > 0) {
-					//TODO Calculate the surface interval duration from the last dive
-					previousDiveResult = diveDeco.surfaceInterval(30, previousDiveResult);
+					//Copy Last Dive Data compartments
+					diveResult->noFlyTimeInMinutes = lastDiveData->noFlyTimeInMinutes;
+					diveResult->durationInSeconds = lastDiveData->durationInSeconds;
+					diveResult->maxDepthInMeters = lastDiveData->maxDepthInMeters;
+					for (byte i=0; i <COMPARTMENT_COUNT; i++) {
+						diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
+					}
+
+					//Calculate surface time in minutes
+					int surfaceTime = (now() - lastDiveData->diveDateTimestamp) / 60;
+
+					//Spend the time on the surface
+					diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+					diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
+					diveResult = diveDeco.surfaceInterval(surfaceTime, diveResult);
 				}
-			}
-			view.displaySurfaceTimeScreen(previousDiveResult);
 
-			for (int i=0; i < COMPARTMENT_COUNT; i++) {
-		        Serial.print("Compartment ");
-		        Serial.print(i);
-		        Serial.print(": ");
-		        Serial.print(previousDiveResult->compartmentPartialPressures[i], 0);
-		        Serial.println(" ppN2");
+				//Update Last Dive Data
+				lastDiveData->noFlyTimeInMinutes = diveResult->noFlyTimeInMinutes;
+				for (byte i=0; i <COMPARTMENT_COUNT; i++) {
+					lastDiveData->compartmentPartialPressures[i] = diveResult->compartmentPartialPressures[i];
+				}
+
+				//Store the updated Last Dive Data
+				lastDive.storeLastDiveData(lastDiveData);
 			}
+			view.displaySurfaceTimeScreen(diveResult);
 			break;
 		case GAUGE_SCREEN:
 			view.displayGaugeScreen(testModeSetting);
