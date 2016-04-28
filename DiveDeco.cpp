@@ -275,11 +275,11 @@ DiveResult* DiveDeco::initializeCompartments() {
     for (int i=0; i < COMPARTMENT_COUNT; i++) {
         diveResult->compartmentPartialPressures[i] = calculateNitrogenPartialPressureInLung(_seaLevelAtmosphericPressure);
 
-        Serial.print("Compartment ");
-        Serial.print(i);
-        Serial.print(": ");
-        Serial.print(diveResult->compartmentPartialPressures[i], 0);
-        Serial.println(" ppN2");
+//        Serial.print("Compartment ");
+//        Serial.print(i);
+//        Serial.print(": ");
+//        Serial.print(diveResult->compartmentPartialPressures[i], 0);
+//        Serial.println(" ppN2");
     }
 
     Serial.println("Compartment initialization - DONE");

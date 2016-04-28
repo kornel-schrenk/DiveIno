@@ -153,10 +153,8 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
 	tft->print("O2%", 364, 114);
 }
 
-void View::displaySurfaceTimeScreen(DiveResult* previousDiveResult)
+void View::displaySurfaceTimeScreen(DiveResult* diveResult, bool isDiveStopDisplay)
 {
-	bool isDiveStopDisplay = previousDiveResult != NULL && previousDiveResult->maxDepthInMeters > 0;
-
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
 	tft->setFont(Grotesk16x32);
@@ -176,19 +174,19 @@ void View::displaySurfaceTimeScreen(DiveResult* previousDiveResult)
 	tft->print("No fly:", 20, 70);
 	tft->print("Duration:", 20, 110);
 
-	if (previousDiveResult != NULL) {
+	if (diveResult != NULL) {
 		tft->setColor(VGA_RED);
-		tft->printNumI(previousDiveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
+		tft->printNumI(diveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
 		tft->print(":", 252, 70);
-		tft->printNumI(previousDiveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
+		tft->printNumI(diveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
 		tft->setColor(VGA_YELLOW);
-		tft->printNumI(previousDiveResult->durationInSeconds/60, 204, 110, 3, ' ');
+		tft->printNumI(diveResult->durationInSeconds/60, 204, 110, 3, ' ');
 		tft->print(":", 252, 110);
-		tft->printNumI(previousDiveResult->durationInSeconds%60, 268, 110, 2 , '0');
+		tft->printNumI(diveResult->durationInSeconds%60, 268, 110, 2 , '0');
 
 		if (isDiveStopDisplay) {
 			tft->setColor(VGA_FUCHSIA);
-			tft->printNumF(previousDiveResult->maxDepthInMeters, 1, 220, 150);
+			tft->printNumF(diveResult->maxDepthInMeters, 1, 220, 150);
 			tft->setColor(VGA_WHITE);
 			tft->print("Max depth:", 20, 150);
 			tft->setFont(BigFont);
@@ -202,17 +200,17 @@ void View::displaySurfaceTimeScreen(DiveResult* previousDiveResult)
 
 		//Draw the remaining compartment ppN2 values
 
-		float max = previousDiveResult->compartmentPartialPressures[0];
+		float max = diveResult->compartmentPartialPressures[0];
 		for (int i=0; i < COMPARTMENT_COUNT; i++) {
-			if (max < previousDiveResult->compartmentPartialPressures[i]) {
-				max = previousDiveResult->compartmentPartialPressures[i];
+			if (max < diveResult->compartmentPartialPressures[i]) {
+				max = diveResult->compartmentPartialPressures[i];
 			}
 		}
 
 		tft->setColor(VGA_AQUA);
 		for (int i=0; i < COMPARTMENT_COUNT; i++) {
 			int x1 = i*30+13;
-			int y1 = tft->getDisplayYSize()-((130/(max-755))*(previousDiveResult->compartmentPartialPressures[i]-755));
+			int y1 = tft->getDisplayYSize()-((130/(max-755))*(diveResult->compartmentPartialPressures[i]-755));
 			int x2 = (i+1)*30+10;
 			int y2 = tft->getDisplayYSize()-1;
 			tft->fillRect(x1, y1, x2, y2);
@@ -376,7 +374,7 @@ void View::displayAboutScreen()
 	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);	tft->setFont(Grotesk16x32);
 
 	tft->setColor(VGA_WHITE);
-	tft->print("Version: 0.9.1", CENTER, 140);
+	tft->print("Version: 0.9.5", CENTER, 140);
 	tft->setColor(VGA_GREEN);
 	tft->print("info@diveino.hu", CENTER, 180);
 }

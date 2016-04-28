@@ -27,8 +27,7 @@ MS5803 sensor(ADDRESS_HIGH);
 int speakerPin = 8;
 
 // TFT setup - 480x320 pixel
-//UTFT tft(HX8357B,38,39,40,41);    //Banggood
-UTFT tft(ILI9481,38,39,40,41);      //Deal Extreme
+UTFT tft(ILI9481,38,39,40,41);
 View view(&tft);
 
 // Currently elected menu item
@@ -56,7 +55,6 @@ byte currentScreen = MENU_SCREEN;
 DiveDeco diveDeco = DiveDeco(400, 56.7);
 
 //Utility variables
-
 float maxDepthInMeter;
 float maxTemperatureInCelsius;
 float minTemperatureInCelsius;
@@ -202,6 +200,68 @@ void loop() {
 // Dive //
 //////////
 
+void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int intervalDuration)
+{
+	//Safety stop calculation - only if the dive was deeper than 10 m
+	if (maxDepthInMeter > 10) {
+
+		//Between 3 and 6 meters the diver can do the safety stop
+		if (3 < depthInMeter && depthInMeter < 6) {
+
+			if (safetyStopState == SAFETY_STOP_NOT_STARTED) {
+				safetyStopState = SAFETY_STOP_IN_PROGRESS;
+
+				if (testModeSetting) {
+					Serial.print(" Safety stop STARTED at ");
+					Serial.println(depthInMeter);
+				}
+			} else if (safetyStopState == SAFETY_STOP_VIOLATED) {
+				safetyStopState = SAFETY_STOP_IN_PROGRESS;
+			}
+			if (safetyStopState == SAFETY_STOP_IN_PROGRESS) {
+				safetyStopDurationInSeconds += intervalDuration;
+				view.drawSafetyStop(safetyStopDurationInSeconds);
+
+				if (testModeSetting) {
+					Serial.print(" Safety stop IN PROGRESS at ");
+					Serial.println(depthInMeter);
+					Serial.print(" Safety stop duration: ");
+					Serial.println(safetyStopDurationInSeconds);
+				}
+
+				if (180 <= safetyStopDurationInSeconds) {
+					safetyStopState = SAFETY_STOP_DONE;
+
+					if (testModeSetting) {
+						Serial.print(" Safety stop DONE at ");
+						Serial.println(depthInMeter);
+					}
+				}
+			}
+		} else if (10 < depthInMeter) {
+			//Reset the safety stop mode, if the diver descends back down to 10 m
+			if (safetyStopState != SAFETY_STOP_NOT_STARTED) {
+				safetyStopState = SAFETY_STOP_NOT_STARTED;
+
+				if (testModeSetting) {
+					Serial.print(" Safety stop RESET after DONE at ");
+					Serial.println(depthInMeter);
+				}
+			}
+		} else {
+			//Between 10-6 meters and above 3 meters the safety stop is violated - the counter will stop
+			if (safetyStopState == SAFETY_STOP_IN_PROGRESS) {
+				safetyStopState = SAFETY_STOP_VIOLATED;
+
+				if (testModeSetting) {
+					Serial.print(" Safety stop VIOLATED at ");
+					Serial.println(depthInMeter);
+				}
+			}
+		}
+	}
+}
+
 void calculateMinMaxValues(float depthInMeter, float temperatureInCelsius)
 {
 	//Calculate minimum and maximum values during the dive
@@ -306,68 +366,6 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 	}
 }
 
-void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int intervalDuration)
-{
-	//Safety stop calculation - only if the dive was deeper than 10 m
-	if (maxDepthInMeter > 10) {
-
-		//Between 3 and 6 meters the diver can do the safety stop
-		if (3 < depthInMeter && depthInMeter < 6) {
-
-			if (safetyStopState == SAFETY_STOP_NOT_STARTED) {
-				safetyStopState = SAFETY_STOP_IN_PROGRESS;
-
-				if (testModeSetting) {
-					Serial.print(" Safety stop STARTED at ");
-					Serial.println(depthInMeter);
-				}
-			} else if (safetyStopState == SAFETY_STOP_VIOLATED) {
-				safetyStopState = SAFETY_STOP_IN_PROGRESS;
-			}
-			if (safetyStopState == SAFETY_STOP_IN_PROGRESS) {
-				safetyStopDurationInSeconds += intervalDuration;
-				view.drawSafetyStop(safetyStopDurationInSeconds);
-
-				if (testModeSetting) {
-					Serial.print(" Safety stop IN PROGRESS at ");
-					Serial.println(depthInMeter);
-					Serial.print(" Safety stop duration: ");
-					Serial.println(safetyStopDurationInSeconds);
-				}
-
-				if (180 <= safetyStopDurationInSeconds) {
-					safetyStopState = SAFETY_STOP_DONE;
-
-					if (testModeSetting) {
-						Serial.print(" Safety stop DONE at ");
-						Serial.println(depthInMeter);
-					}
-				}
-			}
-		} else if (10 < depthInMeter) {
-			//Reset the safety stop mode, if the diver descends back down to 10 m
-			if (safetyStopState != SAFETY_STOP_NOT_STARTED) {
-				safetyStopState = SAFETY_STOP_NOT_STARTED;
-
-				if (testModeSetting) {
-					Serial.print(" Safety stop RESET after DONE at ");
-					Serial.println(depthInMeter);
-				}
-			}
-		} else {
-			//Between 10-6 meters and above 3 meters the safety stop is violated - the counter will stop
-			if (safetyStopState == SAFETY_STOP_IN_PROGRESS) {
-				safetyStopState = SAFETY_STOP_VIOLATED;
-
-				if (testModeSetting) {
-					Serial.print(" Safety stop VIOLATED at ");
-					Serial.println(depthInMeter);
-				}
-			}
-		}
-	}
-}
-
 void startDive()
 {
 	diveDurationTimer.enable(diveDurationTimer.RUN_FOREVER);
@@ -405,17 +403,40 @@ void startDive()
 		//Last dive happened within 48 hours and there is an active no fly time
 		if (lastDiveData != NULL &&	(lastDiveData->diveDateTimestamp + 172800) > now() && lastDiveData->noFlyTimeInMinutes > 0) {
 
+			Serial.print("BEFORE dive No Fly time (min): ");
+			Serial.println(lastDiveData->noFlyTimeInMinutes);
+
 			//Copy Last Dive Data compartments
 			diveResult->noFlyTimeInMinutes = lastDiveData->noFlyTimeInMinutes;
 			for (byte i=0; i <COMPARTMENT_COUNT; i++) {
 				diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
+
+		        Serial.print("BEFORE: Dive compartment ");
+		        Serial.print(i);
+		        Serial.print(": ");
+		        Serial.print(diveResult->compartmentPartialPressures[i], 0);
+		        Serial.println(" ppN2");
 			}
 
 			//Calculate surface time in minutes
 			int surfaceTime = (now() - lastDiveData->diveDateTimestamp) / 60;
 
+			Serial.print("Surface time (min): ");
+			Serial.println(surfaceTime);
+
 			//Spend the time on the surface
 			diveResult = diveDeco.surfaceInterval(surfaceTime, diveResult);
+
+			for (byte i=0; i <COMPARTMENT_COUNT; i++) {
+		        Serial.print("AFTER: Dive compartment ");
+		        Serial.print(i);
+		        Serial.print(": ");
+		        Serial.print(diveResult->compartmentPartialPressures[i], 0);
+		        Serial.println(" ppN2");
+			}
+
+			Serial.print("AFTER dive No Fly time (min): ");
+			Serial.println(diveResult->noFlyTimeInMinutes);
 		}
 
 		diveDeco.startDive(diveResult);
@@ -508,7 +529,6 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		//////////////////////////////
 		// Switch to DIVE_STOP mode //
 
-		currentMode = DIVE_STOP_MODE;
 		displayScreen(SURFACE_TIME_SCREEN);
 	}
 }
@@ -979,13 +999,25 @@ void displayScreen(byte screen) {
 			}
 			break;
 		case SURFACE_TIME_SCREEN:
+			currentMode = SURFACE_MODE;
+
 			diveResult = new DiveResult;
 			diveResult = diveDeco.initializeCompartments();
 
 			lastDiveData = lastDive.loadLastDiveData();
 			if (lastDiveData != NULL) {
-				//Last dive happened within 48 hours
-				if ((lastDiveData->diveDateTimestamp + 172800) > now() && lastDiveData->noFlyTimeInMinutes > 0) {
+				//Calculate surface interval
+				int surfaceIntervalInMinutes = (now() - lastDiveData->diveDateTimestamp) / 60;
+
+				Serial.print("Surface interval (min): ");
+				Serial.println(surfaceIntervalInMinutes);
+
+				//Last dive happened after 10 minutes and within 48 hours plus there is active No Fly
+				if (10 < surfaceIntervalInMinutes && surfaceIntervalInMinutes < 2880 && lastDiveData->noFlyTimeInMinutes > 0) {
+
+					Serial.print("Within 48 hours with ");
+					Serial.print(lastDiveData->noFlyTimeInMinutes);
+					Serial.println(" minutes of No Fly time.");
 
 					//Copy Last Dive Data compartments
 					diveResult->noFlyTimeInMinutes = lastDiveData->noFlyTimeInMinutes;
@@ -995,25 +1027,44 @@ void displayScreen(byte screen) {
 						diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
 					}
 
-					//Calculate surface time in minutes
-					int surfaceTime = (now() - lastDiveData->diveDateTimestamp) / 60;
-
 					//Spend the time on the surface
 					diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
 					diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
-					diveResult = diveDeco.surfaceInterval(surfaceTime, diveResult);
-				}
+					diveResult = diveDeco.surfaceInterval(surfaceIntervalInMinutes, diveResult);
 
-				//Update Last Dive Data
-				lastDiveData->noFlyTimeInMinutes = diveResult->noFlyTimeInMinutes;
-				for (byte i=0; i <COMPARTMENT_COUNT; i++) {
-					lastDiveData->compartmentPartialPressures[i] = diveResult->compartmentPartialPressures[i];
-				}
+					Serial.print("After ");
+					Serial.print(surfaceIntervalInMinutes);
+					Serial.print(" minutes surface interval the No Fly time was changed to");
+					Serial.print(diveResult->noFlyTimeInMinutes);
+					Serial.println(" minutes.");
 
-				//Store the updated Last Dive Data
-				lastDive.storeLastDiveData(lastDiveData);
+					//Update Last Dive Data
+					lastDiveData->noFlyTimeInMinutes = diveResult->noFlyTimeInMinutes;
+					for (byte i=0; i <COMPARTMENT_COUNT; i++) {
+						lastDiveData->compartmentPartialPressures[i] = diveResult->compartmentPartialPressures[i];
+					}
+
+					//Store the updated Last Dive Data
+					lastDive.storeLastDiveData(lastDiveData);
+
+					Serial.println("Last Dive Data was updated.");
+				} else if (10 >= surfaceIntervalInMinutes && lastDiveData->noFlyTimeInMinutes > 0) {
+					//Within 10 minutes of the dive don't do surface interval calculation
+					Serial.println("The last dive was within 10 minutes!");
+
+					//We would like to see the last dive details on the screen
+					currentMode = DIVE_STOP_MODE;
+
+					//Copy Last Dive Data compartments
+					diveResult->noFlyTimeInMinutes = lastDiveData->noFlyTimeInMinutes;
+					diveResult->durationInSeconds = lastDiveData->durationInSeconds;
+					diveResult->maxDepthInMeters = lastDiveData->maxDepthInMeters;
+					for (byte i=0; i <COMPARTMENT_COUNT; i++) {
+						diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
+					}
+				}
 			}
-			view.displaySurfaceTimeScreen(diveResult);
+			view.displaySurfaceTimeScreen(diveResult, currentMode == DIVE_STOP_MODE);
 			break;
 		case GAUGE_SCREEN:
 			view.displayGaugeScreen(testModeSetting);
