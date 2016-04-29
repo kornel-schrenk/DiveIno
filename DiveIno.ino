@@ -971,6 +971,7 @@ void displayScreen(byte screen) {
 
 	DiveResult* diveResult;
 	LastDiveData* lastDiveData;
+	int surfaceIntervalInMinutes = 0;
 
 	currentScreen = screen;
 	switch (screen) {
@@ -1007,7 +1008,7 @@ void displayScreen(byte screen) {
 			lastDiveData = lastDive.loadLastDiveData();
 			if (lastDiveData != NULL) {
 				//Calculate surface interval
-				int surfaceIntervalInMinutes = (now() - lastDiveData->diveDateTimestamp) / 60;
+				surfaceIntervalInMinutes = (now() - lastDiveData->diveDateTimestamp) / 60;
 
 				Serial.print("Surface interval (min): ");
 				Serial.println(surfaceIntervalInMinutes);
@@ -1034,7 +1035,7 @@ void displayScreen(byte screen) {
 
 					Serial.print("After ");
 					Serial.print(surfaceIntervalInMinutes);
-					Serial.print(" minutes surface interval the No Fly time was changed to");
+					Serial.print(" minutes surface interval the No Fly time was changed to ");
 					Serial.print(diveResult->noFlyTimeInMinutes);
 					Serial.println(" minutes.");
 
@@ -1064,7 +1065,7 @@ void displayScreen(byte screen) {
 					}
 				}
 			}
-			view.displaySurfaceTimeScreen(diveResult, currentMode == DIVE_STOP_MODE);
+			view.displaySurfaceTimeScreen(diveResult, surfaceIntervalInMinutes, currentMode == DIVE_STOP_MODE);
 			break;
 		case GAUGE_SCREEN:
 			view.displayGaugeScreen(testModeSetting);

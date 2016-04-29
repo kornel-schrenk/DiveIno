@@ -33,7 +33,7 @@ public:
 	void displayDiveScreen(float oxygenRateSetting);
 	void displayLogbookScreen(LogbookData* logbookData);
 	void displayProfileScreen(ProfileData* profileData, int profileNumber);
-	void displaySurfaceTimeScreen(DiveResult* diveResult, bool isDiveStopDisplay);
+	void displaySurfaceTimeScreen(DiveResult* diveResult, int surfaceIntervalInMinutes, bool isDiveStopDisplay);
 	void displayGaugeScreen(bool testModeSetting);
 	void displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting,	bool testModeSetting, bool soundSetting, bool imperialUnitsSetting);
 	void displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool testModeSetting, bool soundSetting, bool imperialUnitsSetting);

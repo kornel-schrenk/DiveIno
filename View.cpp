@@ -153,7 +153,7 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
 	tft->print("O2%", 364, 114);
 }
 
-void View::displaySurfaceTimeScreen(DiveResult* diveResult, bool isDiveStopDisplay)
+void View::displaySurfaceTimeScreen(DiveResult* diveResult, int surfaceIntervalInMinutes, bool isDiveStopDisplay)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
@@ -162,41 +162,57 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, bool isDiveStopDispl
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
 	if (isDiveStopDisplay) {
-		tft->print("Dive time", 84, 10);
+		tft->print("Dive time", 104, 10);
 	} else {
-		tft->print("Surface time", 64, 10);
+		tft->print("Surface time", 84, 10);
 	}
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
 
-	tft->setColor(VGA_WHITE);
-	tft->print("No fly:", 20, 70);
-	tft->print("Duration:", 20, 110);
-
 	if (diveResult != NULL) {
-		tft->setColor(VGA_RED);
-		tft->printNumI(diveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
-		tft->print(":", 252, 70);
-		tft->printNumI(diveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
-		tft->setColor(VGA_YELLOW);
-		tft->printNumI(diveResult->durationInSeconds/60, 204, 110, 3, ' ');
-		tft->print(":", 252, 110);
-		tft->printNumI(diveResult->durationInSeconds%60, 268, 110, 2 , '0');
 
 		if (isDiveStopDisplay) {
+			tft->setColor(VGA_RED);
+			tft->printNumI(diveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
+			tft->print(":", 252, 70);
+			tft->printNumI(diveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
+			tft->setColor(VGA_YELLOW);
+			tft->printNumI(diveResult->durationInSeconds/60, 204, 110, 3, ' ');
+			tft->print(":", 252, 110);
+			tft->printNumI(diveResult->durationInSeconds%60, 268, 110, 2 , '0');
 			tft->setColor(VGA_FUCHSIA);
 			tft->printNumF(diveResult->maxDepthInMeters, 1, 220, 150);
+
 			tft->setColor(VGA_WHITE);
+			tft->print("No fly:", 20, 70);
+			tft->print("Duration:", 20, 110);
 			tft->print("Max depth:", 20, 150);
 			tft->setFont(BigFont);
+			tft->print("hh:mm", 310, 83);
+			tft->print("mm:ss", 310, 123);
 			tft->print("m", 310, 163);
-		}
+		} else {
+			tft->setColor(VGA_RED);
+			tft->printNumI(diveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
+			tft->print(":", 252, 70);
+			tft->printNumI(diveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
+			tft->setColor(VGA_GREEN);
+			if (surfaceIntervalInMinutes == 0 || surfaceIntervalInMinutes > 2880) {
+				tft->print("00:00", 220, 150);
+			} else {
+				tft->printNumI(surfaceIntervalInMinutes/60, 220, 110, 2, '0');
+				tft->print(":", 252, 110);
+				tft->printNumI(surfaceIntervalInMinutes%60, 268, 110, 2 , '0');
+			}
 
-		tft->setColor(VGA_WHITE);
-		tft->setFont(BigFont);
-		tft->print("hh:mm", 310, 83);
-		tft->print("mm:ss", 310, 123);
+			tft->setColor(VGA_WHITE);
+			tft->print("No fly:", 20, 70);
+			tft->print("Duration:", 20, 110);
+			tft->setFont(BigFont);
+			tft->print("hh:mm", 310, 83);
+			tft->print("hh:mm", 310, 123);
+		}
 
 		//Draw the remaining compartment ppN2 values
 
