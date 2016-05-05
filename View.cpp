@@ -1,16 +1,10 @@
 #include "Arduino.h"
 #include "View.h"
 
-extern uint8_t Grotesk16x32[];
+extern uint8_t Grotesk16x32[];             //16x32 pixel
 extern uint8_t SevenSegNumFontPlusPlus[];  //32x50 pixel
 extern uint8_t BigFont[];                  //16x16 pixel
 extern uint8_t SevenSeg_XXXL[];            //64x100 pixel
-
-char* settingsList[] = {" Sea level",
-		" Oxygen %",
-		" Test mode",
-		" Sound",
-		" Units"};
 
 char* mainMenu[] = {" DiveIno - Main Menu ",
         " Dive          ",
@@ -19,6 +13,18 @@ char* mainMenu[] = {" DiveIno - Main Menu ",
 		" Gauge         ",
         " Settings      ",
         " About         "};
+
+char* settingsList[] = {" Sea level",
+		" Oxygen %",
+		" Test mode",
+		" Sound",
+		" Units"};
+
+char* dateTimeSettingsList[] = {" Year ",
+		" Month",
+		" Day",
+		" Hour",
+		" Minute"};
 
 View::View(UTFT* utft) {
 	tft = utft;
@@ -80,7 +86,7 @@ void View::displayLogbookScreen(LogbookData* logbookData)
 
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
-	tft->print(" Logbook - Summary", 48, 10);
+	tft->print("DiveIno - Logbook", 64, 10);
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
@@ -98,15 +104,20 @@ void View::displayLogbookScreen(LogbookData* logbookData)
 	tft->printNumI(logbookData->totalNumberOfDives, paddingLeft, 80);
 	tft->setColor(VGA_YELLOW);
 	if (logbookData->totalDiveHours < 10) {
+		tft->print("00", paddingLeft, 120);
+		tft->printNumI(logbookData->totalDiveHours, paddingLeft + 32, 120);
+	} else if (logbookData->totalDiveHours < 100) {
+		tft->print("0", paddingLeft, 120);
 		tft->printNumI(logbookData->totalDiveHours, paddingLeft + 16, 120);
 	} else {
 		tft->printNumI(logbookData->totalDiveHours, paddingLeft, 120);
 	}
-	tft->print(":", paddingLeft + 32, 120);
+	tft->print(":", paddingLeft + 48, 120);
 	if (logbookData->totalDiveMinutes < 10) {
-		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 64, 120);
+		tft->print("0", paddingLeft + 64, 120);
+		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 80, 120);
 	} else {
-		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 48, 120);
+		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 64, 120);
 	}
 	tft->setColor(VGA_PURPLE);
 	tft->printNumF(logbookData->totalMaximumDepth, 1, paddingLeft, 160);
@@ -114,6 +125,11 @@ void View::displayLogbookScreen(LogbookData* logbookData)
 	tft->print(logbookData->lastDiveDateTime, paddingLeft, 200);
 	tft->setColor(VGA_LIME);
 	tft->printNumI(logbookData->numberOfStoredProfiles, paddingLeft, 240);
+
+	tft->setColor(VGA_WHITE);
+	tft->setFont(BigFont);
+	tft->print("hh:mm", 300, 134);
+	tft->print("m", 270, 174);
 }
 
 void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
@@ -162,9 +178,9 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, int surfaceIntervalI
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
 	if (isDiveStopDisplay) {
-		tft->print("Dive time", 104, 10);
+		tft->print("DiveIno - Dive time", 64, 10);
 	} else {
-		tft->print("Surface time", 84, 10);
+		tft->print("DiveIno - Surface time", 64, 10);
 	}
 
 	// Draw separation line
@@ -199,7 +215,7 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, int surfaceIntervalI
 			tft->printNumI(diveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
 			tft->setColor(VGA_GREEN);
 			if (surfaceIntervalInMinutes == 0 || surfaceIntervalInMinutes > 2880) {
-				tft->print("00:00", 220, 150);
+				tft->print("00:00", 220, 110);
 			} else {
 				tft->printNumI(surfaceIntervalInMinutes/60, 220, 110, 2, '0');
 				tft->print(":", 252, 110);
@@ -284,7 +300,7 @@ void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSett
 
 	// Display the header of the screen
 	tft->setColor(VGA_LIME);
-	tft->print("DiveIno - Settings", 48, 10);
+	tft->print("DiveIno - Settings", 64, 10);
 
 	// Draw separation line
 	tft->drawLine(0, SETTINGS_TOP-10, tft->getDisplayXSize()-1, SETTINGS_TOP-10);
@@ -364,16 +380,122 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_GREEN);
 		tft->setBackColor(VGA_BLACK);
 	}
+	tft->print("Save", 10, 211 + SETTINGS_TOP);
+
+	if (settingIndex == 6) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_RED);
+		tft->setBackColor(VGA_BLACK);
+	}
+	tft->print("Cancel", 90, 211 + SETTINGS_TOP);
+
+	if (settingIndex == 7) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_BLUE);
+		tft->setBackColor(VGA_BLACK);
+	}
+	tft->print("Default", 200, 210 + SETTINGS_TOP);
+
+	if (settingIndex == 8) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_FUCHSIA);
+		tft->setBackColor(VGA_BLACK);
+	}
+	tft->print("Date&Time", 330, 210 + SETTINGS_TOP);
+}
+
+void View::displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dateTimeSettings)
+{
+	tft->clrScr();
+	tft->setBackColor(VGA_BLACK);
+	tft->setFont(Grotesk16x32);
+
+	// Display the header of the screen
+	tft->setColor(VGA_LIME);
+	tft->print("DiveIno - Date & Time", 64, 10);
+
+	// Draw separation line
+	tft->drawLine(0, SETTINGS_TOP-10, tft->getDisplayXSize()-1, SETTINGS_TOP-10);
+
+	// Display settings
+	tft->setColor(VGA_YELLOW);
+	for (int i = 0; i < SETTINGS_SIZE; i++) {
+		tft->print(dateTimeSettingsList[i], 0, (i * 40) + SETTINGS_TOP);
+	}
+
+	displayDateTimeSettings(settingIndex, dateTimeSettings);
+}
+
+void View::displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTimeSettings)
+{
+	if (settingIndex == 0) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_AQUA);
+		tft->setBackColor(VGA_BLACK);
+	}
+	tft->printNumI(dateTimeSettings->year, 160, SETTINGS_TOP, 4);
+
+	if (settingIndex == 1) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_AQUA);
+		tft->setBackColor(VGA_BLACK);
+	}
+	tft->printNumI(dateTimeSettings->month, 160, 40 + SETTINGS_TOP, 2, '0');
+
+	if (settingIndex == 2) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_AQUA);
+		tft->setBackColor(VGA_BLACK);
+	}
+	tft->printNumI(dateTimeSettings->day, 160, 80 + SETTINGS_TOP, 2, '0');
+
+	if (settingIndex == 3) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_AQUA);
+		tft->setBackColor(VGA_BLACK);
+	}
+	tft->printNumI(dateTimeSettings->hour, 160, 120 + SETTINGS_TOP, 2, '0');
+
+	if (settingIndex == 4) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_AQUA);
+		tft->setBackColor(VGA_BLACK);
+	}
+	tft->printNumI(dateTimeSettings->minute, 160, 160 + SETTINGS_TOP, 2, '0');
+
+	if (settingIndex == 5) {
+		tft->setColor(VGA_WHITE);
+		tft->setBackColor(VGA_BLUE);
+	} else {
+		tft->setColor(VGA_GREEN);
+		tft->setBackColor(VGA_BLACK);
+	}
 	tft->print("Save", 120, 210 + SETTINGS_TOP);
 
 	if (settingIndex == 6) {
 		tft->setColor(VGA_WHITE);
 		tft->setBackColor(VGA_BLUE);
 	} else {
-		tft->setColor(VGA_MAROON);
+		tft->setColor(VGA_RED);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->print("Default", 210, 210 + SETTINGS_TOP);
+	tft->print("Cancel", 210, 210 + SETTINGS_TOP);
 }
 
 void View::displayAboutScreen()
@@ -390,9 +512,9 @@ void View::displayAboutScreen()
 	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);	tft->setFont(Grotesk16x32);
 
 	tft->setColor(VGA_WHITE);
-	tft->print("Version: 0.9.5", CENTER, 140);
+	tft->print("Version: 0.9.6", CENTER, 140);
 	tft->setColor(VGA_GREEN);
-	tft->print("info@diveino.hu", CENTER, 180);
+	tft->print("www.diveino.hu", CENTER, 180);
 }
 
 void View::displayTestScreen()

@@ -12,6 +12,14 @@ typedef struct DiveInoSettings {
 	bool imperialUnitsSetting = false;
 };
 
+typedef struct DateTimeSettings {
+	int year = 2000;
+	int month = 1;
+	int day = 1;
+	int hour = 10;
+	int minute = 59;
+};
+
 class Settings {
 public:
 	Settings();

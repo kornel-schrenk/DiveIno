@@ -40,7 +40,10 @@ bool testModeSetting = true;
 bool soundSetting = true;
 bool imperialUnitsSetting = false;
 
+DateTimeSettings* currentDateTimeSettings;
+
 byte selectedSettingIndex = 0;
+byte selectedDateTimeSettingIndex = 0;
 bool isSdCardPresent = false;
 
 #define SURFACE_MODE 		0  // Menu, Logbook, Surface Time, Settings and About are available
@@ -533,6 +536,10 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 	}
 }
 
+/////////////////////////////
+// Date and Time functions //
+/////////////////////////////
+
 String getCurrentTimeText() {
 	String time = "";
 	time+=year();
@@ -564,6 +571,21 @@ String getCurrentTimeText() {
 	time+=second();
 
 	return time;
+}
+
+DateTimeSettings* getCurrentTime() {
+	DateTimeSettings* dateTimeSettings = new DateTimeSettings;
+	dateTimeSettings->year = year();
+	dateTimeSettings->month = month();
+	dateTimeSettings->day = day();
+	dateTimeSettings->hour = hour();
+	dateTimeSettings->minute = minute();
+	return dateTimeSettings;
+}
+
+void setCurrentTime(DateTimeSettings* dateTimeSettings) {
+	//Use the Arduino Time library to set the RTC time
+	setTime(dateTimeSettings->hour,dateTimeSettings->minute,0,dateTimeSettings->day,dateTimeSettings->month,dateTimeSettings->year);
 }
 
 /////////////
@@ -667,6 +689,9 @@ void hashButtonPressed()
 	if (currentScreen == SETTINGS_SCREEN) {
 		currentMode = SURFACE_MODE;
 		displayScreen(MENU_SCREEN);
+	} else if (currentScreen == DATETIME_SCREEN) {
+		currentMode = SURFACE_MODE;
+		displayScreen(SETTINGS_SCREEN);
 	}
 }
 
@@ -717,15 +742,29 @@ void selectButtonPressed()
 		stopDive();
 		displayScreen(MENU_SCREEN);
 	} else if (currentScreen == SETTINGS_SCREEN) {
+		currentMode = SURFACE_MODE;
 		if (selectedSettingIndex == 5) { // Save
-			currentMode = SURFACE_MODE;
 			displayScreen(MENU_SCREEN);
 			saveSettings();
 		}
-		if (selectedSettingIndex == 6) { // Default
-			currentMode = SURFACE_MODE;
+		if (selectedSettingIndex == 6) { // Cancel
+			displayScreen(MENU_SCREEN);
+		}
+		if (selectedSettingIndex == 7) { // Default
 			displayScreen(MENU_SCREEN);
 			setSettingsToDefault();
+		}
+		if (selectedSettingIndex == 8) {
+			displayScreen(DATETIME_SCREEN); //Date and Time setting screen
+		}
+	} else if (currentScreen == DATETIME_SCREEN) {
+		currentMode = SURFACE_MODE;
+		if (selectedDateTimeSettingIndex == 5) { // Save
+			displayScreen(SETTINGS_SCREEN);
+			setCurrentTime(currentDateTimeSettings);
+		}
+		if (selectedDateTimeSettingIndex == 6) { // Cancel
+			displayScreen(SETTINGS_SCREEN);
 		}
 	}
 }
@@ -760,9 +799,17 @@ void upButtonPressed()
 		break;
 		case SETTINGS_SCREEN: {
 			if (selectedSettingIndex == 0) {
-				settingsSelect(6);
+				settingsSelect(8);
 			} else {
 				settingsSelect(selectedSettingIndex - 1);
+			}
+		}
+		break;
+		case DATETIME_SCREEN: {
+			if (selectedDateTimeSettingIndex == 0) {
+				dateTimeSettingsSelect(6);
+			} else {
+				dateTimeSettingsSelect(selectedDateTimeSettingIndex - 1);
 			}
 		}
 		break;
@@ -794,10 +841,18 @@ void downButtonPressed()
 		}
 		break;
 		case SETTINGS_SCREEN: {
-			if (selectedSettingIndex < 6) {
+			if (selectedSettingIndex < 8) {
 				settingsSelect(selectedSettingIndex + 1);
 			} else {
 				settingsSelect(0);
+			}
+		}
+		break;
+		case DATETIME_SCREEN: {
+			if (selectedDateTimeSettingIndex < 6) {
+				dateTimeSettingsSelect(selectedDateTimeSettingIndex + 1);
+			} else {
+				dateTimeSettingsSelect(0);
 			}
 		}
 		break;
@@ -847,6 +902,54 @@ void leftButtonPressed()
 					settingsSelect(4);
 				}
 				break;
+			}
+		}
+		break;
+		case DATETIME_SCREEN: {
+			if (currentDateTimeSettings != NULL) {
+				switch (selectedDateTimeSettingIndex) {
+					case 0: { //Year
+						currentDateTimeSettings->year--;
+						dateTimeSettingsSelect(0);
+					}
+					break;
+					case 1: { //Month
+						if (currentDateTimeSettings->month > 0) {
+							currentDateTimeSettings->month--;
+						} else {
+							currentDateTimeSettings->month = 12;
+						}
+						dateTimeSettingsSelect(1);
+					}
+					break;
+					case 2: { //Day
+						if (currentDateTimeSettings->day > 1) {
+							currentDateTimeSettings->day--;
+						} else {
+							currentDateTimeSettings->day = 31;
+						}
+						dateTimeSettingsSelect(2);
+					}
+					break;
+					case 3: { //Hour
+						if (currentDateTimeSettings->hour > 0) {
+							currentDateTimeSettings->hour--;
+						} else {
+							currentDateTimeSettings->hour = 23;
+						}
+						dateTimeSettingsSelect(3);
+					}
+					break;
+					case 4: { //Minute
+						if (currentDateTimeSettings->minute > 0) {
+							currentDateTimeSettings->minute--;
+						} else {
+							currentDateTimeSettings->minute = 59;
+						}
+						dateTimeSettingsSelect(4);
+					}
+					break;
+				}
 			}
 		}
 		break;
@@ -901,6 +1004,54 @@ void rightButtonPressed()
 			}
 		}
 		break;
+		case DATETIME_SCREEN: {
+			if (currentDateTimeSettings != NULL) {
+				switch (selectedDateTimeSettingIndex) {
+					case 0: { //Year
+						currentDateTimeSettings->year++;
+						dateTimeSettingsSelect(0);
+					}
+					break;
+					case 1: { //Month
+						if (currentDateTimeSettings->month < 12) {
+							currentDateTimeSettings->month++;
+						} else {
+							currentDateTimeSettings->month = 1;
+						}
+						dateTimeSettingsSelect(1);
+					}
+					break;
+					case 2: { //Day
+						if (currentDateTimeSettings->day < 31) {
+							currentDateTimeSettings->day++;
+						} else {
+							currentDateTimeSettings->day = 1;
+						}
+						dateTimeSettingsSelect(2);
+					}
+					break;
+					case 3: { //Hour
+						if (currentDateTimeSettings->hour < 23) {
+							currentDateTimeSettings->hour++;
+						} else {
+							currentDateTimeSettings->hour = 0;
+						}
+						dateTimeSettingsSelect(3);
+					}
+					break;
+					case 4: { //Minute
+						if (currentDateTimeSettings->minute < 59) {
+							currentDateTimeSettings->minute++;
+						} else {
+							currentDateTimeSettings->minute = 0;
+						}
+						dateTimeSettingsSelect(4);
+					}
+					break;
+				}
+			}
+		}
+		break;
 		case PROFILE_SCREEN: {
 			if (currentProfileNumber != 0 && maximumProfileNumber > 1) {
 				if (currentProfileNumber == maximumProfileNumber) {
@@ -922,6 +1073,12 @@ void settingsSelect(byte settingIndex)
 {
 	view.displaySettings(settingIndex, seaLevelPressureSetting, oxygenRateSetting, testModeSetting, soundSetting, imperialUnitsSetting);
 	selectedSettingIndex = settingIndex;
+}
+
+void dateTimeSettingsSelect(byte settingIndex)
+{
+	view.displayDateTimeSettings(settingIndex, currentDateTimeSettings);
+	selectedDateTimeSettingIndex = settingIndex;
 }
 
 void setSettingsToDefault()
@@ -1072,6 +1229,10 @@ void displayScreen(byte screen) {
 			break;
 		case SETTINGS_SCREEN:
 			view.displaySettingsScreen(0, seaLevelPressureSetting, oxygenRateSetting, testModeSetting, soundSetting, imperialUnitsSetting);
+			break;
+		case DATETIME_SCREEN:
+			currentDateTimeSettings = getCurrentTime();
+			view.displayDateTimeSettingScreen(0, currentDateTimeSettings);
 			break;
 		case ABOUT_SCREEN:
 			view.displayAboutScreen();

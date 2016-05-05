@@ -6,6 +6,7 @@
 
 #include "Buhlmann.h"
 #include "Logbook.h"
+#include "Settings.h"
 
 #define MENU_SCREEN 		0
 #define DIVE_SCREEN 	    1
@@ -16,6 +17,7 @@
 #define ABOUT_SCREEN        6
 #define UI_TEST_SCREEN      7
 #define PROFILE_SCREEN      8
+#define DATETIME_SCREEN     9
 
 // Position of first menu item from the top of the screen
 #define MENU_TOP 60
@@ -40,6 +42,8 @@ public:
 	void displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool testModeSetting, bool soundSetting, bool imperialUnitsSetting);
 	void displayAboutScreen();
 	void displayTestScreen();
+	void displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dateTimeSettings);
+	void displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTimeSettings);
 
 	void drawDepth(float depth);
 	void drawMaximumDepth(float maximumDepth);
