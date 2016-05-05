@@ -3,7 +3,8 @@
 
 #include "Arduino.h"
 #include "UTFT.h"
-#include "DiveDeco.h"
+
+#include "Buhlmann.h"
 #include "Logbook.h"
 
 #define MENU_SCREEN 		0

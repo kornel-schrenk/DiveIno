@@ -9,7 +9,7 @@
 #include "SimpleTimer.h"
 #include "MAX17043.h"
 
-#include "DiveDeco.h"
+#include "Buhlmann.h"
 #include "View.h"
 #include "Settings.h"
 #include "Logbook.h"
@@ -52,7 +52,7 @@ bool isSdCardPresent = false;
 byte currentMode = SURFACE_MODE;
 byte currentScreen = MENU_SCREEN;
 
-DiveDeco diveDeco = DiveDeco(400, 56.7);
+Buhlmann buhlmann = Buhlmann(400, 56.7);
 
 //Utility variables
 float maxDepthInMeter;
@@ -330,7 +330,7 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 
 	float depthInMeter = 0;
 	if (pressureInMillibar > seaLevelPressureSetting) {
-		depthInMeter = diveDeco.calculateDepthFromPressure(pressureInMillibar);
+		depthInMeter = buhlmann.calculateDepthFromPressure(pressureInMillibar);
 	}
 
 	//Draw the data to the screen
@@ -391,11 +391,11 @@ void startDive()
 		profileFile = logbook.createNewProfileFile(maximumProfileNumber+1);
 
 		// Initialize the DiveDeco library based on the settings
-		diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
-		diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
+		buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+		buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
 
 		DiveResult* diveResult = new DiveResult;
-		diveResult = diveDeco.initializeCompartments();
+		diveResult = buhlmann.initializeCompartments();
 
 		//Retrieve last dive data
 		LastDiveData* lastDiveData = lastDive.loadLastDiveData();
@@ -425,7 +425,7 @@ void startDive()
 			Serial.println(surfaceTime);
 
 			//Spend the time on the surface
-			diveResult = diveDeco.surfaceInterval(surfaceTime, diveResult);
+			diveResult = buhlmann.surfaceInterval(surfaceTime, diveResult);
 
 			for (byte i=0; i <COMPARTMENT_COUNT; i++) {
 		        Serial.print("AFTER: Dive compartment ");
@@ -439,7 +439,7 @@ void startDive()
 			Serial.println(diveResult->noFlyTimeInMinutes);
 		}
 
-		diveDeco.startDive(diveResult);
+		buhlmann.startDive(diveResult);
 	}
 }
 
@@ -453,7 +453,7 @@ void stopDive()
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
 
 	DiveData diveData = {pressureInMillibar, durationInSeconds};
-	DiveInfo diveInfo = diveDeco.progressDive(&diveData);
+	DiveInfo diveInfo = buhlmann.progressDive(&diveData);
 	view.drawAscend(diveInfo.ascendRate);
 
 	if (safetyStopState != SAFETY_STOP_IN_PROGRESS) {
@@ -473,7 +473,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		Serial.println("DIVE - Finished");
 
-		DiveResult* diveResult = diveDeco.stopDive();
+		DiveResult* diveResult = buhlmann.stopDive();
 
 		String currentTimeText = getCurrentTimeText();
 
@@ -949,8 +949,8 @@ void saveSettings()
 		}
 	}
 
-	diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
-	diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
+	buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+	buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
 }
 
 //////////
@@ -1003,7 +1003,7 @@ void displayScreen(byte screen) {
 			currentMode = SURFACE_MODE;
 
 			diveResult = new DiveResult;
-			diveResult = diveDeco.initializeCompartments();
+			diveResult = buhlmann.initializeCompartments();
 
 			lastDiveData = lastDive.loadLastDiveData();
 			if (lastDiveData != NULL) {
@@ -1029,9 +1029,9 @@ void displayScreen(byte screen) {
 					}
 
 					//Spend the time on the surface
-					diveDeco.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
-					diveDeco.setNitrogenRateInGas(1 - oxygenRateSetting);
-					diveResult = diveDeco.surfaceInterval(surfaceIntervalInMinutes, diveResult);
+					buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+					buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
+					diveResult = buhlmann.surfaceInterval(surfaceIntervalInMinutes, diveResult);
 
 					Serial.print("After ");
 					Serial.print(surfaceIntervalInMinutes);

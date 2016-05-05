@@ -1,7 +1,8 @@
 #include "Arduino.h"
-#include "DiveDeco.h"
 
-DiveDeco::DiveDeco(float minimumAircraftCabinPressure, float waterVapourPressureCorrection) {
+#include "Buhlmann.h"
+
+Buhlmann::Buhlmann(float minimumAircraftCabinPressure, float waterVapourPressureCorrection) {
 	_minimumAircraftCabinPressure = minimumAircraftCabinPressure;
 	_waterVapourPressureCorrection = waterVapourPressureCorrection;
 
@@ -66,15 +67,15 @@ DiveDeco::DiveDeco(float minimumAircraftCabinPressure, float waterVapourPressure
 // Utility methods //
 /////////////////////
 
-float DiveDeco::calculateDepthFromPressure(float pressure) {
+float Buhlmann::calculateDepthFromPressure(float pressure) {
 	return (pressure - _seaLevelAtmosphericPressure) / (9.80665 * 10.25);
 }
 
-float DiveDeco::calculateHydrostaticPressureFromDepth(float depth) {
+float Buhlmann::calculateHydrostaticPressureFromDepth(float depth) {
 	return _seaLevelAtmosphericPressure + (9.80665 * 10.25 * depth * 100);
 }
 
-float DiveDeco::maxSearch(float array[], int size) {
+float Buhlmann::maxSearch(float array[], int size) {
 	float max = array[0];
 	for (int i=1; i < size; i++) {
 		if (max < array[i]) {
@@ -84,7 +85,7 @@ float DiveDeco::maxSearch(float array[], int size) {
 	return max;
 }
 
-int DiveDeco::minSearch(int array[], int size) {
+int Buhlmann::minSearch(int array[], int size) {
 	int min = array[0];
 	for (int i=1; i<size; i++) {
 		if (min > array[i]) {
@@ -98,23 +99,23 @@ int DiveDeco::minSearch(int array[], int size) {
 // Getters and setters //
 /////////////////////////
 
-float DiveDeco::getCompartmentHalfTimeInSeconds(int compartmentIndex) {
+float Buhlmann::getCompartmentHalfTimeInSeconds(int compartmentIndex) {
 	return _halfTimesNitrogen[compartmentIndex] * 60;
 }
 
-float DiveDeco::getCompartmentPartialPressure(int compartmentIndex) {
+float Buhlmann::getCompartmentPartialPressure(int compartmentIndex) {
 	return _compartmentCurrentPartialPressures[compartmentIndex];
 }
 
-void DiveDeco::setCompartmentPartialPressure(int compartmentIndex, float partialPressure) {
+void Buhlmann::setCompartmentPartialPressure(int compartmentIndex, float partialPressure) {
 	_compartmentCurrentPartialPressures[compartmentIndex] = partialPressure;
 }
 
-void DiveDeco::setSeaLevelAtmosphericPressure(float seaLevelAtmosphericPressure) {
+void Buhlmann::setSeaLevelAtmosphericPressure(float seaLevelAtmosphericPressure) {
 	_seaLevelAtmosphericPressure = seaLevelAtmosphericPressure;
 }
 
-void DiveDeco::setNitrogenRateInGas(float nitrogenRateInGas) {
+void Buhlmann::setNitrogenRateInGas(float nitrogenRateInGas) {
 	_nitrogenRateInGas = nitrogenRateInGas;
 }
 
@@ -122,23 +123,23 @@ void DiveDeco::setNitrogenRateInGas(float nitrogenRateInGas) {
 // Calculation related methods //
 /////////////////////////////////
 
-float DiveDeco::calculateNitrogenPartialPressureInLung(float currentPressure) {
+float Buhlmann::calculateNitrogenPartialPressureInLung(float currentPressure) {
 	return _nitrogenRateInGas * (currentPressure - _waterVapourPressureCorrection);
 }
 
-float DiveDeco::calculateCompartmentInertGasPartialPressure(float timeInSeconds, float halfTimeInSeconds, float currentInertGasPartialPressureInCompartment, float currentInertGasPartialPressureInLung) {
+float Buhlmann::calculateCompartmentInertGasPartialPressure(float timeInSeconds, float halfTimeInSeconds, float currentInertGasPartialPressureInCompartment, float currentInertGasPartialPressureInLung) {
 	return currentInertGasPartialPressureInCompartment + (currentInertGasPartialPressureInLung - currentInertGasPartialPressureInCompartment) * (1 - pow(2, (-timeInSeconds/halfTimeInSeconds)));
 }
 
-float DiveDeco::getAscendToPartialPressureForCompartment(int compartmentIndex, float compartmentPartialPressure) {
+float Buhlmann::getAscendToPartialPressureForCompartment(int compartmentIndex, float compartmentPartialPressure) {
 	return (compartmentPartialPressure * _bValuesNitrogen[compartmentIndex]) - (1000 * _aValuesNitrogen[compartmentIndex] * _bValuesNitrogen[compartmentIndex]);
 }
 
-bool DiveDeco::isDecoNeeded(float ascendToPartialPressure) {
+bool Buhlmann::isDecoNeeded(float ascendToPartialPressure) {
 	return ascendToPartialPressure > _seaLevelAtmosphericPressure;
 }
 
-int DiveDeco::getMinutesNeededTillDeco(int compartmentIndex, float currentPressure) {
+int Buhlmann::getMinutesNeededTillDeco(int compartmentIndex, float currentPressure) {
 	int minutes = 0;
 	float compartmentPartialPressure;
 	bool decoNeeded = false;
@@ -155,7 +156,7 @@ int DiveDeco::getMinutesNeededTillDeco(int compartmentIndex, float currentPressu
 	return minutes;
 }
 
-int DiveDeco::calculateMinutesRequiredToReachCertainPressure(float targetPressure) {
+int Buhlmann::calculateMinutesRequiredToReachCertainPressure(float targetPressure) {
 	float ascentCeilingArray[COMPARTMENT_COUNT];
 	int requiredMinutes = 0;
 	bool stopTimeCalculation = false;
@@ -183,7 +184,7 @@ int DiveDeco::calculateMinutesRequiredToReachCertainPressure(float targetPressur
 	return requiredMinutes;
 }
 
-int DiveDeco::calculateAscentRate(float timeSpentInLevelInSeconds, float previousDepthInMeter, float currentDepthInMeter) {
+int Buhlmann::calculateAscentRate(float timeSpentInLevelInSeconds, float previousDepthInMeter, float currentDepthInMeter) {
 	if (previousDepthInMeter > currentDepthInMeter) {
 
 		float ascendInMeter = previousDepthInMeter - currentDepthInMeter;
@@ -223,7 +224,7 @@ int DiveDeco::calculateAscentRate(float timeSpentInLevelInSeconds, float previou
 // Dive Progress //
 ///////////////////
 
-DiveResult* DiveDeco::surfaceInterval(int surfaceIntervalInMinutes, DiveResult* previousDiveResult) {
+DiveResult* Buhlmann::surfaceInterval(int surfaceIntervalInMinutes, DiveResult* previousDiveResult) {
 
 	//Set the given compartment pressure data
     for (byte j = 0; j < COMPARTMENT_COUNT; j++) {
@@ -262,7 +263,7 @@ DiveResult* DiveDeco::surfaceInterval(int surfaceIntervalInMinutes, DiveResult* 
 	return diveResult;
 }
 
-DiveResult* DiveDeco::initializeCompartments() {
+DiveResult* Buhlmann::initializeCompartments() {
 
 	Serial.println("Compartment initialization - START");
 
@@ -288,7 +289,7 @@ DiveResult* DiveDeco::initializeCompartments() {
     return diveResult;
 }
 
-void DiveDeco::startDive(DiveResult* previousDiveResult) {
+void Buhlmann::startDive(DiveResult* previousDiveResult) {
     //Set dive duration calculation to zero
     _currentDiveDuration = 0;
 
@@ -298,7 +299,7 @@ void DiveDeco::startDive(DiveResult* previousDiveResult) {
     }
 }
 
-DiveInfo DiveDeco::progressDive(DiveData* diveData) {
+DiveInfo Buhlmann::progressDive(DiveData* diveData) {
 
 	DiveInfo diveInfo;
 
@@ -414,7 +415,7 @@ DiveInfo DiveDeco::progressDive(DiveData* diveData) {
     return diveInfo;
 }
 
-DiveResult* DiveDeco::stopDive() {
+DiveResult* Buhlmann::stopDive() {
 
     //This is just an approximation
     int noFlyTimeInMinutes = calculateMinutesRequiredToReachCertainPressure(_minimumAircraftCabinPressure);

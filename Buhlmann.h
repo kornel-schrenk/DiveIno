@@ -36,9 +36,9 @@ typedef struct DiveInfo {
 	int decoStopDurationInMinutes;
 };
 
-class DiveDeco {
+class Buhlmann {
 public:
-	DiveDeco(float minimumAircraftCabinPressure, float waterVapourPressureCorrection);
+	Buhlmann(float minimumAircraftCabinPressure, float waterVapourPressureCorrection);
 
 	void setSeaLevelAtmosphericPressure(float seaLevelAtmosphericPressure);
 	void setNitrogenRateInGas(float nitrogenRateInGas);
