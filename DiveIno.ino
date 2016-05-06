@@ -459,9 +459,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 	DiveInfo diveInfo = buhlmann.progressDive(&diveData);
 	view.drawAscend(diveInfo.ascendRate);
 
-	if (safetyStopState != SAFETY_STOP_IN_PROGRESS) {
-		view.drawDecoArea(diveInfo);
-	}
+	view.drawDecoArea(diveInfo);
 
 	//Store the current dive data in the dive profile
 	logbook.storeProfileItem(profileFile, pressureInMillibar, depthInMeter, temperatureInCelsius, durationInSeconds);
