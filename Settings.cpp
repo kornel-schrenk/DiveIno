@@ -75,6 +75,71 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 	}
 }
 
+/////////////////////////////
+// Date and Time functions //
+/////////////////////////////
+
+String Settings::getCurrentTimeText() {
+	String time = "";
+	time+=year();
+	time+="-";
+	if (month() <10) {
+		time+="0";
+	}
+	time+=month();
+	time+="-";
+	if (day()<10) {
+		time+="0";
+	}
+	time+=day();
+	time+=" ";
+
+	if (hour()<10) {
+		time+="0";
+	}
+	time+=hour();
+	time+=":";
+	if (minute()<10) {
+		time+="0";
+	}
+	time+=minute();
+	time+=":";
+	if (second()<10) {
+		time+="0";
+	}
+	time+=second();
+
+	return time;
+}
+
+DateTimeSettings* Settings::getCurrentTime() {
+	DateTimeSettings* dateTimeSettings = new DateTimeSettings;
+	dateTimeSettings->year = year();
+	dateTimeSettings->month = month();
+	dateTimeSettings->day = day();
+	dateTimeSettings->hour = hour();
+	dateTimeSettings->minute = minute();
+	return dateTimeSettings;
+}
+
+void Settings::setCurrentTime(DateTimeSettings* dateTimeSettings) {
+	tmElements_t newTime;
+	newTime.Year = dateTimeSettings->year - 1970; //It is converted to years since 1970 according to the Time library
+	newTime.Month = dateTimeSettings->month;
+	newTime.Day = dateTimeSettings->day;
+	newTime.Hour = dateTimeSettings->hour;
+	newTime.Minute = dateTimeSettings->minute;
+	newTime.Second = 0;
+
+	//Convert the new time to Unix time format
+	time_t time = makeTime(newTime);
+
+	//Store it in the RTC chip and in the library
+	RTC.set(time);
+	setTime(time);
+}
+
+
 /////////////////////
 // Private methods //
 /////////////////////

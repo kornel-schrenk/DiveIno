@@ -3,6 +3,8 @@
 
 #include "Arduino.h"
 #include "SD.h"
+#include "DS3232RTC.h"
+#include "Time.h"
 
 typedef struct DiveInoSettings {
 	float seaLevelPressureSetting = 1013.25;
@@ -25,6 +27,9 @@ public:
 	Settings();
 	DiveInoSettings* loadDiveInoSettings();
 	void saveDiveInoSettings(DiveInoSettings* diveInoSettings);
+	String getCurrentTimeText();
+	DateTimeSettings* getCurrentTime();
+	void setCurrentTime(DateTimeSettings* dateTimeSettings);
 private:
 	float readSeaLevelPressureSettings(File settingsFile);
 	float readOxygenRateSetting(File settingsFile);

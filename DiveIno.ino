@@ -2,12 +2,12 @@
 #include "SPI.h"
 #include "Wire.h"
 #include "UTFT.h"
-#include "DS3232RTC.h"
-#include "Time.h"
 #include "IRremote.h"
 #include "SD.h"
 #include "SimpleTimer.h"
 #include "MAX17043.h"
+#include "DS3232RTC.h"
+#include "Time.h"
 
 #include "Buhlmann.h"
 #include "View.h"
@@ -139,13 +139,6 @@ void setup() {
 	}
 	Serial.println("");
 
-	setSyncProvider((unsigned long int (*)())RTC.get);
-    if(timeStatus() != timeSet){
-        Serial.println("RTC - time was not set!");
-    } else {
-        Serial.println("RTC - time was set");
-    }
-
 	Wire.begin();         //Start the I2C interface
 	irrecv.enableIRIn();  //Start the Infrared Receiver
 
@@ -154,6 +147,13 @@ void setup() {
 
 	sensor.reset();
 	sensor.begin();
+
+	setSyncProvider((unsigned long int (*)())RTC.get);
+    if(timeStatus() != timeSet){
+        Serial.println("RTC - time was not set!");
+    } else {
+        Serial.println("RTC - time was set");
+    }
 
 	tft.InitLCD();
 
@@ -301,7 +301,7 @@ void diveSurface()
 		switch (currentScreen) {
 			case GAUGE_SCREEN: {
 				//Instead of dive information we will display the current time
-				view.drawCurrentTime(getCurrentTimeText());
+				view.drawCurrentTime(settings.getCurrentTimeText());
 			}
 			break;
 			case DIVE_SCREEN: {
@@ -346,7 +346,7 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 	switch (currentScreen) {
 		case GAUGE_SCREEN: {
 			//Instead of dive information we will display the current time
-			view.drawCurrentTime(getCurrentTimeText());
+			view.drawCurrentTime(settings.getCurrentTimeText());
 
 			diveDurationInSeconds++;
 			view.drawDiveDuration(diveDurationInSeconds);
@@ -478,7 +478,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		DiveResult* diveResult = buhlmann.stopDive();
 
-		String currentTimeText = getCurrentTimeText();
+		String currentTimeText = settings.getCurrentTimeText();
 
 		////////////////////
 		// Update Logbook //
@@ -534,58 +534,6 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		displayScreen(SURFACE_TIME_SCREEN);
 	}
-}
-
-/////////////////////////////
-// Date and Time functions //
-/////////////////////////////
-
-String getCurrentTimeText() {
-	String time = "";
-	time+=year();
-	time+="-";
-	if (month() <10) {
-		time+="0";
-	}
-	time+=month();
-	time+="-";
-	if (day()<10) {
-		time+="0";
-	}
-	time+=day();
-	time+=" ";
-
-	if (hour()<10) {
-		time+="0";
-	}
-	time+=hour();
-	time+=":";
-	if (minute()<10) {
-		time+="0";
-	}
-	time+=minute();
-	time+=":";
-	if (second()<10) {
-		time+="0";
-	}
-	time+=second();
-
-	return time;
-}
-
-DateTimeSettings* getCurrentTime() {
-	DateTimeSettings* dateTimeSettings = new DateTimeSettings;
-	dateTimeSettings->year = year();
-	dateTimeSettings->month = month();
-	dateTimeSettings->day = day();
-	dateTimeSettings->hour = hour();
-	dateTimeSettings->minute = minute();
-	return dateTimeSettings;
-}
-
-void setCurrentTime(DateTimeSettings* dateTimeSettings) {
-	//Use the Arduino Time library to set the RTC time
-	setTime(dateTimeSettings->hour,dateTimeSettings->minute,0,dateTimeSettings->day,dateTimeSettings->month,dateTimeSettings->year);
 }
 
 /////////////
@@ -761,7 +709,7 @@ void selectButtonPressed()
 		currentMode = SURFACE_MODE;
 		if (selectedDateTimeSettingIndex == 5) { // Save
 			displayScreen(SETTINGS_SCREEN);
-			setCurrentTime(currentDateTimeSettings);
+			settings.setCurrentTime(currentDateTimeSettings);
 		}
 		if (selectedDateTimeSettingIndex == 6) { // Cancel
 			displayScreen(SETTINGS_SCREEN);
@@ -1231,12 +1179,12 @@ void displayScreen(byte screen) {
 			view.displaySettingsScreen(0, seaLevelPressureSetting, oxygenRateSetting, testModeSetting, soundSetting, imperialUnitsSetting);
 			break;
 		case DATETIME_SCREEN:
-			currentDateTimeSettings = getCurrentTime();
+			currentDateTimeSettings = settings.getCurrentTime();
 			view.displayDateTimeSettingScreen(0, currentDateTimeSettings);
 			break;
 		case ABOUT_SCREEN:
 			view.displayAboutScreen();
-			view.drawCurrentTime(getCurrentTimeText());
+			view.drawCurrentTime(settings.getCurrentTimeText());
 			if (testModeSetting) {
 				view.drawBatteryStateOfCharge(batteryMonitor.getSoC());
 				view.printBatteryData(batteryMonitor.getVCell(), batteryMonitor.getSoC());
