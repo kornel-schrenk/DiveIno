@@ -38,6 +38,9 @@ LogbookData* Logbook::loadLogbookData()
 			logbookData->numberOfStoredProfiles = counter - 14;
 			logbookFile.close();
 		}
+	} else {
+		//Create a new Logbook file, if it is not on the SD card with default values
+		updateLogbookData(logbookData);
 	}
 	return logbookData;
 }

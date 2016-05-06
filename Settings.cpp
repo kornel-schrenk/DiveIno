@@ -16,63 +16,69 @@ DiveInoSettings* Settings::loadDiveInoSettings()
 	if (SD.exists(SETTINGS_FILE_NAME)) {
 		File settingsFile = SD.open(SETTINGS_FILE_NAME);
 		if (settingsFile) {
-			diveInoSettings->seaLevelPressureSetting = readSeaLevelPressureSettings(settingsFile);
-			diveInoSettings->oxygenRateSetting = readOxygenRateSetting(settingsFile);
-			diveInoSettings->testModeSetting = isTestModeSetting(settingsFile);
-			diveInoSettings->soundSetting = isSoundSetting(settingsFile);
-			diveInoSettings->imperialUnitsSetting = isImperialUnitsSetting(settingsFile);
+			String line;
+			int counter = 0;
+			while (settingsFile.available()) {
+				line = settingsFile.readStringUntil('\n');
 
+				if (counter == 0) {
+					diveInoSettings->seaLevelPressureSetting = readFloatFromLineEnd(line);
+				} else if (counter == 1) {
+					diveInoSettings->oxygenRateSetting = readFloatFromLineEnd(line);
+				} else if (counter == 2) {
+					diveInoSettings->testModeSetting = readBoolFromLineEnd(line);
+				} else if (counter == 3) {
+					diveInoSettings->soundSetting = readBoolFromLineEnd(line);
+				} else if (counter == 4) {
+					diveInoSettings->imperialUnitsSetting = readBoolFromLineEnd(line);
+				}
+				counter++;
+			}
 			settingsFile.close();
 		}
+	} else {
+		//Create a new Settings file, if it is not on the SD card with default values
+		saveDiveInoSettings(diveInoSettings);
 	}
 	return diveInoSettings;
 }
 
 void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 {
+	SD.remove(SETTINGS_FILE_NAME);
+
 	File settingsFile = SD.open(SETTINGS_FILE_NAME, FILE_WRITE);
-	if (settingsFile) {
 
-		String seaLevelPressureToSave = String(diveInoSettings->seaLevelPressureSetting, 2);
-		settingsFile.seek(19);
-		settingsFile.write(seaLevelPressureToSave.charAt(0));
-		settingsFile.write(seaLevelPressureToSave.charAt(1));
-		settingsFile.write(seaLevelPressureToSave.charAt(2));
-		settingsFile.write(seaLevelPressureToSave.charAt(3));
-		settingsFile.write(seaLevelPressureToSave.charAt(4));
-		settingsFile.write(seaLevelPressureToSave.charAt(5));
-		settingsFile.write(seaLevelPressureToSave.charAt(6));
-
-		String oxygenRateToSave = String(diveInoSettings->oxygenRateSetting, 2);
-		settingsFile.seek(41);
-		settingsFile.write(oxygenRateToSave.charAt(0));
-		settingsFile.write(oxygenRateToSave.charAt(1));
-		settingsFile.write(oxygenRateToSave.charAt(2));
-		settingsFile.write(oxygenRateToSave.charAt(3));
-
-		settingsFile.seek(58);
-		if (!diveInoSettings->testModeSetting) {
-			settingsFile.write('0');
-		} else {
-			settingsFile.write('1');
-		}
-
-		settingsFile.seek(69);
-		if (!diveInoSettings->soundSetting) {
-			settingsFile.write('0');
-		} else {
-			settingsFile.write('1');
-		}
-
-		settingsFile.seek(80);
-		if (!diveInoSettings->imperialUnitsSetting) {
-			settingsFile.write('0');
-		} else {
-			settingsFile.write('1');
-		}
-
-		settingsFile.close();
+	settingsFile.print("seaLevelPressure = ");
+	settingsFile.print(diveInoSettings->seaLevelPressureSetting);
+	settingsFile.print("\n");
+	settingsFile.print("oxygenRate = ");
+	settingsFile.print(diveInoSettings->oxygenRateSetting);
+	settingsFile.print("\n");
+	settingsFile.print("testMode = ");
+	if (!diveInoSettings->testModeSetting) {
+		settingsFile.print('0');
+	} else {
+		settingsFile.print('1');
 	}
+	settingsFile.print("\n");
+	settingsFile.print("sound = ");
+	if (!diveInoSettings->soundSetting) {
+		settingsFile.print('0');
+	} else {
+		settingsFile.print('1');
+	}
+	settingsFile.print("\n");
+	settingsFile.print("units = ");
+	if (!diveInoSettings->imperialUnitsSetting) {
+		settingsFile.print('0');
+	} else {
+		settingsFile.print('1');
+	}
+	settingsFile.print("\n");
+	settingsFile.flush();
+
+	settingsFile.close();
 }
 
 /////////////////////////////
@@ -144,56 +150,14 @@ void Settings::setCurrentTime(DateTimeSettings* dateTimeSettings) {
 // Private methods //
 /////////////////////
 
-float Settings::readSeaLevelPressureSettings(File settingsFile)
-{
-	settingsFile.seek(19);
-	char digits[8];
-	digits[0] = settingsFile.read();
-	digits[1] = settingsFile.read();
-	digits[2] = settingsFile.read();
-	digits[3] = settingsFile.read();
-	digits[4] = settingsFile.read();
-	digits[5] = settingsFile.read();
-	digits[6] = settingsFile.read();
-	digits[7] = '\0';
-	return String(digits).toFloat();
-}
-
-float Settings::readOxygenRateSetting(File settingsFile)
-{
-	settingsFile.seek(41);
-	char digits[5];
-	digits[0] = settingsFile.read();
-	digits[1] = settingsFile.read();
-	digits[2] = settingsFile.read();
-	digits[3] = settingsFile.read();
-	digits[4] = '\0';
-	return String(digits).toFloat();
-}
-
-bool Settings::isTestModeSetting(File settingsFile)
-{
-	settingsFile.seek(58);
-	if (settingsFile.read() == '0') {
-		return false;
+bool Settings::readBoolFromLineEnd(String line) {
+	int value = line.substring(line.indexOf('=')+1).toInt();
+	if (value > 0) {
+		return true;
 	}
-	return true;
+	return false;
 }
 
-bool Settings::isSoundSetting(File settingsFile)
-{
-	settingsFile.seek(69);
-	if (settingsFile.read() == '0') {
-		return false;
-	}
-	return true;
-}
-
-bool Settings::isImperialUnitsSetting(File settingsFile)
-{
-	settingsFile.seek(80);
-	if (settingsFile.read() == '0') {
-		return false;
-	}
-	return true;
+float Settings::readFloatFromLineEnd(String line) {
+	return line.substring(line.indexOf('=')+1).toFloat();
 }

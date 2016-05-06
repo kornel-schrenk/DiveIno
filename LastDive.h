@@ -7,11 +7,11 @@
 #define COMPARTMENT_COUNT 16
 
 typedef struct LastDiveData {
-	long diveDateTimestamp;
+	long diveDateTimestamp = 0;
 	String diveDate;
-	float maxDepthInMeters;
-	int durationInSeconds;
-	int noFlyTimeInMinutes;
+	float maxDepthInMeters = 0.0;
+	int durationInSeconds = 0;
+	int noFlyTimeInMinutes = 0;
 	float compartmentPartialPressures[COMPARTMENT_COUNT];
 };
 

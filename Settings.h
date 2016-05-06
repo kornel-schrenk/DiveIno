@@ -9,7 +9,7 @@
 typedef struct DiveInoSettings {
 	float seaLevelPressureSetting = 1013.25;
 	float oxygenRateSetting = 0.21;
-	bool testModeSetting = true;
+	bool testModeSetting = false;
 	bool soundSetting = true;
 	bool imperialUnitsSetting = false;
 };
@@ -31,11 +31,8 @@ public:
 	DateTimeSettings* getCurrentTime();
 	void setCurrentTime(DateTimeSettings* dateTimeSettings);
 private:
-	float readSeaLevelPressureSettings(File settingsFile);
-	float readOxygenRateSetting(File settingsFile);
-	bool isTestModeSetting(File settingsFile);
-	bool isSoundSetting(File settingsFile);
-	bool isImperialUnitsSetting(File settingsFile);
+	bool readBoolFromLineEnd(String line);
+	float readFloatFromLineEnd(String line);
 };
 
 #endif /* SETTINGS_H_ */

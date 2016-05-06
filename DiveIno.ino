@@ -36,7 +36,7 @@ byte selectedMenuItemIndex;
 Settings settings = Settings();
 float seaLevelPressureSetting = 1013.25;
 float oxygenRateSetting = 0.21;
-bool testModeSetting = true;
+bool testModeSetting = false;
 bool soundSetting = true;
 bool imperialUnitsSetting = false;
 
@@ -805,12 +805,16 @@ void downButtonPressed()
 		}
 		break;
 		case LOGBOOK_SCREEN: {
-			displayScreen(PROFILE_SCREEN);
+			if (maximumProfileNumber > 0) {
+				displayScreen(PROFILE_SCREEN);
+			}
 		}
 		break;
 		case ABOUT_SCREEN: {
-			currentMode = SURFACE_MODE;
-			displayScreen(UI_TEST_SCREEN);
+			if (testModeSetting) {
+				currentMode = SURFACE_MODE;
+				displayScreen(UI_TEST_SCREEN);
+			}
 		}
 		break;
 	}
@@ -1111,7 +1115,7 @@ void displayScreen(byte screen) {
 			diveResult = buhlmann.initializeCompartments();
 
 			lastDiveData = lastDive.loadLastDiveData();
-			if (lastDiveData != NULL) {
+			if (lastDiveData != NULL && lastDiveData->diveDateTimestamp > 0 ) {
 				//Calculate surface interval
 				surfaceIntervalInMinutes = (now() - lastDiveData->diveDateTimestamp) / 60;
 
