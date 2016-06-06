@@ -1078,7 +1078,7 @@ void displayScreen(byte screen) {
 
 	DiveResult* diveResult;
 	LastDiveData* lastDiveData;
-	int surfaceIntervalInMinutes = 0;
+	unsigned long surfaceIntervalInMinutes = 0;
 
 	currentScreen = screen;
 	switch (screen) {
@@ -1114,6 +1114,7 @@ void displayScreen(byte screen) {
 
 			lastDiveData = lastDive.loadLastDiveData();
 			if (lastDiveData != NULL && lastDiveData->diveDateTimestamp > 0 ) {
+
 				//Calculate surface interval
 				surfaceIntervalInMinutes = (now() - lastDiveData->diveDateTimestamp) / 60;
 

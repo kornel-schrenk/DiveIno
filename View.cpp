@@ -169,7 +169,7 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
 	tft->print("O2%", 364, 114);
 }
 
-void View::displaySurfaceTimeScreen(DiveResult* diveResult, int surfaceIntervalInMinutes, bool isDiveStopDisplay)
+void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfaceIntervalInMinutes, bool isDiveStopDisplay)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
@@ -215,8 +215,10 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, int surfaceIntervalI
 			tft->printNumI(diveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
 			tft->setColor(VGA_GREEN);
 			if (surfaceIntervalInMinutes == 0 || surfaceIntervalInMinutes > 2880) {
+				//After 48 hours
 				tft->print("00:00", 220, 110);
 			} else {
+				//Within 48 hours
 				tft->printNumI(surfaceIntervalInMinutes/60, 220, 110, 2, '0');
 				tft->print(":", 252, 110);
 				tft->printNumI(surfaceIntervalInMinutes%60, 268, 110, 2 , '0');

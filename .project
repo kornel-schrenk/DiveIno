@@ -34,12 +34,12 @@
 		<link>
 			<name>core/core</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/cores/arduino</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.11/cores/arduino</location>
 		</link>
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/variants/mega</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.11/variants/mega</location>
 		</link>
 		<link>
 			<name>libraries/DS3232RTC</name>
@@ -69,7 +69,7 @@
 		<link>
 			<name>libraries/SPI</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/libraries/SPI</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.11/libraries/SPI</location>
 		</link>
 		<link>
 			<name>libraries/SimpleTimer</name>
@@ -89,7 +89,7 @@
 		<link>
 			<name>libraries/Wire</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.10/libraries/Wire</location>
+			<location>C:/Users/Kornel_Schrenk/Development/eclipseArduino/arduinoPlugin/packages/arduino/hardware/avr/1.6.11/libraries/Wire</location>
 		</link>
 	</linkedResources>
 </projectDescription>
