@@ -608,7 +608,7 @@ void View::drawDepth(float depth)
 void View::drawMaximumDepth(float maximumDepth)
 {
 	tft->setFont(SevenSegNumFontPlusPlus);
-	tft->setColor(VGA_PURPLE);
+	tft->setColor(VGA_FUCHSIA);
 	tft->printNumF(maximumDepth, 1, 10, 130, '.', 4, '/');
 
 	tft->setFont(BigFont);
