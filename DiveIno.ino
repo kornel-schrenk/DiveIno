@@ -69,11 +69,13 @@ float minTemperatureInCelsius;
 
 byte safetyStopState = SAFETY_STOP_NOT_STARTED;
 
+unsigned long diveStartTimestamp;
 unsigned long diveDurationInSeconds;
 unsigned long safetyStopDurationInSeconds;
 unsigned long testPreviousDiveDurationInSeconds;
 
 SimpleTimer diveDurationTimer;
+float previousDepthInMeter;
 
 MAX17043 batteryMonitor;
 float batterySoc = 255;
@@ -157,8 +159,8 @@ void setup() {
 
 	tft.InitLCD();
 
-    // Set the function, which will be called in every second, if the timer is enabled
-	diveDurationTimer.setTimer(1000, diveUnderWater, diveDurationTimer.RUN_FOREVER);
+    // Set the function, which will be called in every 5th second, if the timer is enabled
+	diveDurationTimer.setTimer(5000, diveUnderWater, diveDurationTimer.RUN_FOREVER);
 	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
 
 	displayScreen(MENU_SCREEN);
@@ -336,6 +338,14 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 		depthInMeter = buhlmann.calculateDepthFromPressure(pressureInMillibar);
 	}
 
+	//Check for sensor error
+	if (abs(depthInMeter-previousDepthInMeter) > 20) {
+		//This is a sensor error - skip it!!!
+		return;
+	} else {
+		previousDepthInMeter = depthInMeter;
+	}
+
 	//Draw the data to the screen
 	view.drawCurrentTemperature(temperatureInCelsius);
 	view.drawCurrentPressure(pressureInMillibar);
@@ -345,24 +355,28 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 
 	switch (currentScreen) {
 		case GAUGE_SCREEN: {
+
+			view.drawDiveDuration(now()-diveStartTimestamp);
+
 			//Instead of dive information we will display the current time
 			view.drawCurrentTime(settings.getCurrentTimeText());
-
-			diveDurationInSeconds++;
-			view.drawDiveDuration(diveDurationInSeconds);
 		}
 		break;
 		case DIVE_SCREEN: {
-			//Progress with the dive, if we are deeper than 1.2 meter
 			if (pressureInMillibar > (seaLevelPressureSetting + 120) || diveDurationInSeconds > 60) {
-				diveDurationInSeconds++;
+
+				//Progress with the dive, if we are deeper than 1.2 meter
+				unsigned int intervalDuration = now()-diveStartTimestamp-diveDurationInSeconds;
+				calculateSafetyStop(maxDepthInMeter, depthInMeter, intervalDuration);
+
+				diveDurationInSeconds = diveDurationInSeconds + intervalDuration;
 				view.drawDiveDuration(diveDurationInSeconds);
 
-				//The timer fires in every second
-				calculateSafetyStop(maxDepthInMeter, depthInMeter, 1);
-
-				//Progress with the algorithm in every second
+				//Progress with the algorithm
 				diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);
+			} else {
+				//No dive progress - reset the dive timestamp
+				diveStartTimestamp = now();
 			}
 		}
 		break;
@@ -371,6 +385,10 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 
 void startDive()
 {
+	//Store the the current time as seconds since Jan 1 1970 at the start of the dive
+	diveStartTimestamp = now();
+	previousDepthInMeter = 0;
+
 	diveDurationTimer.enable(diveDurationTimer.RUN_FOREVER);
 
 	//Set default values before the dive
