@@ -3,8 +3,8 @@
 
 #include "Arduino.h"
 #include "SD.h"
-#include "DS3232RTC.h"
-#include "Time.h"
+#include "TimeLib.h"
+#include "DS1307RTC.h"
 
 typedef struct DiveInoSettings {
 	float seaLevelPressureSetting = 1013.25;

@@ -514,7 +514,7 @@ void View::displayAboutScreen()
 	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);	tft->setFont(Grotesk16x32);
 
 	tft->setColor(VGA_WHITE);
-	tft->print("Version: 0.9.7", CENTER, 140);
+	tft->print("Version: 1.0.0", CENTER, 140);
 	tft->setColor(VGA_GREEN);
 	tft->print("www.diveino.hu", CENTER, 180);
 }

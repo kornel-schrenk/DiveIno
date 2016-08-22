@@ -86,63 +86,70 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 /////////////////////////////
 
 String Settings::getCurrentTimeText() {
-	String time = "";
-	time+=year();
-	time+="-";
-	if (month() <10) {
-		time+="0";
-	}
-	time+=month();
-	time+="-";
-	if (day()<10) {
-		time+="0";
-	}
-	time+=day();
-	time+=" ";
 
-	if (hour()<10) {
-		time+="0";
+	tmElements_t tm;
+	String time = "";
+
+	if (RTC.read(tm)) {
+		time+=tmYearToCalendar(tm.Year);
+		time+="-";
+		if (tm.Month <10) {
+			time+="0";
+		}
+		time+=tm.Month;
+		time+="-";
+		if (tm.Day<10) {
+			time+="0";
+		}
+		time+=tm.Day;
+		time+=" ";
+
+		if (tm.Hour<10) {
+			time+="0";
+		}
+		time+=tm.Hour;
+		time+=":";
+		if (tm.Minute<10) {
+			time+="0";
+		}
+		time+=tm.Minute;
+		time+=":";
+		if (tm.Second<10) {
+			time+="0";
+		}
+		time+=tm.Second;
+	} else {
+		time+="N/A";
 	}
-	time+=hour();
-	time+=":";
-	if (minute()<10) {
-		time+="0";
-	}
-	time+=minute();
-	time+=":";
-	if (second()<10) {
-		time+="0";
-	}
-	time+=second();
 
 	return time;
 }
 
 DateTimeSettings* Settings::getCurrentTime() {
+	tmElements_t tm;
 	DateTimeSettings* dateTimeSettings = new DateTimeSettings;
-	dateTimeSettings->year = year();
-	dateTimeSettings->month = month();
-	dateTimeSettings->day = day();
-	dateTimeSettings->hour = hour();
-	dateTimeSettings->minute = minute();
+
+	if (RTC.read(tm)) {
+		dateTimeSettings->year = tmYearToCalendar(tm.Year);
+		dateTimeSettings->month = tm.Month;
+		dateTimeSettings->day = tm.Day;
+		dateTimeSettings->hour = tm.Hour;
+		dateTimeSettings->minute = tm.Minute;
+	}
+
 	return dateTimeSettings;
 }
 
 void Settings::setCurrentTime(DateTimeSettings* dateTimeSettings) {
 	tmElements_t newTime;
-	newTime.Year = dateTimeSettings->year - 1970; //It is converted to years since 1970 according to the Time library
+	newTime.Year = CalendarYrToTm(dateTimeSettings->year); //It is converted to years since 1970 according to the Time library
 	newTime.Month = dateTimeSettings->month;
 	newTime.Day = dateTimeSettings->day;
 	newTime.Hour = dateTimeSettings->hour;
 	newTime.Minute = dateTimeSettings->minute;
 	newTime.Second = 0;
 
-	//Convert the new time to Unix time format
-	time_t time = makeTime(newTime);
-
-	//Store it in the RTC chip and in the library
-	RTC.set(time);
-	setTime(time);
+	RTC.write(newTime);
 }
 
 

@@ -1,13 +1,17 @@
-#include "MS5803_I2C.h"
+#include "MS5803_14.h"
 #include "SPI.h"
 #include "Wire.h"
 #include "UTFT.h"
-#include "IRremote.h"
 #include "SD.h"
 #include "SimpleTimer.h"
 #include "MAX17043.h"
-#include "DS3232RTC.h"
-#include "Time.h"
+#include "TimeLib.h"
+#include "DS1307RTC.h"
+#include "IRremote2.h"
+
+#if defined(__SAM3X8E__) || defined(__SAM3X8H__)
+	#include "TimerFreeTone.h"
+#endif
 
 #include "Buhlmann.h"
 #include "View.h"
@@ -21,10 +25,10 @@ IRrecv irrecv(RECV_PIN);
 decode_results results;
 
 //Pressure Sensor initialization
-MS5803 sensor(ADDRESS_HIGH);
+MS_5803 sensor = MS_5803(512);
 
 // Pin number of the piezo buzzer
-int speakerPin = 8;
+#define TONE_PIN 8
 
 // TFT setup - 480x320 pixel
 UTFT tft(ILI9481,38,39,40,41);
@@ -104,6 +108,7 @@ void setup() {
 	}
 
 	Serial.begin(115200);
+	delay(1000);
 	Serial.println("");
 	Serial.println("DiveIno - START");
 	Serial.println("");
@@ -147,14 +152,38 @@ void setup() {
     batteryMonitor.reset();
     batteryMonitor.quickStart();
 
-	sensor.reset();
-	sensor.begin();
+    if (sensor.initializeMS_5803()) {
+      Serial.println( "MS5803 CRC check OK." );
+    }
+    else {
+      Serial.println( "MS5803 CRC check FAILED!" );
+    }
 
-	setSyncProvider((unsigned long int (*)())RTC.get);
-    if(timeStatus() != timeSet){
-        Serial.println("RTC - time was not set!");
+    tmElements_t tm;
+
+    if (RTC.read(tm)) {
+      Serial.print("Ok, Time = ");
+      print2digits(tm.Hour);
+      Serial.write(':');
+      print2digits(tm.Minute);
+      Serial.write(':');
+      print2digits(tm.Second);
+      Serial.print(", Date (D/M/Y) = ");
+      Serial.print(tm.Day);
+      Serial.write('/');
+      Serial.print(tm.Month);
+      Serial.write('/');
+      Serial.print(tmYearToCalendar(tm.Year));
+      Serial.println();
     } else {
-        Serial.println("RTC - time was set");
+      if (RTC.chipPresent()) {
+        Serial.println("The DS1307 is stopped.  Please run the SetTime");
+        Serial.println("example to initialize the time and begin running.");
+        Serial.println();
+      } else {
+        Serial.println("DS1307 read error!  Please check the circuitry.");
+        Serial.println();
+      }
     }
 
 	tft.InitLCD();
@@ -164,6 +193,13 @@ void setup() {
 	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
 
 	displayScreen(MENU_SCREEN);
+}
+
+void print2digits(int number) {
+  if (number >= 0 && number < 10) {
+    Serial.write('0');
+  }
+  Serial.print(number);
 }
 
 void loop() {
@@ -198,6 +234,17 @@ void loop() {
 		} else {
 			diveDurationTimer.run();
 		}
+	}
+}
+
+void beep()
+{
+	if (soundSetting) {
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+		tone(TONE_PIN, 261, 50);
+#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
+		TimerFreeTone(TONE_PIN, 261, 50);
+#endif
 	}
 }
 
@@ -330,8 +377,9 @@ void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
 {
 	view.drawBatteryStateOfCharge(batterySoc);
 
-	float pressureInMillibar = sensor.getPressure(ADC_4096);
-	float temperatureInCelsius = sensor.getTemperature(CELSIUS, ADC_512);
+	sensor.readSensor();
+	float pressureInMillibar = sensor.pressure();
+	float temperatureInCelsius = sensor.temperature();
 
 	float depthInMeter = 0;
 	if (pressureInMillibar > seaLevelPressureSetting) {
@@ -561,56 +609,42 @@ void processRemoteButtonPress(decode_results *results) {
 		if (testModeSetting) {
 			Serial.println("Up || Mode");
 		}
-		if (soundSetting) {
-			tone(speakerPin, 261, 10);
-		}
+		beep();
 		upButtonPressed();
 	} else if (results->value == 0xFD9867 || results->value == 0xFFA857) {
 		if (testModeSetting) {
 			Serial.println("Down || -");
 		}
-		if (soundSetting) {
-			tone(speakerPin, 261, 10);
-		}
+		beep();
 		downButtonPressed();
 	} else if (results->value == 0xFD28D7 || results->value == 0xFF22DD) {
 		if (testModeSetting) {
 			Serial.println("Left || Play");
 		}
-		if (soundSetting) {
-			tone(speakerPin, 261, 10);
-		}
+		beep();
 		leftButtonPressed();
 	} else if (results->value == 0xFD6897 || results->value == 0xFFC23D) {
 		if (testModeSetting) {
 			Serial.println("Right || Forward");
 		}
-		if (soundSetting) {
-			tone(speakerPin, 261, 10);
-		}
+		beep();
 		rightButtonPressed();
 	} else if (results->value == 0xFDA857 || results->value == 0xFF02FD) {
 		if (testModeSetting) {
 			Serial.println("OK || Previous");
 		}
-		if (soundSetting) {
-			tone(speakerPin, 261, 10);
-		}
+		beep();
 		selectButtonPressed();
 	} else if (results->value == 0xFD30CF || results->value == 0xFFE01F) {
 		if (testModeSetting) {
 			Serial.println("* || EQ");
 		}
-		if (soundSetting) {
-			tone(speakerPin, 261, 10);
-		}
+		beep();
 	} else if (results->value == 0xFD708F || results->value == 0xFF906F) {
 		if (testModeSetting) {
 			Serial.println("# || +");
 		}
-		if (soundSetting) {
-			tone(speakerPin, 261, 10);
-		}
+		beep();
 		hashButtonPressed();
 	} else if (results->value == 0xFF6897 || results->value == 0xFDB04F) {
 		numericButtonPressed(0);
@@ -639,9 +673,7 @@ void numericButtonPressed(byte number) {
 	if (testModeSetting) {
 		Serial.println(number);
 	}
-	if (soundSetting) {
-		tone(speakerPin, 261, 10);
-	}
+	beep();
 
 	if (currentScreen == PROFILE_SCREEN) {
 		logbook.drawProfileItems(&tft, currentProfileNumber, number);
