@@ -87,61 +87,61 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 
 String Settings::getCurrentTimeText() {
 
-	tmElements_t tm;
 	String time = "";
 
-	if (RTC.read(tm)) {
-		time+=tmYearToCalendar(tm.Year);
-		time+="-";
-		if (tm.Month <10) {
-			time+="0";
-		}
-		time+=tm.Month;
-		time+="-";
-		if (tm.Day<10) {
-			time+="0";
-		}
-		time+=tm.Day;
-		time+=" ";
+	DateTimeSettings* dateTimeSettings = new DateTimeSettings;
+	dateTimeSettings = getCurrentTime();
 
-		if (tm.Hour<10) {
-			time+="0";
-		}
-		time+=tm.Hour;
-		time+=":";
-		if (tm.Minute<10) {
-			time+="0";
-		}
-		time+=tm.Minute;
-		time+=":";
-		if (tm.Second<10) {
-			time+="0";
-		}
-		time+=tm.Second;
-	} else {
-		time+="N/A";
+	time+=dateTimeSettings->year;
+	time+="-";
+	if (dateTimeSettings->month <10) {
+		time+="0";
 	}
+	time+=dateTimeSettings->month;
+	time+="-";
+	if (dateTimeSettings->day<10) {
+		time+="0";
+	}
+	time+=dateTimeSettings->day;
+	time+=" ";
+
+	if (dateTimeSettings->hour<10) {
+		time+="0";
+	}
+	time+=dateTimeSettings->hour;
+	time+=":";
+	if (dateTimeSettings->minute<10) {
+		time+="0";
+	}
+	time+=dateTimeSettings->minute;
+	time+=":";
+	if (dateTimeSettings->second<10) {
+		time+="0";
+	}
+	time+=dateTimeSettings->second;
 
 	return time;
 }
 
 DateTimeSettings* Settings::getCurrentTime() {
-	tmElements_t tm;
+
 	DateTimeSettings* dateTimeSettings = new DateTimeSettings;
 
+	tmElements_t tm;
 	if (RTC.read(tm)) {
 		dateTimeSettings->year = tmYearToCalendar(tm.Year);
 		dateTimeSettings->month = tm.Month;
 		dateTimeSettings->day = tm.Day;
 		dateTimeSettings->hour = tm.Hour;
 		dateTimeSettings->minute = tm.Minute;
+		dateTimeSettings->second = tm.Second;
 	}
-
 	return dateTimeSettings;
 }
 
 void Settings::setCurrentTime(DateTimeSettings* dateTimeSettings) {
 	tmElements_t newTime;
+
 	newTime.Year = CalendarYrToTm(dateTimeSettings->year); //It is converted to years since 1970 according to the Time library
 	newTime.Month = dateTimeSettings->month;
 	newTime.Day = dateTimeSettings->day;
@@ -150,6 +150,11 @@ void Settings::setCurrentTime(DateTimeSettings* dateTimeSettings) {
 	newTime.Second = 0;
 
 	RTC.write(newTime);
+
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	//Convert the new time to Unix time format
+	setTime(makeTime(newTime));
+#endif
 }
 
 

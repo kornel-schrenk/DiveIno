@@ -5,12 +5,15 @@
 #include "SD.h"
 #include "SimpleTimer.h"
 #include "MAX17043.h"
+#include "IRremote2.h"
 #include "TimeLib.h"
 #include "DS1307RTC.h"
-#include "IRremote2.h"
 
-#if defined(__SAM3X8E__) || defined(__SAM3X8H__)
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	uint8_t csPin = 53;
+#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
 	#include "TimerFreeTone.h"
+	uint8_t csPin = 4;
 #endif
 
 #include "Buhlmann.h"
@@ -95,8 +98,8 @@ LastDive lastDive = LastDive();
 void setup() {
 
 	// SD Card initialization
-	pinMode(53, OUTPUT);
-	if (SD.begin(53)) {
+	pinMode(csPin, OUTPUT);
+	if (SD.begin(csPin)) {
 		isSdCardPresent = true;
 
 		DiveInoSettings* diveInoSettings = settings.loadDiveInoSettings();
@@ -159,32 +162,17 @@ void setup() {
       Serial.println( "MS5803 CRC check FAILED!" );
     }
 
-    tmElements_t tm;
-
-    if (RTC.read(tm)) {
-      Serial.print("Ok, Time = ");
-      print2digits(tm.Hour);
-      Serial.write(':');
-      print2digits(tm.Minute);
-      Serial.write(':');
-      print2digits(tm.Second);
-      Serial.print(", Date (D/M/Y) = ");
-      Serial.print(tm.Day);
-      Serial.write('/');
-      Serial.print(tm.Month);
-      Serial.write('/');
-      Serial.print(tmYearToCalendar(tm.Year));
-      Serial.println();
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	setSyncProvider((unsigned long int (*)())RTC.get);
+    if(timeStatus() != timeSet){
+        Serial.println("RTC - time was not set!");
     } else {
-      if (RTC.chipPresent()) {
-        Serial.println("The DS1307 is stopped.  Please run the SetTime");
-        Serial.println("example to initialize the time and begin running.");
-        Serial.println();
-      } else {
-        Serial.println("DS1307 read error!  Please check the circuitry.");
-        Serial.println();
-      }
+        Serial.println("RTC - time was set");
     }
+#endif
+
+    Serial.print("RTC time: ");
+    Serial.println(settings.getCurrentTimeText());
 
 	tft.InitLCD();
 
@@ -193,13 +181,6 @@ void setup() {
 	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
 
 	displayScreen(MENU_SCREEN);
-}
-
-void print2digits(int number) {
-  if (number >= 0 && number < 10) {
-    Serial.write('0');
-  }
-  Serial.print(number);
 }
 
 void loop() {

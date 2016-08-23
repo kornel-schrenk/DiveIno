@@ -20,6 +20,7 @@ typedef struct DateTimeSettings {
 	int day = 1;
 	int hour = 10;
 	int minute = 59;
+	int second = 0;
 };
 
 class Settings {

@@ -34,12 +34,12 @@
 		<link>
 			<name>core/core</name>
 			<type>2</type>
-			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.13/cores/arduino</location>
+			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/sam/1.6.9/cores/arduino</location>
 		</link>
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.13/variants/mega</location>
+			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/sam/1.6.9/variants/arduino_due_x</location>
 		</link>
 		<link>
 			<name>libraries/DS1307RTC</name>
@@ -69,7 +69,7 @@
 		<link>
 			<name>libraries/SPI</name>
 			<type>2</type>
-			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.13/libraries/SPI</location>
+			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/sam/1.6.9/libraries/SPI</location>
 		</link>
 		<link>
 			<name>libraries/SimpleTimer</name>
@@ -94,7 +94,7 @@
 		<link>
 			<name>libraries/Wire</name>
 			<type>2</type>
-			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.13/libraries/Wire</location>
+			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/sam/1.6.9/libraries/Wire</location>
 		</link>
 	</linkedResources>
 </projectDescription>
