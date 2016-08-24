@@ -6,7 +6,6 @@
 #include "SimpleTimer.h"
 #include "MAX17043.h"
 #include "IRremote2.h"
-#include "TimeLib.h"
 #include "DS1307RTC.h"
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
@@ -77,12 +76,13 @@ float minTemperatureInCelsius;
 byte safetyStopState = SAFETY_STOP_NOT_STARTED;
 
 unsigned long diveStartTimestamp;
+unsigned long timerTimestamp;
+
 unsigned long diveDurationInSeconds;
 unsigned long safetyStopDurationInSeconds;
 unsigned long testPreviousDiveDurationInSeconds;
 
-SimpleTimer diveDurationTimer;
-float previousDepthInMeter;
+float previousPressureInMillibar;
 
 MAX17043 batteryMonitor;
 float batterySoc = 255;
@@ -113,39 +113,39 @@ void setup() {
 	Serial.begin(115200);
 	delay(1000);
 	Serial.println("");
-	Serial.println("DiveIno - START");
+	Serial.println(F("DiveIno - START"));
 	Serial.println("");
 
-	Serial.print("SD Card present: ");
+	Serial.print(F("SD Card present: "));
 	if (isSdCardPresent) {
-		Serial.println("YES");
+		Serial.println(F("YES"));
 	} else {
-		Serial.println("NO");
+		Serial.println(F("NO"));
 	}
 	Serial.println("");
 
-	Serial.println("Settings: ");
-	Serial.print("seaLevelPressure: ");
+	Serial.println(F("Settings: "));
+	Serial.print(F("seaLevelPressure: "));
 	Serial.println(seaLevelPressureSetting, 2);
-	Serial.print("oxygenRate: ");
+	Serial.print(F("oxygenRate: "));
 	Serial.println(oxygenRateSetting, 2);
-	Serial.print("testMode: ");
+	Serial.print(F("testMode: "));
 	if (testModeSetting) {
-		Serial.println("On");
+		Serial.println(F("On"));
 	} else {
-		Serial.println("Off");
+		Serial.println(F("Off"));
 	}
-	Serial.print("sound: ");
+	Serial.print(F("sound: "));
 	if (soundSetting) {
-		Serial.println("On");
+		Serial.println(F("On"));
 	} else {
-		Serial.println("Off");
+		Serial.println(F("Off"));
 	}
-	Serial.print("units: ");
+	Serial.print(F("units: "));
 	if (imperialUnitsSetting) {
-		Serial.println("Imperial");
+		Serial.println(F("Imperial"));
 	} else {
-		Serial.println("Metric");
+		Serial.println(F("Metric"));
 	}
 	Serial.println("");
 
@@ -156,29 +156,25 @@ void setup() {
     batteryMonitor.quickStart();
 
     if (sensor.initializeMS_5803()) {
-      Serial.println( "MS5803 CRC check OK." );
+      Serial.println(F("MS5803 CRC check OK."));
     }
     else {
-      Serial.println( "MS5803 CRC check FAILED!" );
+      Serial.println(F("MS5803 CRC check FAILED!"));
     }
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 	setSyncProvider((unsigned long int (*)())RTC.get);
     if(timeStatus() != timeSet){
-        Serial.println("RTC - time was not set!");
+        Serial.println(F("RTC - time was not set!"));
     } else {
-        Serial.println("RTC - time was set");
+        Serial.println(F("RTC - time was set"));
     }
 #endif
 
-    Serial.print("RTC time: ");
+    Serial.print(F("RTC time: "));
     Serial.println(settings.getCurrentTimeText());
 
 	tft.InitLCD();
-
-    // Set the function, which will be called in every 5th second, if the timer is enabled
-	diveDurationTimer.setTimer(5000, diveUnderWater, diveDurationTimer.RUN_FOREVER);
-	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
 
 	displayScreen(MENU_SCREEN);
 }
@@ -213,7 +209,7 @@ void loop() {
 		if (testModeSetting) {
 			diveSurface();
 		} else {
-			diveDurationTimer.run();
+			diveUnderWater();
 		}
 	}
 }
@@ -354,61 +350,68 @@ void diveSurface()
 	}
 }
 
-void diveUnderWater() // Called in every second on the GAUGE and DIVE screens
+void diveUnderWater()
 {
-	view.drawBatteryStateOfCharge(batterySoc);
+	unsigned int measurementDifference = now() - timerTimestamp;
 
-	sensor.readSensor();
-	float pressureInMillibar = sensor.pressure();
-	float temperatureInCelsius = sensor.temperature();
+	if (measurementDifference > 0) {
+		timerTimestamp = now();
 
-	float depthInMeter = 0;
-	if (pressureInMillibar > seaLevelPressureSetting) {
-		depthInMeter = buhlmann.calculateDepthFromPressure(pressureInMillibar);
-	}
+		sensor.readSensor();
+		float pressureInMillibar = sensor.pressure();
+		float temperatureInCelsius = sensor.temperature();
 
-	//Check for sensor error
-	if (abs(depthInMeter-previousDepthInMeter) > 20) {
-		//This is a sensor error - skip it!!!
-		return;
-	} else {
-		previousDepthInMeter = depthInMeter;
-	}
-
-	//Draw the data to the screen
-	view.drawCurrentTemperature(temperatureInCelsius);
-	view.drawCurrentPressure(pressureInMillibar);
-	view.drawDepth(depthInMeter);
-
-	calculateMinMaxValues(depthInMeter, temperatureInCelsius);
-
-	switch (currentScreen) {
-		case GAUGE_SCREEN: {
-
-			view.drawDiveDuration(now()-diveStartTimestamp);
-
-			//Instead of dive information we will display the current time
-			view.drawCurrentTime(settings.getCurrentTimeText());
+		//Check for sensor error - difference has to be less than 20 meters
+		if (abs(pressureInMillibar-previousPressureInMillibar) > 2000) {
+			//This is a sensor error - skip it!!!
+			return;
 		}
-		break;
-		case DIVE_SCREEN: {
-			if (pressureInMillibar > (seaLevelPressureSetting + 120) || diveDurationInSeconds > 60) {
 
-				//Progress with the dive, if we are deeper than 1.2 meter
-				unsigned int intervalDuration = now()-diveStartTimestamp-diveDurationInSeconds;
-				calculateSafetyStop(maxDepthInMeter, depthInMeter, intervalDuration);
+		previousPressureInMillibar = pressureInMillibar;
 
-				diveDurationInSeconds = diveDurationInSeconds + intervalDuration;
-				view.drawDiveDuration(diveDurationInSeconds);
+		float depthInMeter = buhlmann.calculateDepthFromPressure(pressureInMillibar);
 
-				//Progress with the algorithm
-				diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);
-			} else {
-				//No dive progress - reset the dive timestamp
-				diveStartTimestamp = now();
+		//Draw the data to the screen
+		view.drawCurrentTemperature(temperatureInCelsius);
+		view.drawCurrentPressure(pressureInMillibar);
+		view.drawDepth(depthInMeter);
+
+		calculateMinMaxValues(depthInMeter, temperatureInCelsius);
+
+		view.drawBatteryStateOfCharge(batterySoc);
+
+		switch (currentScreen) {
+			case GAUGE_SCREEN: {
+				view.drawDiveDuration(now()-diveStartTimestamp);
+
+				//Instead of dive information we will display the current time
+				view.drawCurrentTime(settings.getCurrentTimeText());
 			}
+			break;
+			case DIVE_SCREEN: {
+				if (pressureInMillibar > (seaLevelPressureSetting + 120) || diveDurationInSeconds > 60) {
+					currentMode = DIVE_PROGRESS_MODE;
+				}
+
+				if (currentMode == DIVE_PROGRESS_MODE) {
+					//Progress with the dive, if we are deeper than 1.2 meter
+					unsigned int intervalDuration = now()-diveStartTimestamp-diveDurationInSeconds;
+					calculateSafetyStop(maxDepthInMeter, depthInMeter, intervalDuration);
+
+					diveDurationInSeconds = diveDurationInSeconds + intervalDuration;
+					view.drawDiveDuration(diveDurationInSeconds);
+
+					//Progress with the algorithm in every 5 seconds
+					if (diveDurationInSeconds % 5 == 0) {
+						diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);
+					}
+				} else {
+					//No dive progress - reset the dive timestamp
+					diveStartTimestamp = now();
+				}
+			}
+			break;
 		}
-		break;
 	}
 }
 
@@ -416,9 +419,9 @@ void startDive()
 {
 	//Store the the current time as seconds since Jan 1 1970 at the start of the dive
 	diveStartTimestamp = now();
-	previousDepthInMeter = 0;
+	timerTimestamp = now();
 
-	diveDurationTimer.enable(diveDurationTimer.RUN_FOREVER);
+	previousPressureInMillibar = seaLevelPressureSetting;
 
 	//Set default values before the dive
 	maxDepthInMeter = 0;
@@ -430,6 +433,10 @@ void startDive()
 	diveDurationInSeconds = 0;
 	testPreviousDiveDurationInSeconds = 0;
 
+	// Initialize the DiveDeco library based on the settings
+	buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+	buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
+
 	if (currentScreen == DIVE_SCREEN) {
 
 		Serial.println("DIVE - Started");
@@ -439,10 +446,6 @@ void startDive()
 			maximumProfileNumber = logbook.loadLogbookData()->numberOfStoredProfiles;
 		}
 		profileFile = logbook.createNewProfileFile(maximumProfileNumber+1);
-
-		// Initialize the DiveDeco library based on the settings
-		buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
-		buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
 
 		DiveResult* diveResult = new DiveResult;
 		diveResult = buhlmann.initializeCompartments();
@@ -495,8 +498,6 @@ void startDive()
 
 void stopDive()
 {
-	diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
-
 	Serial.println("DIVE - Stopped");
 }
 
@@ -516,8 +517,6 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		/////////////////////
 		// Finish the dive //
-
-		diveDurationTimer.disable(diveDurationTimer.RUN_FOREVER);
 
 		Serial.println("DIVE - Finished");
 
@@ -578,6 +577,8 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		// Switch to DIVE_STOP mode //
 
 		displayScreen(SURFACE_TIME_SCREEN);
+
+		stopDive();
 	}
 }
 

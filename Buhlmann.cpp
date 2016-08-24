@@ -68,7 +68,11 @@ Buhlmann::Buhlmann(float minimumAircraftCabinPressure, float waterVapourPressure
 /////////////////////
 
 float Buhlmann::calculateDepthFromPressure(float pressure) {
-	return (pressure - _seaLevelAtmosphericPressure) / (9.80665 * 10.25);
+	float depthInMeter = 0;
+	if (pressure > _seaLevelAtmosphericPressure) {
+		depthInMeter = (pressure - _seaLevelAtmosphericPressure) / (9.80665 * 10.25);
+	}
+	return depthInMeter;
 }
 
 float Buhlmann::calculateHydrostaticPressureFromDepth(float depth) {
