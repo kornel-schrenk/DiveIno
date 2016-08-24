@@ -49,7 +49,7 @@ public:
 	void drawMaximumDepth(float maximumDepth);
 	void drawCurrentTemperature(float currentTemperature);
 	void drawCurrentPressure(int currentPressure);
-	void drawDiveDuration(int duration);
+	void drawDiveDuration(unsigned long duration);
 	void drawCurrentTime(String time);
 	void drawOxigenPercentage(float oxigenPercentage);
 	void drawPartialPressureWarning();

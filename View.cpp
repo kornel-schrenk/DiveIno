@@ -638,7 +638,7 @@ void View::drawCurrentPressure(int currentPressure)
 	tft->print("mBar", 143, 104);
 }
 
-void View::drawDiveDuration(int duration) // The dive duration is always in seconds
+void View::drawDiveDuration(unsigned long duration) // The dive duration is always in seconds
 {
 	int hours = duration / 3600;
 	duration = duration % 3600;

@@ -89,54 +89,56 @@ String Settings::getCurrentTimeText() {
 
 	String time = "";
 
-	DateTimeSettings* dateTimeSettings = new DateTimeSettings;
-	dateTimeSettings = getCurrentTime();
+	tmElements_t tm;
+	if (RTC.read(tm)) {
+		time+=tmYearToCalendar(tm.Year);
+		time+="-";
+		if (tm.Month <10) {
+			time+="0";
+		}
+		time+=tm.Month;
+		time+="-";
+		if (tm.Day<10) {
+			time+="0";
+		}
+		time+=tm.Day;
+		time+=" ";
 
-	time+=dateTimeSettings->year;
-	time+="-";
-	if (dateTimeSettings->month <10) {
-		time+="0";
+		if (tm.Hour<10) {
+			time+="0";
+		}
+		time+=tm.Hour;
+		time+=":";
+		if (tm.Minute<10) {
+			time+="0";
+		}
+		time+=tm.Minute;
+		time+=":";
+		if (tm.Second<10) {
+			time+="0";
+		}
+		time+=tm.Second;
+	} else {
+		time+="N/A";
 	}
-	time+=dateTimeSettings->month;
-	time+="-";
-	if (dateTimeSettings->day<10) {
-		time+="0";
-	}
-	time+=dateTimeSettings->day;
-	time+=" ";
-
-	if (dateTimeSettings->hour<10) {
-		time+="0";
-	}
-	time+=dateTimeSettings->hour;
-	time+=":";
-	if (dateTimeSettings->minute<10) {
-		time+="0";
-	}
-	time+=dateTimeSettings->minute;
-	time+=":";
-	if (dateTimeSettings->second<10) {
-		time+="0";
-	}
-	time+=dateTimeSettings->second;
 
 	return time;
 }
 
 DateTimeSettings* Settings::getCurrentTime() {
 
-	DateTimeSettings* dateTimeSettings = new DateTimeSettings;
-
 	tmElements_t tm;
 	if (RTC.read(tm)) {
+		DateTimeSettings* dateTimeSettings = new DateTimeSettings;
 		dateTimeSettings->year = tmYearToCalendar(tm.Year);
 		dateTimeSettings->month = tm.Month;
 		dateTimeSettings->day = tm.Day;
 		dateTimeSettings->hour = tm.Hour;
 		dateTimeSettings->minute = tm.Minute;
 		dateTimeSettings->second = tm.Second;
+		return dateTimeSettings;
 	}
-	return dateTimeSettings;
+	return NULL;
 }
 
 void Settings::setCurrentTime(DateTimeSettings* dateTimeSettings) {
