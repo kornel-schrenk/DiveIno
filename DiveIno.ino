@@ -95,6 +95,9 @@ File profileFile;
 
 LastDive lastDive = LastDive();
 
+#define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
+#define TEST_ENABLED 0 //TODO
+
 void setup() {
 
 	// SD Card initialization
@@ -112,6 +115,7 @@ void setup() {
 
 	Serial.begin(115200);
 	delay(1000);
+
 	Serial.println("");
 	Serial.println(F("DiveIno - START"));
 	Serial.println("");
@@ -149,8 +153,9 @@ void setup() {
 	}
 	Serial.println("");
 
-	Wire.begin();         //Start the I2C interface
-	irrecv.enableIRIn();  //Start the Infrared Receiver
+	Wire.begin();
+
+	irrecv.enableIRIn();
 
     batteryMonitor.reset();
     batteryMonitor.quickStart();
@@ -240,10 +245,9 @@ void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int
 			if (safetyStopState == SAFETY_STOP_NOT_STARTED) {
 				safetyStopState = SAFETY_STOP_IN_PROGRESS;
 
-				if (testModeSetting) {
-					Serial.print(" Safety stop STARTED at ");
-					Serial.println(depthInMeter);
-				}
+				Serial.print(" Safety stop STARTED at ");
+				Serial.println(depthInMeter);
+
 			} else if (safetyStopState == SAFETY_STOP_VIOLATED) {
 				safetyStopState = SAFETY_STOP_IN_PROGRESS;
 			}
@@ -251,20 +255,16 @@ void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int
 				safetyStopDurationInSeconds += intervalDuration;
 				view.drawSafetyStop(safetyStopDurationInSeconds);
 
-				if (testModeSetting) {
-					Serial.print(" Safety stop IN PROGRESS at ");
-					Serial.println(depthInMeter);
-					Serial.print(" Safety stop duration: ");
-					Serial.println(safetyStopDurationInSeconds);
-				}
+				Serial.print(" Safety stop IN PROGRESS at ");
+				Serial.println(depthInMeter);
+				Serial.print(" Safety stop duration: ");
+				Serial.println(safetyStopDurationInSeconds);
 
 				if (180 <= safetyStopDurationInSeconds) {
 					safetyStopState = SAFETY_STOP_DONE;
 
-					if (testModeSetting) {
-						Serial.print(" Safety stop DONE at ");
-						Serial.println(depthInMeter);
-					}
+					Serial.print(" Safety stop DONE at ");
+					Serial.println(depthInMeter);
 				}
 			}
 		} else if (10 < depthInMeter) {
@@ -272,20 +272,16 @@ void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int
 			if (safetyStopState != SAFETY_STOP_NOT_STARTED) {
 				safetyStopState = SAFETY_STOP_NOT_STARTED;
 
-				if (testModeSetting) {
-					Serial.print(" Safety stop RESET after DONE at ");
-					Serial.println(depthInMeter);
-				}
+				Serial.print(" Safety stop RESET after DONE at ");
+				Serial.println(depthInMeter);
 			}
 		} else {
 			//Between 10-6 meters and above 3 meters the safety stop is violated - the counter will stop
 			if (safetyStopState == SAFETY_STOP_IN_PROGRESS) {
 				safetyStopState = SAFETY_STOP_VIOLATED;
 
-				if (testModeSetting) {
-					Serial.print(" Safety stop VIOLATED at ");
-					Serial.println(depthInMeter);
-				}
+				Serial.print(" Safety stop VIOLATED at ");
+				Serial.println(depthInMeter);
 			}
 		}
 	}
@@ -357,9 +353,24 @@ void diveUnderWater()
 	if (measurementDifference > 0) {
 		timerTimestamp = now();
 
-		sensor.readSensor();
-		float pressureInMillibar = sensor.pressure();
-		float temperatureInCelsius = sensor.temperature();
+		float pressureInMillibar = seaLevelPressureSetting;
+		float temperatureInCelsius = 0;
+		if (EMULATOR_ENABLED) {
+			Serial.println("#GET");
+			if (Serial.available() > 0) {
+				pressureInMillibar = Serial.parseFloat();
+				temperatureInCelsius = Serial.parseFloat();
+
+				Serial.print("Pressure: ");
+				Serial.println(pressureInMillibar);
+				Serial.print("Temperature: ");
+				Serial.println(temperatureInCelsius);
+			}
+		} else {
+			sensor.readSensor();
+			pressureInMillibar = sensor.pressure();
+			temperatureInCelsius = sensor.temperature();
+		}
 
 		//Check for sensor error - difference has to be less than 20 meters
 		if (abs(pressureInMillibar-previousPressureInMillibar) > 2000) {
@@ -417,6 +428,10 @@ void diveUnderWater()
 
 void startDive()
 {
+	if (EMULATOR_ENABLED) {
+		Serial.println("#START");
+	}
+
 	//Store the the current time as seconds since Jan 1 1970 at the start of the dive
 	diveStartTimestamp = now();
 	timerTimestamp = now();
@@ -498,6 +513,9 @@ void startDive()
 
 void stopDive()
 {
+	if (EMULATOR_ENABLED) {
+		Serial.println("#STOP");
+	}
 	Serial.println("DIVE - Stopped");
 }
 
@@ -586,77 +604,53 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 // Buttons //
 /////////////
 
-void processRemoteButtonPress(decode_results *results) {
-	if (results->value == 0xFD8877 || results->value == 0xFF629D) {
-		if (testModeSetting) {
-			Serial.println("Up || Mode");
-		}
+void processRemoteButtonPress(decode_results *results)
+{
+	if (results->value == 0xFFFFFF) {
+		return;
+	} else {
 		beep();
+	}
+
+	if (results->value == 0xFD8877 || results->value == 0xFF629D) {        // Up || Mode
 		upButtonPressed();
-	} else if (results->value == 0xFD9867 || results->value == 0xFFA857) {
-		if (testModeSetting) {
-			Serial.println("Down || -");
-		}
-		beep();
+	} else if (results->value == 0xFD9867 || results->value == 0xFFA857) { // Down || -
 		downButtonPressed();
-	} else if (results->value == 0xFD28D7 || results->value == 0xFF22DD) {
-		if (testModeSetting) {
-			Serial.println("Left || Play");
-		}
-		beep();
+	} else if (results->value == 0xFD28D7 || results->value == 0xFF22DD) { // Left || Play
 		leftButtonPressed();
-	} else if (results->value == 0xFD6897 || results->value == 0xFFC23D) {
-		if (testModeSetting) {
-			Serial.println("Right || Forward");
-		}
-		beep();
+	} else if (results->value == 0xFD6897 || results->value == 0xFFC23D) { // Right || Forward
 		rightButtonPressed();
-	} else if (results->value == 0xFDA857 || results->value == 0xFF02FD) {
-		if (testModeSetting) {
-			Serial.println("OK || Previous");
-		}
-		beep();
+	} else if (results->value == 0xFDA857 || results->value == 0xFF02FD) { // OK || Previous
 		selectButtonPressed();
-	} else if (results->value == 0xFD30CF || results->value == 0xFFE01F) {
-		if (testModeSetting) {
-			Serial.println("* || EQ");
-		}
-		beep();
-	} else if (results->value == 0xFD708F || results->value == 0xFF906F) {
-		if (testModeSetting) {
-			Serial.println("# || +");
-		}
-		beep();
+	} else if (results->value == 0xFD30CF || results->value == 0xFFE01F) { // * || EQ
+
+	} else if (results->value == 0xFD708F || results->value == 0xFF906F) { // # || +
 		hashButtonPressed();
-	} else if (results->value == 0xFF6897 || results->value == 0xFDB04F) {
+	} else if (results->value == 0xFF6897 || results->value == 0xFDB04F) { // 0
 		numericButtonPressed(0);
-	} else if (results->value == 0xFF30CF || results->value == 0xFD00FF) {
+	} else if (results->value == 0xFF30CF || results->value == 0xFD00FF) { // 1
 		numericButtonPressed(1);
-	} else if (results->value == 0xFF18E7 || results->value == 0xFD807F) {
+	} else if (results->value == 0xFF18E7 || results->value == 0xFD807F) { // 2
 		numericButtonPressed(2);
-	} else if (results->value == 0xFF7A85 || results->value == 0xFD40BF) {
+	} else if (results->value == 0xFF7A85 || results->value == 0xFD40BF) { // 3
 		numericButtonPressed(3);
-    } else if (results->value == 0xFF10EF || results->value == 0xFD20DF) {
+    } else if (results->value == 0xFF10EF || results->value == 0xFD20DF) { // 4
     	numericButtonPressed(4);
-    } else if (results->value == 0xFF38C7 || results->value == 0xFDA05F) {
+    } else if (results->value == 0xFF38C7 || results->value == 0xFDA05F) { // 5
     	numericButtonPressed(5);
-    } else if (results->value == 0xFF5AA5 || results->value == 0xFD609F) {
+    } else if (results->value == 0xFF5AA5 || results->value == 0xFD609F) { // 6
     	numericButtonPressed(6);
-    } else if (results->value == 0xFF42BD || results->value == 0xFD10EF) {
+    } else if (results->value == 0xFF42BD || results->value == 0xFD10EF) { // 7
     	numericButtonPressed(7);
-    } else if (results->value == 0xFF4AB5 || results->value == 0xFD906F) {
+    } else if (results->value == 0xFF4AB5 || results->value == 0xFD906F) { // 8
     	numericButtonPressed(8);
-    } else if (results->value == 0xFF52AD || results->value == 0xFD50AF) {
+    } else if (results->value == 0xFF52AD || results->value == 0xFD50AF) { // 9
     	numericButtonPressed(9);
     }
 }
 
-void numericButtonPressed(byte number) {
-	if (testModeSetting) {
-		Serial.println(number);
-	}
-	beep();
-
+void numericButtonPressed(byte number)
+{
 	if (currentScreen == PROFILE_SCREEN) {
 		logbook.drawProfileItems(&tft, currentProfileNumber, number);
 	}
@@ -673,7 +667,6 @@ void hashButtonPressed()
 	}
 }
 
-// This is the OK or the Prev button on the IR Remote Control
 void selectButtonPressed()
 {
 	if (currentScreen == MENU_SCREEN) {
@@ -747,7 +740,6 @@ void selectButtonPressed()
 	}
 }
 
-// This is the Up or the Mode button on the IR Remote Control
 void upButtonPressed()
 {
 	switch (currentScreen) {
@@ -804,7 +796,6 @@ void upButtonPressed()
 	}
 }
 
-// This is the Down or the - button on the IR Remote Control
 void downButtonPressed()
 {
 	switch (currentScreen) {
@@ -1083,9 +1074,7 @@ void saveSettings()
 		diveInoSettings->imperialUnitsSetting = imperialUnitsSetting;
 		settings.saveDiveInoSettings(diveInoSettings);
 
-		if (diveInoSettings->testModeSetting) {
-			Serial.println("Settings were saved to the SD Card.");
-		}
+		Serial.println("Settings were saved to the SD Card.");
 	}
 
 	buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
