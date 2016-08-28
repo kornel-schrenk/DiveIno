@@ -179,6 +179,9 @@ void setup() {
     Serial.print(F("RTC time: "));
     Serial.println(settings.getCurrentTimeText());
 
+    Serial.print(F("Now timestamp: "));
+    Serial.println(nowTimestamp());
+
 	tft.InitLCD();
 
 	displayScreen(MENU_SCREEN);
@@ -228,6 +231,19 @@ void beep()
 		TimerFreeTone(TONE_PIN, 261, 50);
 #endif
 	}
+}
+
+time_t nowTimestamp()
+{
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	return now();
+#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
+	tmElements_t tm;
+	if (RTC.read(tm)) {
+	    return makeTime(tm);
+	}
+#endif
+	return 0;
 }
 
 //////////
@@ -348,10 +364,10 @@ void diveSurface()
 
 void diveUnderWater()
 {
-	unsigned int measurementDifference = now() - timerTimestamp;
+	unsigned int measurementDifference = nowTimestamp() - timerTimestamp;
 
 	if (measurementDifference > 0) {
-		timerTimestamp = now();
+		timerTimestamp = nowTimestamp();
 
 		float pressureInMillibar = seaLevelPressureSetting;
 		float temperatureInCelsius = 0;
@@ -393,7 +409,7 @@ void diveUnderWater()
 
 		switch (currentScreen) {
 			case GAUGE_SCREEN: {
-				view.drawDiveDuration(now()-diveStartTimestamp);
+				view.drawDiveDuration(nowTimestamp()-diveStartTimestamp);
 
 				//Instead of dive information we will display the current time
 				view.drawCurrentTime(settings.getCurrentTimeText());
@@ -406,7 +422,7 @@ void diveUnderWater()
 
 				if (currentMode == DIVE_PROGRESS_MODE) {
 					//Progress with the dive, if we are deeper than 1.2 meter
-					unsigned int intervalDuration = now()-diveStartTimestamp-diveDurationInSeconds;
+					unsigned int intervalDuration = nowTimestamp()-diveStartTimestamp-diveDurationInSeconds;
 					calculateSafetyStop(maxDepthInMeter, depthInMeter, intervalDuration);
 
 					diveDurationInSeconds = diveDurationInSeconds + intervalDuration;
@@ -418,7 +434,7 @@ void diveUnderWater()
 					}
 				} else {
 					//No dive progress - reset the dive timestamp
-					diveStartTimestamp = now();
+					diveStartTimestamp = nowTimestamp();
 				}
 			}
 			break;
@@ -433,8 +449,8 @@ void startDive()
 	}
 
 	//Store the the current time as seconds since Jan 1 1970 at the start of the dive
-	diveStartTimestamp = now();
-	timerTimestamp = now();
+	diveStartTimestamp = nowTimestamp();
+	timerTimestamp = nowTimestamp();
 
 	previousPressureInMillibar = seaLevelPressureSetting;
 
@@ -469,7 +485,7 @@ void startDive()
 		LastDiveData* lastDiveData = lastDive.loadLastDiveData();
 
 		//Last dive happened within 48 hours and there is an active no fly time
-		if (lastDiveData != NULL &&	(lastDiveData->diveDateTimestamp + 172800) > now() && lastDiveData->noFlyTimeInMinutes > 0) {
+		if (lastDiveData != NULL &&	(lastDiveData->diveDateTimestamp + 172800) > nowTimestamp() && lastDiveData->noFlyTimeInMinutes > 0) {
 
 			Serial.print("BEFORE dive No Fly time (min): ");
 			Serial.println(lastDiveData->noFlyTimeInMinutes);
@@ -487,7 +503,7 @@ void startDive()
 			}
 
 			//Calculate surface time in minutes
-			int surfaceTime = (now() - lastDiveData->diveDateTimestamp) / 60;
+			int surfaceTime = (nowTimestamp() - lastDiveData->diveDateTimestamp) / 60;
 
 			Serial.print("Surface time (min): ");
 			Serial.println(surfaceTime);
@@ -578,8 +594,11 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		///////////////////////////
 		// Update Last Dive Data //
 
+		Serial.print("Stopped timestamp: ");
+		Serial.println(nowTimestamp());
+
 		LastDiveData* lastDiveData = new LastDiveData;
-		lastDiveData->diveDateTimestamp = now();
+		lastDiveData->diveDateTimestamp = nowTimestamp();
 		lastDiveData->diveDate = currentTimeText;
 		lastDiveData->maxDepthInMeters = diveResult->maxDepthInMeters;
 		lastDiveData->durationInSeconds = diveResult->durationInSeconds;
@@ -1134,10 +1153,16 @@ void displayScreen(byte screen) {
 			diveResult = buhlmann.initializeCompartments();
 
 			lastDiveData = lastDive.loadLastDiveData();
+
 			if (lastDiveData != NULL && lastDiveData->diveDateTimestamp > 0 ) {
 
+			    Serial.print(F("Now timestamp: "));
+			    Serial.println(nowTimestamp());
+				Serial.print("Last dive timestamp: ");
+				Serial.println(lastDiveData->diveDateTimestamp);
+
 				//Calculate surface interval
-				surfaceIntervalInMinutes = (now() - lastDiveData->diveDateTimestamp) / 60;
+				surfaceIntervalInMinutes = (nowTimestamp() - lastDiveData->diveDateTimestamp) / 60;
 
 				Serial.print("Surface interval (min): ");
 				Serial.println(surfaceIntervalInMinutes);
