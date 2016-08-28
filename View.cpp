@@ -16,7 +16,6 @@ char* mainMenu[] = {" DiveIno - Main Menu ",
 
 char* settingsList[] = {" Sea level",
 		" Oxygen %",
-		" Test mode",
 		" Sound",
 		" Units"};
 
@@ -259,7 +258,7 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfac
 	}
 }
 
-void View::displayGaugeScreen(bool testModeSetting)
+void View::displayGaugeScreen()
 {
 	tft->clrScr();
 	tft->setColor(VGA_SILVER);
@@ -274,21 +273,15 @@ void View::displayGaugeScreen(bool testModeSetting)
 	tft->setFont(Grotesk16x32);
 	tft->setColor(VGA_GREEN);
 	tft->print("GAUGE", paddingLeft + tft->getFontXsize() * 4, 215);
-
-	if (testModeSetting) {
-		tft->setColor(VGA_RED);
-		tft->print("TEST", paddingLeft + tft->getFontXsize() * 15, 215);
-	}
 }
 
-void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool testModeSetting, bool soundSetting, bool imperialUnitsSetting)
+void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool soundSetting, bool imperialUnitsSetting)
 {
 	// Settings:
 	//
 	// From SETTINGS.TXT:
 	//  seaLevelPressure = 1013.25
 	//  oxygenRate = 0.21
-	//  testMode = 1 :  0 = Off, 1 = On
 	//  sound = 1 : 0 = Off, 1 = On
 	//  units = 0 : 0 = metric, 1 = imperial
 	//
@@ -313,10 +306,10 @@ void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSett
 		tft->print(settingsList[i], 0, (i * 40) + SETTINGS_TOP);
 	}
 
-	displaySettings(selectionIndex, seaLevelPressureSetting, oxygenRateSetting, testModeSetting, soundSetting, imperialUnitsSetting);
+	displaySettings(selectionIndex, seaLevelPressureSetting, oxygenRateSetting, soundSetting, imperialUnitsSetting);
 }
 
-void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool testModeSetting, bool soundSetting, bool imperialUnitsSetting)
+void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool soundSetting, bool imperialUnitsSetting)
 {
 	if (settingIndex == 0) {
 		tft->setColor(VGA_WHITE);
@@ -325,7 +318,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_AQUA);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumF(seaLevelPressureSetting, 2, 240, SETTINGS_TOP);
+	tft->printNumF(seaLevelPressureSetting, 1, 240, SETTINGS_TOP);
 
 	if (settingIndex == 1) {
 		tft->setColor(VGA_WHITE);
@@ -343,7 +336,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_AQUA);
 		tft->setBackColor(VGA_BLACK);
 	}
-	if (testModeSetting) {
+	if (soundSetting) {
 		tft->print("On ", 240, 80 + SETTINGS_TOP);
 	} else {
 		tft->print("Off", 240, 80 + SETTINGS_TOP);
@@ -356,26 +349,13 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_AQUA);
 		tft->setBackColor(VGA_BLACK);
 	}
-	if (soundSetting) {
-		tft->print("On ", 240, 120 + SETTINGS_TOP);
+	if (imperialUnitsSetting) {
+		tft->print("Imperial", 240, 120 + SETTINGS_TOP);
 	} else {
-		tft->print("Off", 240, 120 + SETTINGS_TOP);
+		tft->print("Metric  ", 240, 120 + SETTINGS_TOP);
 	}
 
 	if (settingIndex == 4) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
-	} else {
-		tft->setColor(VGA_AQUA);
-		tft->setBackColor(VGA_BLACK);
-	}
-	if (imperialUnitsSetting) {
-		tft->print("Imperial", 240, 160 + SETTINGS_TOP);
-	} else {
-		tft->print("Metric  ", 240, 160 + SETTINGS_TOP);
-	}
-
-	if (settingIndex == 5) {
 		tft->setColor(VGA_WHITE);
 		tft->setBackColor(VGA_BLUE);
 	} else {
@@ -384,7 +364,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 	}
 	tft->print("Save", 10, 211 + SETTINGS_TOP);
 
-	if (settingIndex == 6) {
+	if (settingIndex == 5) {
 		tft->setColor(VGA_WHITE);
 		tft->setBackColor(VGA_BLUE);
 	} else {
@@ -393,7 +373,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 	}
 	tft->print("Cancel", 90, 211 + SETTINGS_TOP);
 
-	if (settingIndex == 7) {
+	if (settingIndex == 6) {
 		tft->setColor(VGA_WHITE);
 		tft->setBackColor(VGA_BLUE);
 	} else {
@@ -402,7 +382,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 	}
 	tft->print("Default", 200, 210 + SETTINGS_TOP);
 
-	if (settingIndex == 8) {
+	if (settingIndex == 7) {
 		tft->setColor(VGA_WHITE);
 		tft->setBackColor(VGA_BLUE);
 	} else {

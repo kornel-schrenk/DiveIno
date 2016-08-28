@@ -40,9 +40,8 @@ View view(&tft);
 byte selectedMenuItemIndex;
 
 Settings settings = Settings();
-float seaLevelPressureSetting = 1013.25;
+float seaLevelPressureSetting = 1013.2;
 float oxygenRateSetting = 0.21;
-bool testModeSetting = false;
 bool soundSetting = true;
 bool imperialUnitsSetting = false;
 
@@ -96,7 +95,7 @@ File profileFile;
 LastDive lastDive = LastDive();
 
 #define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
-#define TEST_ENABLED 0 //TODO
+#define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
 
 void setup() {
 
@@ -108,7 +107,6 @@ void setup() {
 		DiveInoSettings* diveInoSettings = settings.loadDiveInoSettings();
 		seaLevelPressureSetting = diveInoSettings->seaLevelPressureSetting;
 		oxygenRateSetting = diveInoSettings->oxygenRateSetting;
-		testModeSetting = diveInoSettings->testModeSetting;
 		soundSetting = diveInoSettings->soundSetting;
 		imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
 	}
@@ -133,12 +131,6 @@ void setup() {
 	Serial.println(seaLevelPressureSetting, 2);
 	Serial.print(F("oxygenRate: "));
 	Serial.println(oxygenRateSetting, 2);
-	Serial.print(F("testMode: "));
-	if (testModeSetting) {
-		Serial.println(F("On"));
-	} else {
-		Serial.println(F("Off"));
-	}
 	Serial.print(F("sound: "));
 	if (soundSetting) {
 		Serial.println(F("On"));
@@ -210,10 +202,10 @@ void loop() {
 	///////////////
 
 	if (currentScreen == GAUGE_SCREEN || currentScreen == DIVE_SCREEN) {
-		if (testModeSetting) {
-			diveSurface();
+		if (REPLAY_ENABLED) {
+			replayDive();
 		} else {
-			diveUnderWater();
+			dive();
 		}
 	}
 }
@@ -314,7 +306,7 @@ void calculateMinMaxValues(float depthInMeter, float temperatureInCelsius)
 	}
 }
 
-void diveSurface()
+void replayDive()
 {
 	// Check if test data is available, which comes through the serial interface
 	if (Serial.available() > 0) {
@@ -358,7 +350,7 @@ void diveSurface()
 	}
 }
 
-void diveUnderWater()
+void dive()
 {
 	unsigned int measurementDifference = nowTimestamp() - timerTimestamp;
 
@@ -729,18 +721,18 @@ void selectButtonPressed()
 		displayScreen(MENU_SCREEN);
 	} else if (currentScreen == SETTINGS_SCREEN) {
 		currentMode = SURFACE_MODE;
-		if (selectedSettingIndex == 5) { // Save
+		if (selectedSettingIndex == 4) { // Save
 			displayScreen(MENU_SCREEN);
 			saveSettings();
 		}
-		if (selectedSettingIndex == 6) { // Cancel
+		if (selectedSettingIndex == 5) { // Cancel
 			displayScreen(MENU_SCREEN);
 		}
-		if (selectedSettingIndex == 7) { // Default
+		if (selectedSettingIndex == 6) { // Default
 			displayScreen(MENU_SCREEN);
 			setSettingsToDefault();
 		}
-		if (selectedSettingIndex == 8) {
+		if (selectedSettingIndex == 7) {
 			displayScreen(DATETIME_SCREEN); //Date and Time setting screen
 		}
 	} else if (currentScreen == DATETIME_SCREEN) {
@@ -849,10 +841,8 @@ void downButtonPressed()
 		}
 		break;
 		case ABOUT_SCREEN: {
-			if (testModeSetting) {
-				currentMode = SURFACE_MODE;
-				displayScreen(UI_TEST_SCREEN);
-			}
+			currentMode = SURFACE_MODE;
+			displayScreen(UI_TEST_SCREEN);
 		}
 		break;
 	}
@@ -865,7 +855,7 @@ void leftButtonPressed()
 			switch (selectedSettingIndex) {
 				case 0: {
 					if (seaLevelPressureSetting > 1001) {
-						seaLevelPressureSetting = seaLevelPressureSetting - 0.05;
+						seaLevelPressureSetting = seaLevelPressureSetting - 0.1;
 					}
 					settingsSelect(0);
 				}
@@ -878,18 +868,13 @@ void leftButtonPressed()
 				}
 				break;
 				case 2: {
-					testModeSetting = !testModeSetting;
+					soundSetting = !soundSetting;
 					settingsSelect(2);
 				}
 				break;
 				case 3: {
-					soundSetting = !soundSetting;
-					settingsSelect(3);
-				}
-				break;
-				case 4: {
 					imperialUnitsSetting = !imperialUnitsSetting;
-					settingsSelect(4);
+					settingsSelect(3);
 				}
 				break;
 			}
@@ -964,7 +949,7 @@ void rightButtonPressed()
 			switch (selectedSettingIndex) {
 				case 0: {
 					if (seaLevelPressureSetting < 1100) {
-						seaLevelPressureSetting = seaLevelPressureSetting + 0.05;
+						seaLevelPressureSetting = seaLevelPressureSetting + 0.1;
 					}
 					settingsSelect(0);
 				}
@@ -977,18 +962,13 @@ void rightButtonPressed()
 				}
 				break;
 				case 2: {
-					testModeSetting = !testModeSetting;
+					soundSetting = !soundSetting;
 					settingsSelect(2);
 				}
 				break;
 				case 3: {
-					soundSetting = !soundSetting;
-					settingsSelect(3);
-				}
-				break;
-				case 4: {
 					imperialUnitsSetting = !imperialUnitsSetting;
-					settingsSelect(4);
+					settingsSelect(3);
 				}
 				break;
 			}
@@ -1061,7 +1041,7 @@ void rightButtonPressed()
 
 void settingsSelect(byte settingIndex)
 {
-	view.displaySettings(settingIndex, seaLevelPressureSetting, oxygenRateSetting, testModeSetting, soundSetting, imperialUnitsSetting);
+	view.displaySettings(settingIndex, seaLevelPressureSetting, oxygenRateSetting, soundSetting, imperialUnitsSetting);
 	selectedSettingIndex = settingIndex;
 }
 
@@ -1073,9 +1053,8 @@ void dateTimeSettingsSelect(byte settingIndex)
 
 void setSettingsToDefault()
 {
-	seaLevelPressureSetting = 1013.25;
+	seaLevelPressureSetting = 1013.2;
 	oxygenRateSetting = 0.21;
-	testModeSetting = true;
 	soundSetting = true;
 	imperialUnitsSetting = false;
 }
@@ -1086,7 +1065,6 @@ void saveSettings()
 		DiveInoSettings* diveInoSettings = new DiveInoSettings;
 		diveInoSettings->seaLevelPressureSetting = seaLevelPressureSetting;
 		diveInoSettings->oxygenRateSetting = oxygenRateSetting;
-		diveInoSettings->testModeSetting = testModeSetting;
 		diveInoSettings->soundSetting = soundSetting;
 		diveInoSettings->imperialUnitsSetting = imperialUnitsSetting;
 		settings.saveDiveInoSettings(diveInoSettings);
@@ -1211,10 +1189,10 @@ void displayScreen(byte screen) {
 			view.displaySurfaceTimeScreen(diveResult, surfaceIntervalInMinutes, currentMode == DIVE_STOP_MODE);
 			break;
 		case GAUGE_SCREEN:
-			view.displayGaugeScreen(testModeSetting);
+			view.displayGaugeScreen();
 			break;
 		case SETTINGS_SCREEN:
-			view.displaySettingsScreen(0, seaLevelPressureSetting, oxygenRateSetting, testModeSetting, soundSetting, imperialUnitsSetting);
+			view.displaySettingsScreen(0, seaLevelPressureSetting, oxygenRateSetting, soundSetting, imperialUnitsSetting);
 			break;
 		case DATETIME_SCREEN:
 			currentDateTimeSettings = settings.getCurrentTime();
@@ -1223,7 +1201,6 @@ void displayScreen(byte screen) {
 		case ABOUT_SCREEN:
 			view.displayAboutScreen();
 			view.drawCurrentTime(settings.getCurrentTimeText());
-			view.drawBatteryStateOfCharge(batteryMonitor.getSoC());
 			break;
 		case UI_TEST_SCREEN:
 			view.displayTestScreen();

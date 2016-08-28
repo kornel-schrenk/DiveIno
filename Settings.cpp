@@ -26,10 +26,8 @@ DiveInoSettings* Settings::loadDiveInoSettings()
 				} else if (counter == 1) {
 					diveInoSettings->oxygenRateSetting = readFloatFromLineEnd(line);
 				} else if (counter == 2) {
-					diveInoSettings->testModeSetting = readBoolFromLineEnd(line);
-				} else if (counter == 3) {
 					diveInoSettings->soundSetting = readBoolFromLineEnd(line);
-				} else if (counter == 4) {
+				} else if (counter == 3) {
 					diveInoSettings->imperialUnitsSetting = readBoolFromLineEnd(line);
 				}
 				counter++;
@@ -54,13 +52,6 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 	settingsFile.print("\n");
 	settingsFile.print("oxygenRate = ");
 	settingsFile.print(diveInoSettings->oxygenRateSetting);
-	settingsFile.print("\n");
-	settingsFile.print("testMode = ");
-	if (!diveInoSettings->testModeSetting) {
-		settingsFile.print('0');
-	} else {
-		settingsFile.print('1');
-	}
 	settingsFile.print("\n");
 	settingsFile.print("sound = ");
 	if (!diveInoSettings->soundSetting) {

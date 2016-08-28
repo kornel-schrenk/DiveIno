@@ -7,9 +7,8 @@
 #include "DS1307RTC.h"
 
 typedef struct DiveInoSettings {
-	float seaLevelPressureSetting = 1013.25;
+	float seaLevelPressureSetting = 1013.2;
 	float oxygenRateSetting = 0.21;
-	bool testModeSetting = false;
 	bool soundSetting = true;
 	bool imperialUnitsSetting = false;
 };

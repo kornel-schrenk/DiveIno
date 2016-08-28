@@ -23,7 +23,7 @@
 #define MENU_TOP 60
 #define SETTINGS_TOP 60
 
-#define SETTINGS_SIZE 5
+#define SETTINGS_SIZE 4
 #define MENU_SIZE 6
 
 class View {
@@ -37,9 +37,9 @@ public:
 	void displayLogbookScreen(LogbookData* logbookData);
 	void displayProfileScreen(ProfileData* profileData, int profileNumber);
 	void displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfaceIntervalInMinutes, bool isDiveStopDisplay);
-	void displayGaugeScreen(bool testModeSetting);
-	void displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting,	bool testModeSetting, bool soundSetting, bool imperialUnitsSetting);
-	void displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool testModeSetting, bool soundSetting, bool imperialUnitsSetting);
+	void displayGaugeScreen();
+	void displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting,	bool soundSetting, bool imperialUnitsSetting);
+	void displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool soundSetting, bool imperialUnitsSetting);
 	void displayAboutScreen();
 	void displayTestScreen();
 	void displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dateTimeSettings);
