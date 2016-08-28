@@ -670,7 +670,7 @@ void processRemoteButtonPress(decode_results *results)
 
 void numericButtonPressed(byte number)
 {
-	if (currentScreen == PROFILE_SCREEN) {
+	if (currentScreen == PROFILE_SCREEN && number > 0) {
 		logbook.drawProfileItems(&tft, currentProfileNumber, number);
 	}
 }
