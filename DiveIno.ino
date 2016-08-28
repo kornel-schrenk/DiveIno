@@ -184,6 +184,7 @@ void setup() {
 
 	tft.InitLCD();
 
+	batterySoc = batteryMonitor.getSoC();
 	displayScreen(MENU_SCREEN);
 }
 
@@ -203,11 +204,6 @@ void loop() {
 	/////////////
 
 	batterySoc = batteryMonitor.getSoC();
-	batteryVoltage = batteryMonitor.getVCell();
-
-	if (currentScreen == MENU_SCREEN) {
-		view.drawBatteryStateOfCharge(batterySoc);
-	}
 
 	///////////////
 	// Go Diving //
@@ -763,6 +759,7 @@ void upButtonPressed()
 {
 	switch (currentScreen) {
 		case MENU_SCREEN: {
+			view.drawBatteryStateOfCharge(batterySoc);
 			if (selectedMenuItemIndex == 1) {
 				// Position to the last menu item
 				menuSelect(MENU_SIZE);
@@ -819,6 +816,7 @@ void downButtonPressed()
 {
 	switch (currentScreen) {
 		case MENU_SCREEN: {
+			view.drawBatteryStateOfCharge(batterySoc);
 			if (selectedMenuItemIndex < MENU_SIZE) {
 				// Move down the selection
 				menuSelect(selectedMenuItemIndex + 1);
@@ -1128,6 +1126,7 @@ void displayScreen(byte screen) {
 			// Select 1st menu item
 			selectedMenuItemIndex = 1;
 			menuSelect(selectedMenuItemIndex);
+			view.drawBatteryStateOfCharge(batterySoc);
 			break;
 		case DIVE_SCREEN:
 			view.displayDiveScreen(oxygenRateSetting);
@@ -1224,10 +1223,7 @@ void displayScreen(byte screen) {
 		case ABOUT_SCREEN:
 			view.displayAboutScreen();
 			view.drawCurrentTime(settings.getCurrentTimeText());
-			if (testModeSetting) {
-				view.drawBatteryStateOfCharge(batteryMonitor.getSoC());
-				view.printBatteryData(batteryMonitor.getVCell(), batteryMonitor.getSoC());
-			}
+			view.drawBatteryStateOfCharge(batteryMonitor.getSoC());
 			break;
 		case UI_TEST_SCREEN:
 			view.displayTestScreen();

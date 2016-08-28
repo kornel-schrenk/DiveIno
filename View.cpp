@@ -580,17 +580,6 @@ void View::drawBatteryStateOfCharge(float soc)
 	}
 }
 
-void View::printBatteryData(float volt, float soc)
-{
-	tft->setFont(BigFont); //16x16 pixel
-
-	tft->setColor(VGA_WHITE);
-	tft->printNumI(soc, 420, 225, 3, ' ');
-
-	tft->setColor(VGA_FUCHSIA);
-	tft->printNumF(volt, 2, 420, 245, '.', 3);
-}
-
 void View::drawDepth(float depth)
 {
 	tft->setFont(SevenSeg_XXXL);
