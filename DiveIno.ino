@@ -370,7 +370,7 @@ void diveUnderWater()
 		timerTimestamp = nowTimestamp();
 
 		float pressureInMillibar = seaLevelPressureSetting;
-		float temperatureInCelsius = 0;
+		float temperatureInCelsius = 99;
 		if (EMULATOR_ENABLED) {
 			Serial.println("#GET");
 			if (Serial.available() > 0) {
@@ -1193,16 +1193,6 @@ void displayScreen(byte screen) {
 					Serial.print(diveResult->noFlyTimeInMinutes);
 					Serial.println(" minutes.");
 
-					//Update Last Dive Data
-					lastDiveData->noFlyTimeInMinutes = diveResult->noFlyTimeInMinutes;
-					for (byte i=0; i <COMPARTMENT_COUNT; i++) {
-						lastDiveData->compartmentPartialPressures[i] = diveResult->compartmentPartialPressures[i];
-					}
-
-					//Store the updated Last Dive Data
-					lastDive.storeLastDiveData(lastDiveData);
-
-					Serial.println("Last Dive Data was updated.");
 				} else if (10 >= surfaceIntervalInMinutes && lastDiveData->noFlyTimeInMinutes > 0) {
 					//Within 10 minutes of the dive don't do surface interval calculation
 					Serial.println("The last dive was within 10 minutes!");

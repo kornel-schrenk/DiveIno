@@ -695,10 +695,17 @@ void View::drawDecoArea(DiveInfo diveInfo)
 		tft->setFont(SevenSegNumFontPlusPlus);
 		tft->setColor(VGA_YELLOW);
 		tft->printNumI(diveInfo.minutesToDeco, 90, 200, 2, '0');
+		//Remove the deco depth value from the screen
+		tft->setColor(VGA_BLACK);
+		tft->printNumI(0, 218, 200, 2, '/');
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
 		tft->print("min", 159, 234);
+
+		//Remove the deco depth from the screen
+		tft->setColor(VGA_BLACK);
+		tft->print("m", 287, 234);
 	} else {
 
 		tft->setFont(Grotesk16x32);

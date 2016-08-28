@@ -151,6 +151,7 @@ void Logbook::storeDiveSummary(int profileNumber, File profileFile, unsigned int
 	finalFile.print("Dive time = ");
 	finalFile.print(time);
 	finalFile.print('\n');
+	finalFile.print('\n');
 	finalFile.println("**********");
 	finalFile.println("* Notes: *");
 	finalFile.println("**********");
