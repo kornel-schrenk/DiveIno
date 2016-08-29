@@ -34,9 +34,9 @@ public:
 
 	void displayMenuScreen();
 	void displayDiveScreen(float oxygenRateSetting);
-	void displayLogbookScreen(LogbookData* logbookData);
-	void displayProfileScreen(ProfileData* profileData, int profileNumber);
-	void displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfaceIntervalInMinutes, bool isDiveStopDisplay);
+	void displayLogbookScreen(LogbookData* logbookData, bool isImperial);
+	void displayProfileScreen(ProfileData* profileData, int profileNumber, bool isImperial);
+	void displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfaceIntervalInMinutes, bool isDiveStopDisplay, bool isImperial);
 	void displayGaugeScreen();
 	void displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting,	bool soundSetting, bool imperialUnitsSetting);
 	void displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool soundSetting, bool imperialUnitsSetting);
@@ -45,15 +45,15 @@ public:
 	void displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dateTimeSettings);
 	void displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTimeSettings);
 
-	void drawDepth(float depth);
-	void drawMaximumDepth(float maximumDepth);
-	void drawCurrentTemperature(float currentTemperature);
+	void drawDepth(float depth, bool isImperial);
+	void drawMaximumDepth(float maximumDepth, bool isImperial);
+	void drawCurrentTemperature(float currentTemperature, bool isImperial);
 	void drawCurrentPressure(int currentPressure);
 	void drawDiveDuration(unsigned long duration);
 	void drawCurrentTime(String time);
 	void drawOxigenPercentage(float oxigenPercentage);
 	void drawPartialPressureWarning();
-	void drawDecoArea(DiveInfo diveInfo);
+	void drawDecoArea(DiveInfo diveInfo, bool isImperial);
 	void drawSafetyStop(unsigned int safetyStopDurationInSeconds);
 	void drawAscend(int ascendRate);
 

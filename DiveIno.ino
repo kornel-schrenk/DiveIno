@@ -94,7 +94,7 @@ File profileFile;
 
 LastDive lastDive = LastDive();
 
-#define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
+#define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
 #define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
 
 void setup() {
@@ -296,7 +296,7 @@ void calculateMinMaxValues(float depthInMeter, float temperatureInCelsius)
 	//Calculate minimum and maximum values during the dive
 	if (maxDepthInMeter < depthInMeter) {
 		maxDepthInMeter = depthInMeter;
-		view.drawMaximumDepth(maxDepthInMeter);
+		view.drawMaximumDepth(maxDepthInMeter, imperialUnitsSetting);
 	}
 	if (maxTemperatureInCelsius < temperatureInCelsius) {
 		maxTemperatureInCelsius = temperatureInCelsius;
@@ -316,8 +316,8 @@ void replayDive()
 		float temperatureInCelsius = Serial.parseFloat();
 
 		view.drawCurrentPressure(pressureInMillibar);
-		view.drawDepth(depthInMeter);
-		view.drawCurrentTemperature(temperatureInCelsius);
+		view.drawDepth(depthInMeter, imperialUnitsSetting);
+		view.drawCurrentTemperature(temperatureInCelsius, imperialUnitsSetting);
 		view.drawDiveDuration(diveDurationInSeconds);
 
 		view.drawBatteryStateOfCharge(batterySoc);
@@ -387,9 +387,9 @@ void dive()
 		float depthInMeter = buhlmann.calculateDepthFromPressure(pressureInMillibar);
 
 		//Draw the data to the screen
-		view.drawCurrentTemperature(temperatureInCelsius);
+		view.drawCurrentTemperature(temperatureInCelsius, imperialUnitsSetting);
 		view.drawCurrentPressure(pressureInMillibar);
-		view.drawDepth(depthInMeter);
+		view.drawDepth(depthInMeter, imperialUnitsSetting);
 
 		calculateMinMaxValues(depthInMeter, temperatureInCelsius);
 
@@ -529,7 +529,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 	DiveInfo diveInfo = buhlmann.progressDive(&diveData);
 	view.drawAscend(diveInfo.ascendRate);
 
-	view.drawDecoArea(diveInfo);
+	view.drawDecoArea(diveInfo, imperialUnitsSetting);
 
 	//Store the current dive data in the dive profile
 	logbook.storeProfileItem(profileFile, pressureInMillibar, depthInMeter, temperatureInCelsius, durationInSeconds);
@@ -1116,11 +1116,11 @@ void displayScreen(byte screen) {
 				//In the default case move to the first profile screen
 				currentProfileNumber = 1;
 			}
-			view.displayLogbookScreen(logbookData);
+			view.displayLogbookScreen(logbookData, imperialUnitsSetting);
 			break;
 		case PROFILE_SCREEN:
 			if (maximumProfileNumber != 0 && currentProfileNumber != 0) {
-				view.displayProfileScreen(logbook.loadProfileDataFromFile(logbook.getFileNameFromProfileNumber(currentProfileNumber, false)), currentProfileNumber);
+				view.displayProfileScreen(logbook.loadProfileDataFromFile(logbook.getFileNameFromProfileNumber(currentProfileNumber, false)), currentProfileNumber, imperialUnitsSetting);
 			}
 			break;
 		case SURFACE_TIME_SCREEN:
@@ -1186,7 +1186,7 @@ void displayScreen(byte screen) {
 					}
 				}
 			}
-			view.displaySurfaceTimeScreen(diveResult, surfaceIntervalInMinutes, currentMode == DIVE_STOP_MODE);
+			view.displaySurfaceTimeScreen(diveResult, surfaceIntervalInMinutes, currentMode == DIVE_STOP_MODE, imperialUnitsSetting);
 			break;
 		case GAUGE_SCREEN:
 			view.displayGaugeScreen();

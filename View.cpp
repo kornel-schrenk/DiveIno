@@ -77,7 +77,7 @@ void View::displayDiveScreen(float oxygenRateSetting)
 	drawOxigenPercentage(oxygenRateSetting * 100);
 }
 
-void View::displayLogbookScreen(LogbookData* logbookData)
+void View::displayLogbookScreen(LogbookData* logbookData, bool isImperial)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
@@ -118,8 +118,12 @@ void View::displayLogbookScreen(LogbookData* logbookData)
 	} else {
 		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 64, 120);
 	}
-	tft->setColor(VGA_PURPLE);
-	tft->printNumF(logbookData->totalMaximumDepth, 1, paddingLeft, 160);
+	tft->setColor(VGA_FUCHSIA);
+	if (isImperial) {
+		tft->printNumI(logbookData->totalMaximumDepth*3.28, paddingLeft, 160, 3);
+	} else {
+		tft->printNumF(logbookData->totalMaximumDepth, 1, paddingLeft, 160);
+	}
 	tft->setColor(VGA_TEAL);
 	tft->print(logbookData->lastDiveDateTime, paddingLeft, 200);
 	tft->setColor(VGA_LIME);
@@ -128,10 +132,14 @@ void View::displayLogbookScreen(LogbookData* logbookData)
 	tft->setColor(VGA_WHITE);
 	tft->setFont(BigFont);
 	tft->print("hh:mm", 300, 134);
-	tft->print("m", 270, 174);
+	if (isImperial) {
+		tft->print("ft", 254, 174);
+	} else {
+		tft->print("m", 270, 174);
+	}
 }
 
-void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
+void View::displayProfileScreen(ProfileData* profileData, int profileNumber, bool isImperial)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
@@ -149,26 +157,38 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber)
 	tft->setFont(Grotesk16x32);
 	tft->print(profileData->diveDate, paddingLeft, 20);
 	tft->print(profileData->diveTime, paddingLeft+176, 20);
-	tft->setColor(VGA_PURPLE);
-	tft->printNumF(profileData->maximumDepth, 1, paddingLeft, 60);
 	tft->setColor(VGA_YELLOW);
 	tft->printNumI(profileData->diveDuration/60, 280, 60, 3);
 	tft->print(":", 328, 60);
 	tft->printNumI(profileData->diveDuration%60, 344, 60, 2 , '0');
-	tft->setColor(VGA_BLUE);
-	tft->printNumF(profileData->minimumTemperature, 1, paddingLeft, 100);
 	tft->setColor(VGA_OLIVE);
 	tft->printNumF(profileData->oxigenPercentage, 1, 296, 100);
+	if (isImperial) {
+		tft->setColor(VGA_FUCHSIA);
+		tft->printNumI(profileData->maximumDepth*3.28, paddingLeft, 60, 3);
+		tft->setColor(VGA_BLUE);
+		tft->printNumI((profileData->minimumTemperature*1.8)+32, paddingLeft, 100, 3);
+	} else {
+		tft->setColor(VGA_FUCHSIA);
+		tft->printNumF(profileData->maximumDepth, 1, paddingLeft, 60);
+		tft->setColor(VGA_BLUE);
+		tft->printNumF(profileData->minimumTemperature, 1, paddingLeft, 100);
+	}
 
 	tft->setColor(VGA_WHITE);
 	tft->setFont(BigFont);
-	tft->print("m", paddingLeft + 68, 74);
 	tft->print("mm:ss", 380, 74);
-	tft->print("cel", paddingLeft + 68, 114);
 	tft->print("O2%", 364, 114);
+	if (isImperial) {
+		tft->print("ft", paddingLeft + 52, 74);
+		tft->print("Fahr", paddingLeft + 52, 114);
+	} else {
+		tft->print("m", paddingLeft + 68, 74);
+		tft->print("cel", paddingLeft + 68, 114);
+	}
 }
 
-void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfaceIntervalInMinutes, bool isDiveStopDisplay)
+void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfaceIntervalInMinutes, bool isDiveStopDisplay, bool isImperial)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
@@ -197,7 +217,11 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfac
 			tft->print(":", 252, 110);
 			tft->printNumI(diveResult->durationInSeconds%60, 268, 110, 2 , '0');
 			tft->setColor(VGA_FUCHSIA);
-			tft->printNumF(diveResult->maxDepthInMeters, 1, 220, 150);
+			if (isImperial) {
+				tft->printNumI(diveResult->maxDepthInMeters*3.28, 220, 150, 3);
+			} else {
+				tft->printNumF(diveResult->maxDepthInMeters, 1, 220, 150);
+			}
 
 			tft->setColor(VGA_WHITE);
 			tft->print("No fly:", 20, 70);
@@ -206,7 +230,11 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfac
 			tft->setFont(BigFont);
 			tft->print("hh:mm", 310, 83);
 			tft->print("mm:ss", 310, 123);
-			tft->print("m", 310, 163);
+			if (isImperial) {
+				tft->print("ft", 278, 163);
+			} else {
+				tft->print("m", 310, 163);
+			}
 		} else {
 			tft->setColor(VGA_RED);
 			tft->printNumI(diveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
@@ -506,21 +534,21 @@ void View::displayTestScreen()
 	drawBatteryStateOfCharge(86.5);
 
 	drawCurrentPressure(2345.67);
-	drawCurrentTemperature(22.4);
-	drawMaximumDepth(36.5);
+	drawCurrentTemperature(22.4, true);
+	drawMaximumDepth(36.5, true);
 
-	drawDepth(24.3);
+	drawDepth(34.6, true);
 	drawDiveDuration(2048);
 
 	DiveInfo diveInfo;
 //	diveInfo.decoNeeded = false;
 //	diveInfo.minutesToDeco = 46;
-//	drawDecoArea(diveInfo);
+//	drawDecoArea(diveInfo, false);
 
 	diveInfo.decoNeeded = true;
     diveInfo.decoStopInMeters = 24;
     diveInfo.decoStopDurationInMinutes = 367;
-	drawDecoArea(diveInfo);
+	drawDecoArea(diveInfo, true);
 
 	drawSafetyStop(134);
 	drawAscend(ASCEND_NORMAL);
@@ -560,40 +588,71 @@ void View::drawBatteryStateOfCharge(float soc)
 	}
 }
 
-void View::drawDepth(float depth)
+void View::drawDepth(float depth, bool isImperial)
 {
-	tft->setFont(SevenSeg_XXXL);
-	tft->setColor(VGA_YELLOW);
+	if (isImperial) {
+		tft->setFont(SevenSeg_XXXL);
+		tft->setColor(VGA_YELLOW);
 
-	tft->printNumI(depth, 240, 15, 2, '/');           //Two digits - the / is the SPACE in the font
-	tft->fillRect(370, 105, 378, 113);	              // Draw the decimal point
-	tft->printNumI(((int)(depth*10))%10, 380, 15, 1); // Draw the first decimal fraction digit
+		tft->printNumI(depth*3.28, 240, 15, 3, '/');           //Two digits - the / is the SPACE in the font
 
-	tft->setFont(BigFont);
-	tft->setColor(VGA_SILVER);
-	tft->print("m", 444, 98);
+		tft->setFont(BigFont);
+		tft->setColor(VGA_SILVER);
+		tft->print("ft", 435, 98);
+	} else {
+		tft->setFont(SevenSeg_XXXL);
+		tft->setColor(VGA_YELLOW);
+
+		tft->printNumI(depth, 240, 15, 2, '/');           //Two digits - the / is the SPACE in the font
+		tft->fillRect(370, 105, 378, 113);	              // Draw the decimal point
+		tft->printNumI(((int)(depth*10))%10, 380, 15, 1); // Draw the first decimal fraction digit
+
+		tft->setFont(BigFont);
+		tft->setColor(VGA_SILVER);
+		tft->print("m", 444, 98);
+	}
 }
 
-void View::drawMaximumDepth(float maximumDepth)
+void View::drawMaximumDepth(float maximumDepth, bool isImperial)
 {
-	tft->setFont(SevenSegNumFontPlusPlus);
-	tft->setColor(VGA_FUCHSIA);
-	tft->printNumF(maximumDepth, 1, 10, 130, '.', 4, '/');
+	if (isImperial) {
+		tft->setFont(SevenSegNumFontPlusPlus);
+		tft->setColor(VGA_FUCHSIA);
+		tft->printNumI(maximumDepth*3.28, 10, 130, 4, '/');
 
-	tft->setFont(BigFont);
-	tft->setColor(VGA_SILVER);
-	tft->print("m", 143, 164);
+		tft->setFont(BigFont);
+		tft->setColor(VGA_SILVER);
+		tft->print("ft", 143, 164);
+	} else {
+		tft->setFont(SevenSegNumFontPlusPlus);
+		tft->setColor(VGA_FUCHSIA);
+		tft->printNumF(maximumDepth, 1, 10, 130, '.', 4, '/');
+
+		tft->setFont(BigFont);
+		tft->setColor(VGA_SILVER);
+		tft->print("m", 143, 164);
+	}
 }
 
-void View::drawCurrentTemperature(float currentTemperature)
+void View::drawCurrentTemperature(float currentTemperature, bool isImperial)
 {
-	tft->setFont(SevenSegNumFontPlusPlus);
-	tft->setColor(VGA_LIME);
-	tft->printNumF(currentTemperature, 1, 10, 10, '.', 4, '/'); //the / is the SPACE in the font
+	if (isImperial) {
+		tft->setFont(SevenSegNumFontPlusPlus);
+		tft->setColor(VGA_LIME);
+		tft->printNumI((currentTemperature*1.8)+32, 10, 10, 4, '/'); //the / is the SPACE in the font
 
-	tft->setFont(BigFont);
-	tft->setColor(VGA_SILVER);
-	tft->print("cel", 143, 44);
+		tft->setFont(BigFont);
+		tft->setColor(VGA_SILVER);
+		tft->print("Fahr", 143, 44);
+	} else {
+		tft->setFont(SevenSegNumFontPlusPlus);
+		tft->setColor(VGA_LIME);
+		tft->printNumF(currentTemperature, 1, 10, 10, '.', 4, '/'); //the / is the SPACE in the font
+
+		tft->setFont(BigFont);
+		tft->setColor(VGA_SILVER);
+		tft->print("cel", 143, 44);
+	}
 }
 
 void View::drawCurrentPressure(int currentPressure)
@@ -653,7 +712,7 @@ void View::drawPartialPressureWarning()
 	tft->print("PPO2", 10, 269); // Overrides the stay in the safety stop text
 }
 
-void View::drawDecoArea(DiveInfo diveInfo)
+void View::drawDecoArea(DiveInfo diveInfo, bool isImperial)
 {
 	if (!diveInfo.decoNeeded) {
 
@@ -674,7 +733,7 @@ void View::drawDecoArea(DiveInfo diveInfo)
 
 		//Remove the deco depth from the screen
 		tft->setColor(VGA_BLACK);
-		tft->print("m", 287, 234);
+		tft->print("  ", 287, 234);
 	} else {
 
 		tft->setFont(Grotesk16x32);
@@ -689,11 +748,19 @@ void View::drawDecoArea(DiveInfo diveInfo)
 			tft->printNumI(99, 90, 200, 2, '/');
 		}
 		tft->setColor(VGA_FUCHSIA);
-		tft->printNumI(diveInfo.decoStopInMeters, 218, 200, 2, '/');
+		if (isImperial) {
+			tft->printNumI(diveInfo.decoStopInMeters*3.28, 218, 200, 2, '/');
+		} else {
+			tft->printNumI(diveInfo.decoStopInMeters, 218, 200, 2, '/');
+		}
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("m", 287, 234);
+		if (isImperial) {
+			tft->print("ft", 287, 234);
+		} else {
+			tft->print("m", 287, 234);
+		}
 		tft->print("min", 159, 234);
 	}
 }
