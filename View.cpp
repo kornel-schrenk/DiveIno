@@ -6,14 +6,8 @@ extern uint8_t SevenSegNumFontPlusPlus[];  //32x50 pixel
 extern uint8_t BigFont[];                  //16x16 pixel
 extern uint8_t SevenSeg_XXXL[];            //64x100 pixel
 
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-extern unsigned int Dive[4096];
-extern unsigned int Gauge[4096];
-extern unsigned int Surface[4096];
-extern unsigned int Logbook[4096];
-extern unsigned int Settings[4096];
-extern unsigned int About[4096];
-#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
+#if defined(__SAM3X8E__) || defined(__SAM3X8H__)
+//Main menu images
 extern unsigned short Dive[4096];
 extern unsigned short Gauge[4096];
 extern unsigned short Surface[4096];
@@ -47,18 +41,19 @@ View::View(UTFT* utft) {
 
 void View::moveMenuSelection(byte selectedMenuItemIndex, byte menuItemIndex)
 {
-//	tft->setFont(Grotesk16x32);
-//	tft->setColor(VGA_YELLOW);
-//
-//	// Remove the highlight from the currently selected menu item
-//	tft->setBackColor(VGA_BLACK);
-//	tft->print(mainMenu[selectedMenuItemIndex], 0, ((selectedMenuItemIndex - 1) * 40) + MENU_TOP);
-//
-//	// Highlight the new selected menu item
-//	tft->setBackColor(VGA_BLUE);
-//	tft->print(mainMenu[menuItemIndex], 0, ((menuItemIndex - 1) * 40) + MENU_TOP);
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	tft->setFont(Grotesk16x32);
+	tft->setColor(VGA_YELLOW);
 
+	// Remove the highlight from the currently selected menu item
+	tft->setBackColor(VGA_BLACK);
+	tft->print(mainMenu[selectedMenuItemIndex], 0, ((selectedMenuItemIndex - 1) * 40) + MENU_TOP);
 
+	// Highlight the new selected menu item
+	tft->setBackColor(VGA_BLUE);
+	tft->print(mainMenu[menuItemIndex], 0, ((menuItemIndex - 1) * 40) + MENU_TOP);
+
+#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
 	switch (selectedMenuItemIndex) {
 		case 1: {
 			tft->setColor(VGA_TEAL);
@@ -148,6 +143,7 @@ void View::moveMenuSelection(byte selectedMenuItemIndex, byte menuItemIndex)
 			tft->drawBitmap(323, 223, 64, 64, About);
 		} break;
 	}
+#endif
 }
 
 void View::displayMenuScreen()
@@ -163,11 +159,13 @@ void View::displayMenuScreen()
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
 
-	// Display other menu items
-	//	tft->setColor(VGA_YELLOW);
-	//	for (int i = 1; i <= MENU_SIZE; i++) {
-	//		tft->print(mainMenu[i], 0, ((i - 1) * 40) + MENU_TOP);
-	//	}
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	//Display other menu items
+	tft->setColor(VGA_YELLOW);
+	for (int i = 1; i <= MENU_SIZE; i++) {
+		tft->print(mainMenu[i], 0, ((i - 1) * 40) + MENU_TOP);
+	}
+#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
 
 	tft->setColor(VGA_TEAL);
 	tft->fillRoundRect(70, 90, 160, 180);
@@ -194,6 +192,7 @@ void View::displayMenuScreen()
 	tft->drawBitmap(83, 223, 64, 64, Gauge);
 	tft->drawBitmap(203, 223, 64, 64, Settings);
 	tft->drawBitmap(323, 223, 64, 64, About);
+#endif
 }
 
 void View::displayDiveScreen(float oxygenRateSetting)
