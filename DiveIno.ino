@@ -249,7 +249,7 @@ void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int
 			if (safetyStopState == SAFETY_STOP_NOT_STARTED) {
 				safetyStopState = SAFETY_STOP_IN_PROGRESS;
 
-				Serial.print(" Safety stop STARTED at ");
+				Serial.print(F(" Safety stop STARTED at "));
 				Serial.println(depthInMeter);
 
 			} else if (safetyStopState == SAFETY_STOP_VIOLATED) {
@@ -259,15 +259,15 @@ void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int
 				safetyStopDurationInSeconds += intervalDuration;
 				view.drawSafetyStop(safetyStopDurationInSeconds);
 
-				Serial.print(" Safety stop IN PROGRESS at ");
+				Serial.print(F(" Safety stop IN PROGRESS at "));
 				Serial.println(depthInMeter);
-				Serial.print(" Safety stop duration: ");
+				Serial.print(F(" Safety stop duration: "));
 				Serial.println(safetyStopDurationInSeconds);
 
 				if (180 <= safetyStopDurationInSeconds) {
 					safetyStopState = SAFETY_STOP_DONE;
 
-					Serial.print(" Safety stop DONE at ");
+					Serial.print(F(" Safety stop DONE at "));
 					Serial.println(depthInMeter);
 				}
 			}
@@ -276,7 +276,7 @@ void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int
 			if (safetyStopState != SAFETY_STOP_NOT_STARTED) {
 				safetyStopState = SAFETY_STOP_NOT_STARTED;
 
-				Serial.print(" Safety stop RESET after DONE at ");
+				Serial.print(F(" Safety stop RESET after DONE at "));
 				Serial.println(depthInMeter);
 			}
 		} else {
@@ -284,7 +284,7 @@ void calculateSafetyStop(float maxDepthInMeter, float depthInMeter, unsigned int
 			if (safetyStopState == SAFETY_STOP_IN_PROGRESS) {
 				safetyStopState = SAFETY_STOP_VIOLATED;
 
-				Serial.print(" Safety stop VIOLATED at ");
+				Serial.print(F(" Safety stop VIOLATED at "));
 				Serial.println(depthInMeter);
 			}
 		}
@@ -360,15 +360,10 @@ void dive()
 		float pressureInMillibar = seaLevelPressureSetting;
 		float temperatureInCelsius = 99;
 		if (EMULATOR_ENABLED) {
-			Serial.println("#GET");
+			Serial.println(F("#GET"));
 			if (Serial.available() > 0) {
 				pressureInMillibar = Serial.parseFloat();
 				temperatureInCelsius = Serial.parseFloat();
-
-				Serial.print("Pressure: ");
-				Serial.println(pressureInMillibar);
-				Serial.print("Temperature: ");
-				Serial.println(temperatureInCelsius);
 			}
 		} else {
 			sensor.readSensor();
@@ -433,7 +428,7 @@ void dive()
 void startDive()
 {
 	if (EMULATOR_ENABLED) {
-		Serial.println("#START");
+		Serial.println(F("#START"));
 	}
 
 	//Store the the current time as seconds since Jan 1 1970 at the start of the dive
@@ -458,7 +453,7 @@ void startDive()
 
 	if (currentScreen == DIVE_SCREEN) {
 
-		Serial.println("DIVE - Started");
+		Serial.println(F("DIVE - Started"));
 
 		//Start dive profile logging - create a new file
 		if (maximumProfileNumber <= 0) {
@@ -475,7 +470,7 @@ void startDive()
 		//Last dive happened within 48 hours and there is an active no fly time
 		if (lastDiveData != NULL &&	(lastDiveData->diveDateTimestamp + 172800) > nowTimestamp() && lastDiveData->noFlyTimeInMinutes > 0) {
 
-			Serial.print("BEFORE dive No Fly time (min): ");
+			Serial.print(F("BEFORE dive No Fly time (min): "));
 			Serial.println(lastDiveData->noFlyTimeInMinutes);
 
 			//Copy Last Dive Data compartments
@@ -483,31 +478,31 @@ void startDive()
 			for (byte i=0; i <COMPARTMENT_COUNT; i++) {
 				diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
 
-		        Serial.print("BEFORE: Dive compartment ");
+		        Serial.print(F("BEFORE: Dive compartment "));
 		        Serial.print(i);
-		        Serial.print(": ");
+		        Serial.print(F(": "));
 		        Serial.print(diveResult->compartmentPartialPressures[i], 0);
-		        Serial.println(" ppN2");
+		        Serial.println(F(" ppN2"));
 			}
 
 			//Calculate surface time in minutes
 			int surfaceTime = (nowTimestamp() - lastDiveData->diveDateTimestamp) / 60;
 
-			Serial.print("Surface time (min): ");
+			Serial.print(F("Surface time (min): "));
 			Serial.println(surfaceTime);
 
 			//Spend the time on the surface
 			diveResult = buhlmann.surfaceInterval(surfaceTime, diveResult);
 
 			for (byte i=0; i <COMPARTMENT_COUNT; i++) {
-		        Serial.print("AFTER: Dive compartment ");
+		        Serial.print(F("AFTER: Dive compartment "));
 		        Serial.print(i);
-		        Serial.print(": ");
+		        Serial.print(F(": "));
 		        Serial.print(diveResult->compartmentPartialPressures[i], 0);
-		        Serial.println(" ppN2");
+		        Serial.println(F(" ppN2"));
 			}
 
-			Serial.print("AFTER dive No Fly time (min): ");
+			Serial.print(F("AFTER dive No Fly time (min): "));
 			Serial.println(diveResult->noFlyTimeInMinutes);
 		}
 
@@ -518,9 +513,9 @@ void startDive()
 void stopDive()
 {
 	if (EMULATOR_ENABLED) {
-		Serial.println("#STOP");
+		Serial.println(F("#STOP"));
 	}
-	Serial.println("DIVE - Stopped");
+	Serial.println(F("DIVE - Stopped"));
 }
 
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
@@ -540,7 +535,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		/////////////////////
 		// Finish the dive //
 
-		Serial.println("DIVE - Finished");
+		Serial.println(F("DIVE - Finished"));
 
 		DiveResult* diveResult = buhlmann.stopDive();
 
@@ -562,13 +557,13 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		logbookData->lastDiveDateTime = currentTimeText.substring(0, 16);
 
 		//Add the dive duration to the overall logged duration
-		Serial.print("Dive duration (min): ");
+		Serial.print(F("Dive duration (min): "));
 		Serial.println(durationInMinutes);
-		Serial.print("Previous duration (min): ");
+		Serial.print(F("Previous duration (min): "));
 		Serial.println(logbookData->totalDiveMinutes);
 
 		durationInMinutes = logbookData->totalDiveMinutes + durationInMinutes;
-		Serial.print("New duration (min): ");
+		Serial.print(F("New duration (min): "));
 		Serial.println(durationInMinutes);
 
 		logbookData->totalDiveHours += durationInMinutes / 60;
@@ -582,7 +577,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		///////////////////////////
 		// Update Last Dive Data //
 
-		Serial.print("Stopped timestamp: ");
+		Serial.print(F("Stopped timestamp: "));
 		Serial.println(nowTimestamp());
 
 		LastDiveData* lastDiveData = new LastDiveData;
@@ -1067,7 +1062,7 @@ void saveSettings()
 		diveInoSettings->imperialUnitsSetting = imperialUnitsSetting;
 		settings.saveDiveInoSettings(diveInoSettings);
 
-		Serial.println("Settings were saved to the SD Card.");
+		Serial.println(F("Settings were saved to the SD Card."));
 	}
 
 	buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
@@ -1132,21 +1127,21 @@ void displayScreen(byte screen) {
 
 			    Serial.print(F("Now timestamp: "));
 			    Serial.println(nowTimestamp());
-				Serial.print("Last dive timestamp: ");
+				Serial.print(F("Last dive timestamp: "));
 				Serial.println(lastDiveData->diveDateTimestamp);
 
 				//Calculate surface interval
 				surfaceIntervalInMinutes = (nowTimestamp() - lastDiveData->diveDateTimestamp) / 60;
 
-				Serial.print("Surface interval (min): ");
+				Serial.print(F("Surface interval (min): "));
 				Serial.println(surfaceIntervalInMinutes);
 
 				//Last dive happened after 10 minutes and within 48 hours plus there is active No Fly
 				if (10 < surfaceIntervalInMinutes && surfaceIntervalInMinutes < 2880 && lastDiveData->noFlyTimeInMinutes > 0) {
 
-					Serial.print("Within 48 hours with ");
+					Serial.print(F("Within 48 hours with "));
 					Serial.print(lastDiveData->noFlyTimeInMinutes);
-					Serial.println(" minutes of No Fly time.");
+					Serial.println(F(" minutes of No Fly time."));
 
 					//Copy Last Dive Data compartments
 					diveResult->noFlyTimeInMinutes = lastDiveData->noFlyTimeInMinutes;
@@ -1161,15 +1156,15 @@ void displayScreen(byte screen) {
 					buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
 					diveResult = buhlmann.surfaceInterval(surfaceIntervalInMinutes, diveResult);
 
-					Serial.print("After ");
+					Serial.print(F("After "));
 					Serial.print(surfaceIntervalInMinutes);
-					Serial.print(" minutes surface interval the No Fly time was changed to ");
+					Serial.print(F(" minutes surface interval the No Fly time was changed to "));
 					Serial.print(diveResult->noFlyTimeInMinutes);
-					Serial.println(" minutes.");
+					Serial.println(F(" minutes."));
 
 				} else if (10 >= surfaceIntervalInMinutes && lastDiveData->noFlyTimeInMinutes > 0) {
 					//Within 10 minutes of the dive don't do surface interval calculation
-					Serial.println("The last dive was within 10 minutes!");
+					Serial.println(F("The last dive was within 10 minutes!"));
 
 					//We would like to see the last dive details on the screen
 					currentMode = DIVE_STOP_MODE;

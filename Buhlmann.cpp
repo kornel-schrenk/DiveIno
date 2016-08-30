@@ -279,15 +279,9 @@ DiveResult* Buhlmann::initializeCompartments() {
     //Initialize the compartments with the initial partial pressure value - it assumes that the inert gases were cleared off from the compartments
     for (int i=0; i < COMPARTMENT_COUNT; i++) {
         diveResult->compartmentPartialPressures[i] = calculateNitrogenPartialPressureInLung(_seaLevelAtmosphericPressure);
-
-//        Serial.print("Compartment ");
-//        Serial.print(i);
-//        Serial.print(": ");
-//        Serial.print(diveResult->compartmentPartialPressures[i], 0);
-//        Serial.println(" ppN2");
     }
 
-    Serial.println("Compartment initialization - DONE");
+    Serial.println(F("Compartment initialization - DONE"));
     Serial.println("");
 
     return diveResult;
@@ -346,26 +340,26 @@ DiveInfo Buhlmann::progressDive(DiveData* diveData) {
                 minutesNeededToDecoArray[i] = getMinutesNeededTillDeco(i, currentPressure);
 
                 Serial.print(i);
-                Serial.print(" - ppN2: ");
+                Serial.print(F(" - ppN2: "));
                 Serial.print(getCompartmentPartialPressure(i), 2);
-                Serial.print(" mb | ac ppN2: ");
+                Serial.print(F(" mb | ac ppN2: "));
                 Serial.print(ascentCeilingArray[i], 2);
-                Serial.print(" mb | no deco: ");
+                Serial.print(F(" mb | no deco: "));
                 Serial.println(minutesNeededToDecoArray[i]);
             } else {
                 minutesNeededToDecoArray[i] = 0;
                 //Calculate first deco stop
                 float firstDecoStop = calculateDepthFromPressure(ascentCeilingArray[i]);
                 Serial.print(i);
-                Serial.print(" - ppN2: ");
+                Serial.print(F(" - ppN2: "));
                 Serial.print(getCompartmentPartialPressure(i), 2);
-                Serial.print(" mb | ac ppN2: ");
+                Serial.print(F(" mb | ac ppN2: "));
                 Serial.print(ascentCeilingArray[i], 2);
-                Serial.print(" mb | DECO: ");
+                Serial.print(F(" mb | DECO: "));
                 Serial.print(firstDecoStop);
-                Serial.print(" m ");
+                Serial.print(F(" m "));
                 Serial.print(ascentCeilingArray[i]);
-                Serial.println(" mb");
+                Serial.println(F(" mb"));
             }
         }
 
@@ -382,7 +376,7 @@ DiveInfo Buhlmann::progressDive(DiveData* diveData) {
         if (!decoNeeded) {
         	int minutesToDeco = minSearch(minutesNeededToDecoArray, COMPARTMENT_COUNT);
         	diveInfo.minutesToDeco = minutesToDeco;
-            Serial.print("NO DECO | Min to deco: ");
+            Serial.print(F("NO DECO | Min to deco: "));
             Serial.println(minutesToDeco);
         } else {
             //Find the deepest ascent ceiling (the biggest pressure)
@@ -408,11 +402,11 @@ DiveInfo Buhlmann::progressDive(DiveData* diveData) {
             diveInfo.decoStopInMeters = newDecoStop;
             diveInfo.decoStopDurationInMinutes = decoStopDurationInMinutes;
 
-            Serial.print("DECO ");
+            Serial.print(F("DECO "));
             Serial.print(newDecoStop);
-            Serial.print(" m ");
+            Serial.print(F(" m "));
             Serial.print(decoStopDurationInMinutes);
-            Serial.print(" min");
+            Serial.print(F(" min"));
         }
         Serial.println("");
     }

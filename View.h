@@ -55,7 +55,6 @@ public:
 	void drawDiveDuration(unsigned long duration);
 	void drawCurrentTime(String time);
 	void drawOxigenPercentage(float oxigenPercentage);
-	void drawPartialPressureWarning();
 	void drawDecoArea(DiveInfo diveInfo, bool isImperial);
 	void drawSafetyStop(unsigned int safetyStopDurationInSeconds);
 	void drawAscend(int ascendRate);

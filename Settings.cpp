@@ -2,6 +2,10 @@
 
 #define SETTINGS_FILE_NAME "settings.txt"
 
+const String NEW_LINE = "\n";
+const char ZERO = '0';
+const char ONE = '1';
+
 Settings::Settings() {
 }
 
@@ -47,26 +51,26 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 
 	File settingsFile = SD.open(SETTINGS_FILE_NAME, FILE_WRITE);
 
-	settingsFile.print("seaLevelPressure = ");
+	settingsFile.print(F("seaLevelPressure = "));
 	settingsFile.print(diveInoSettings->seaLevelPressureSetting);
-	settingsFile.print("\n");
-	settingsFile.print("oxygenRate = ");
+	settingsFile.print(NEW_LINE);
+	settingsFile.print(F("oxygenRate = "));
 	settingsFile.print(diveInoSettings->oxygenRateSetting);
-	settingsFile.print("\n");
-	settingsFile.print("sound = ");
+	settingsFile.print(NEW_LINE);
+	settingsFile.print(F("sound = "));
 	if (!diveInoSettings->soundSetting) {
-		settingsFile.print('0');
+		settingsFile.print(ZERO);
 	} else {
-		settingsFile.print('1');
+		settingsFile.print(ONE);
 	}
-	settingsFile.print("\n");
-	settingsFile.print("units = ");
+	settingsFile.print(NEW_LINE);
+	settingsFile.print(F("units = "));
 	if (!diveInoSettings->imperialUnitsSetting) {
-		settingsFile.print('0');
+		settingsFile.print(ZERO);
 	} else {
-		settingsFile.print('1');
+		settingsFile.print(ONE);
 	}
-	settingsFile.print("\n");
+	settingsFile.print(NEW_LINE);
 	settingsFile.flush();
 
 	settingsFile.close();
@@ -85,28 +89,28 @@ String Settings::getCurrentTimeText() {
 		time+=tmYearToCalendar(tm.Year);
 		time+="-";
 		if (tm.Month <10) {
-			time+="0";
+			time+=ZERO;
 		}
 		time+=tm.Month;
 		time+="-";
 		if (tm.Day<10) {
-			time+="0";
+			time+=ZERO;
 		}
 		time+=tm.Day;
 		time+=" ";
 
 		if (tm.Hour<10) {
-			time+="0";
+			time+=ZERO;
 		}
 		time+=tm.Hour;
 		time+=":";
 		if (tm.Minute<10) {
-			time+="0";
+			time+=ZERO;
 		}
 		time+=tm.Minute;
 		time+=":";
 		if (tm.Second<10) {
-			time+="0";
+			time+=ZERO;
 		}
 		time+=tm.Second;
 	} else {

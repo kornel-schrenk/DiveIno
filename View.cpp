@@ -218,17 +218,17 @@ void View::displayLogbookScreen(LogbookData* logbookData, bool isImperial)
 
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
-	tft->print("DiveIno - Logbook", 64, 10);
+	tft->print(F("DiveIno - Logbook"), 64, 10);
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
 
 	tft->setColor(VGA_WHITE);
-	tft->print("Dives no:", 20, 80);
-	tft->print("Duration:", 20, 120);
-	tft->print("Max depth:", 20, 160);
-	tft->print("Last dive:", 20, 200);
-	tft->print("Profiles:", 20, 240);
+	tft->print(F("Dives no:"), 20, 80);
+	tft->print(F("Duration:"), 20, 120);
+	tft->print(F("Max depth:"), 20, 160);
+	tft->print(F("Last dive:"), 20, 200);
+	tft->print(F("Profiles:"), 20, 240);
 
 	int paddingLeft = 200;
 
@@ -236,17 +236,17 @@ void View::displayLogbookScreen(LogbookData* logbookData, bool isImperial)
 	tft->printNumI(logbookData->totalNumberOfDives, paddingLeft, 80);
 	tft->setColor(VGA_YELLOW);
 	if (logbookData->totalDiveHours < 10) {
-		tft->print("00", paddingLeft, 120);
+		tft->print(F("00"), paddingLeft, 120);
 		tft->printNumI(logbookData->totalDiveHours, paddingLeft + 32, 120);
 	} else if (logbookData->totalDiveHours < 100) {
-		tft->print("0", paddingLeft, 120);
+		tft->print(F("0"), paddingLeft, 120);
 		tft->printNumI(logbookData->totalDiveHours, paddingLeft + 16, 120);
 	} else {
 		tft->printNumI(logbookData->totalDiveHours, paddingLeft, 120);
 	}
-	tft->print(":", paddingLeft + 48, 120);
+	tft->print(F(":"), paddingLeft + 48, 120);
 	if (logbookData->totalDiveMinutes < 10) {
-		tft->print("0", paddingLeft + 64, 120);
+		tft->print(F("0"), paddingLeft + 64, 120);
 		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 80, 120);
 	} else {
 		tft->printNumI(logbookData->totalDiveMinutes, paddingLeft + 64, 120);
@@ -264,11 +264,11 @@ void View::displayLogbookScreen(LogbookData* logbookData, bool isImperial)
 
 	tft->setColor(VGA_WHITE);
 	tft->setFont(BigFont);
-	tft->print("hh:mm", 300, 134);
+	tft->print(F("hh:mm"), 300, 134);
 	if (isImperial) {
-		tft->print("ft", 254, 174);
+		tft->print(F("ft"), 254, 174);
 	} else {
-		tft->print("m", 270, 174);
+		tft->print(F("m"), 270, 174);
 	}
 }
 
@@ -310,14 +310,14 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber, boo
 
 	tft->setColor(VGA_WHITE);
 	tft->setFont(BigFont);
-	tft->print("mm:ss", 380, 74);
-	tft->print("O2%", 364, 114);
+	tft->print(F("mm:ss"), 380, 74);
+	tft->print(F("O2%"), 364, 114);
 	if (isImperial) {
-		tft->print("ft", paddingLeft + 52, 74);
-		tft->print("Fahr", paddingLeft + 52, 114);
+		tft->print(F("ft"), paddingLeft + 52, 74);
+		tft->print(F("Fahr"), paddingLeft + 52, 114);
 	} else {
-		tft->print("m", paddingLeft + 68, 74);
-		tft->print("cel", paddingLeft + 68, 114);
+		tft->print(F("m"), paddingLeft + 68, 74);
+		tft->print(F("cel"), paddingLeft + 68, 114);
 	}
 }
 
@@ -330,9 +330,9 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfac
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
 	if (isDiveStopDisplay) {
-		tft->print("DiveIno - Dive time", 64, 10);
+		tft->print(F("DiveIno - Dive time"), 64, 10);
 	} else {
-		tft->print("DiveIno - Surface time", 64, 10);
+		tft->print(F("DiveIno - Surface time"), 64, 10);
 	}
 
 	// Draw separation line
@@ -357,39 +357,39 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfac
 			}
 
 			tft->setColor(VGA_WHITE);
-			tft->print("No fly:", 20, 70);
-			tft->print("Duration:", 20, 110);
-			tft->print("Max depth:", 20, 150);
+			tft->print(F("No fly:"), 20, 70);
+			tft->print(F("Duration:"), 20, 110);
+			tft->print(F("Max depth:"), 20, 150);
 			tft->setFont(BigFont);
-			tft->print("hh:mm", 310, 83);
-			tft->print("mm:ss", 310, 123);
+			tft->print(F("hh:mm"), 310, 83);
+			tft->print(F("mm:ss"), 310, 123);
 			if (isImperial) {
-				tft->print("ft", 278, 163);
+				tft->print(F("ft"), 278, 163);
 			} else {
-				tft->print("m", 310, 163);
+				tft->print(F("m"), 310, 163);
 			}
 		} else {
 			tft->setColor(VGA_RED);
 			tft->printNumI(diveResult->noFlyTimeInMinutes/60, 220, 70, 2, '0');
-			tft->print(":", 252, 70);
+			tft->print(F(":"), 252, 70);
 			tft->printNumI(diveResult->noFlyTimeInMinutes%60, 268, 70, 2 , '0');
 			tft->setColor(VGA_GREEN);
 			if (surfaceIntervalInMinutes == 0 || surfaceIntervalInMinutes > 2880) {
 				//After 48 hours
-				tft->print("00:00", 220, 110);
+				tft->print(F("00:00"), 220, 110);
 			} else {
 				//Within 48 hours
 				tft->printNumI(surfaceIntervalInMinutes/60, 220, 110, 2, '0');
-				tft->print(":", 252, 110);
+				tft->print(F(":"), 252, 110);
 				tft->printNumI(surfaceIntervalInMinutes%60, 268, 110, 2 , '0');
 			}
 
 			tft->setColor(VGA_WHITE);
-			tft->print("No fly:", 20, 70);
-			tft->print("Duration:", 20, 110);
+			tft->print(F("No fly:"), 20, 70);
+			tft->print(F("Duration:"), 20, 110);
 			tft->setFont(BigFont);
-			tft->print("hh:mm", 310, 83);
-			tft->print("hh:mm", 310, 123);
+			tft->print(F("hh:mm"), 310, 83);
+			tft->print(F("hh:mm"), 310, 123);
 		}
 
 		//Draw the remaining compartment ppN2 values
@@ -411,11 +411,11 @@ void View::displaySurfaceTimeScreen(DiveResult* diveResult, unsigned long surfac
 		}
 	} else {
 		tft->setColor(VGA_RED);
-		tft->print("N/A", 220, 70);
+		tft->print(F("N/A"), 220, 70);
 		tft->setColor(VGA_PURPLE);
-		tft->print("N/A", 220, 110);
+		tft->print(F("N/A"), 220, 110);
 		tft->setColor(VGA_YELLOW);
-		tft->print("N/A", 220, 150);
+		tft->print(F("N/A"), 220, 150);
 	}
 }
 
@@ -433,7 +433,7 @@ void View::displayGaugeScreen()
 
 	tft->setFont(Grotesk16x32);
 	tft->setColor(VGA_GREEN);
-	tft->print("GAUGE", paddingLeft + tft->getFontXsize() * 4, 215);
+	tft->print(F("GAUGE"), paddingLeft + tft->getFontXsize() * 4, 215);
 }
 
 void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool soundSetting, bool imperialUnitsSetting)
@@ -456,7 +456,7 @@ void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSett
 
 	// Display the header of the screen
 	tft->setColor(VGA_LIME);
-	tft->print("DiveIno - Settings", 64, 10);
+	tft->print(F("DiveIno - Settings"), 64, 10);
 
 	// Draw separation line
 	tft->drawLine(0, SETTINGS_TOP-10, tft->getDisplayXSize()-1, SETTINGS_TOP-10);
@@ -498,9 +498,9 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setBackColor(VGA_BLACK);
 	}
 	if (soundSetting) {
-		tft->print("On ", 240, 80 + SETTINGS_TOP);
+		tft->print(F("On "), 240, 80 + SETTINGS_TOP);
 	} else {
-		tft->print("Off", 240, 80 + SETTINGS_TOP);
+		tft->print(F("Off"), 240, 80 + SETTINGS_TOP);
 	}
 
 	if (settingIndex == 3) {
@@ -511,9 +511,9 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setBackColor(VGA_BLACK);
 	}
 	if (imperialUnitsSetting) {
-		tft->print("Imperial", 240, 120 + SETTINGS_TOP);
+		tft->print(F("Imperial"), 240, 120 + SETTINGS_TOP);
 	} else {
-		tft->print("Metric  ", 240, 120 + SETTINGS_TOP);
+		tft->print(F("Metric  "), 240, 120 + SETTINGS_TOP);
 	}
 
 	if (settingIndex == 4) {
@@ -523,7 +523,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_GREEN);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->print("Save", 10, 211 + SETTINGS_TOP);
+	tft->print(F("Save"), 10, 211 + SETTINGS_TOP);
 
 	if (settingIndex == 5) {
 		tft->setColor(VGA_WHITE);
@@ -532,7 +532,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_RED);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->print("Cancel", 90, 211 + SETTINGS_TOP);
+	tft->print(F("Cancel"), 90, 211 + SETTINGS_TOP);
 
 	if (settingIndex == 6) {
 		tft->setColor(VGA_WHITE);
@@ -541,7 +541,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_BLUE);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->print("Default", 200, 210 + SETTINGS_TOP);
+	tft->print(F("Default"), 200, 210 + SETTINGS_TOP);
 
 	if (settingIndex == 7) {
 		tft->setColor(VGA_WHITE);
@@ -550,7 +550,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_FUCHSIA);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->print("Date&Time", 330, 210 + SETTINGS_TOP);
+	tft->print(F("Date&Time"), 330, 210 + SETTINGS_TOP);
 }
 
 void View::displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dateTimeSettings)
@@ -561,7 +561,7 @@ void View::displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dat
 
 	// Display the header of the screen
 	tft->setColor(VGA_LIME);
-	tft->print("DiveIno - Date & Time", 64, 10);
+	tft->print(F("DiveIno - Date & Time"), 64, 10);
 
 	// Draw separation line
 	tft->drawLine(0, SETTINGS_TOP-10, tft->getDisplayXSize()-1, SETTINGS_TOP-10);
@@ -629,7 +629,7 @@ void View::displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTime
 		tft->setColor(VGA_GREEN);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->print("Save", 120, 210 + SETTINGS_TOP);
+	tft->print(F("Save"), 120, 210 + SETTINGS_TOP);
 
 	if (settingIndex == 6) {
 		tft->setColor(VGA_WHITE);
@@ -638,7 +638,7 @@ void View::displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTime
 		tft->setColor(VGA_RED);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->print("Cancel", 210, 210 + SETTINGS_TOP);
+	tft->print(F("Cancel"), 210, 210 + SETTINGS_TOP);
 }
 
 void View::displayAboutScreen()
@@ -649,15 +649,15 @@ void View::displayAboutScreen()
 
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
-	tft->print("DiveIno - About", 64, 10);
+	tft->print(F("DiveIno - About"), 64, 10);
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);	tft->setFont(Grotesk16x32);
 
 	tft->setColor(VGA_WHITE);
-	tft->print("Version: 1.0.0", CENTER, 140);
+	tft->print(F("Version: 1.0.1"), CENTER, 140);
 	tft->setColor(VGA_GREEN);
-	tft->print("www.diveino.hu", CENTER, 180);
+	tft->print(F("www.diveino.hu"), CENTER, 180);
 }
 
 void View::displayTestScreen()
@@ -714,10 +714,10 @@ void View::drawBatteryStateOfCharge(float soc)
 	tft->drawRect(411, 269, 469, 294);
 
 	if (100 <= soc && soc < 125) {
-		tft->print("OOO", 420, 275);
+		tft->print(F("OOO"), 420, 275);
 	} else if (soc < 100) {
 		tft->printNumI(soc, 420, 275, 2, ' ');
-		tft->print("%", 452, 275);
+		tft->print(F("%"), 452, 275);
 	}
 }
 
@@ -731,7 +731,7 @@ void View::drawDepth(float depth, bool isImperial)
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("ft", 435, 98);
+		tft->print(F("ft"), 435, 98);
 	} else {
 		tft->setFont(SevenSeg_XXXL);
 		tft->setColor(VGA_YELLOW);
@@ -742,7 +742,7 @@ void View::drawDepth(float depth, bool isImperial)
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("m", 444, 98);
+		tft->print(F("m"), 444, 98);
 	}
 }
 
@@ -755,7 +755,7 @@ void View::drawMaximumDepth(float maximumDepth, bool isImperial)
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("ft", 143, 164);
+		tft->print(F("ft"), 143, 164);
 	} else {
 		tft->setFont(SevenSegNumFontPlusPlus);
 		tft->setColor(VGA_FUCHSIA);
@@ -763,7 +763,7 @@ void View::drawMaximumDepth(float maximumDepth, bool isImperial)
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("m", 143, 164);
+		tft->print(F("m"), 143, 164);
 	}
 }
 
@@ -776,7 +776,7 @@ void View::drawCurrentTemperature(float currentTemperature, bool isImperial)
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("Fahr", 143, 44);
+		tft->print(F("Fahr"), 143, 44);
 	} else {
 		tft->setFont(SevenSegNumFontPlusPlus);
 		tft->setColor(VGA_LIME);
@@ -784,7 +784,7 @@ void View::drawCurrentTemperature(float currentTemperature, bool isImperial)
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("cel", 143, 44);
+		tft->print(F("cel"), 143, 44);
 	}
 }
 
@@ -796,7 +796,7 @@ void View::drawCurrentPressure(int currentPressure)
 
 	tft->setFont(BigFont);
 	tft->setColor(VGA_SILVER);
-	tft->print("mBar", 143, 104);
+	tft->print(F("mBar"), 143, 104);
 }
 
 void View::drawDiveDuration(unsigned long duration) // The dive duration is always in seconds
@@ -810,9 +810,9 @@ void View::drawDiveDuration(unsigned long duration) // The dive duration is alwa
 	tft->setColor(VGA_WHITE);
 
 	tft->printNumI(hours, 240, 130, 1); // Max 9 hours
-	tft->print(":", 272, 130, 1);
+	tft->print(F(":"), 272, 130, 1);
 	tft->printNumI(minutes, 304, 130, 2, '0');
-	tft->print(":", 368, 130, 1);
+	tft->print(F(":"), 368, 130, 1);
 	tft->printNumI(seconds, 400, 130, 2, '0');
 }
 
@@ -835,14 +835,7 @@ void View::drawOxigenPercentage(float oxigenPercentage)
 	tft->printNumI(oxigenPercentage, 338, 217, 2, ' ');
 
 	tft->setColor(VGA_WHITE);
-	tft->print("%", 370, 217);
-}
-
-void View::drawPartialPressureWarning()
-{
-	tft->setFont(Grotesk16x32);
-	tft->setColor(VGA_MAROON);
-	tft->print("PPO2", 10, 269); // Overrides the stay in the safety stop text
+	tft->print(F("%"), 370, 217);
 }
 
 void View::drawDecoArea(DiveInfo diveInfo, bool isImperial)
@@ -851,7 +844,7 @@ void View::drawDecoArea(DiveInfo diveInfo, bool isImperial)
 
 		tft->setFont(Grotesk16x32);
 		tft->setColor(VGA_WHITE);
-		tft->print("Safe", 10, 209);
+		tft->print(F("Safe"), 10, 209);
 
 		tft->setFont(SevenSegNumFontPlusPlus);
 		tft->setColor(VGA_YELLOW);
@@ -862,16 +855,16 @@ void View::drawDecoArea(DiveInfo diveInfo, bool isImperial)
 
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
-		tft->print("min", 159, 234);
+		tft->print(F("min"), 159, 234);
 
 		//Remove the deco depth from the screen
 		tft->setColor(VGA_BLACK);
-		tft->print("  ", 287, 234);
+		tft->print(F("  "), 287, 234);
 	} else {
 
 		tft->setFont(Grotesk16x32);
 		tft->setColor(VGA_RED);
-		tft->print("Deco", 10, 209);
+		tft->print(F("Deco"), 10, 209);
 
 		tft->setFont(SevenSegNumFontPlusPlus);
 		tft->setColor(VGA_LIME);
@@ -890,11 +883,11 @@ void View::drawDecoArea(DiveInfo diveInfo, bool isImperial)
 		tft->setFont(BigFont);
 		tft->setColor(VGA_SILVER);
 		if (isImperial) {
-			tft->print("ft", 287, 234);
+			tft->print(F("ft"), 287, 234);
 		} else {
-			tft->print("m", 287, 234);
+			tft->print(F("m"), 287, 234);
 		}
-		tft->print("min", 159, 234);
+		tft->print(F("min"), 159, 234);
 	}
 }
 
@@ -904,10 +897,10 @@ void View::drawSafetyStop(unsigned int safetyStopDurationInSeconds)
 
 	if (safetyStopDurationInSeconds < 180) {
 		tft->setColor(VGA_BLUE);
-		tft->print("Stay", 10, 269);
+		tft->print(F("Stay"), 10, 269);
 	} else {
 		tft->setColor(VGA_GREEN);
-		tft->print("Done", 10, 269);
+		tft->print(F("Done"), 10, 269);
 	}
 
 	tft->setFont(SevenSegNumFontPlusPlus);
@@ -922,7 +915,7 @@ void View::drawSafetyStop(unsigned int safetyStopDurationInSeconds)
 	int seconds = duration % 60;
 
 	tft->printNumI(minutes, 90, 260, 2, '0');
-	tft->print(":", 154, 260, 1);
+	tft->print(F(":"), 154, 260, 1);
 	tft->printNumI(seconds, 186, 260, 2, '0');
 }
 
@@ -933,31 +926,31 @@ void View::drawAscend(int ascendRate)
 	switch (ascendRate) {
 		case ASCEND_OK:
 			tft->setColor(VGA_GREEN);
-			tft->print("----", 400, 210);
+			tft->print(F("----"), 400, 210);
 			break;
 		case ASCEND_SLOW:
 			tft->setColor(VGA_WHITE);
-			tft->print("---|", 400, 210);
+			tft->print(F("---|"), 400, 210);
 			break;
 		case ASCEND_NORMAL:
 			tft->setColor(VGA_YELLOW);
-			tft->print("--||", 400, 210);
+			tft->print(F("--||"), 400, 210);
 			break;
 		case ASCEND_ATTENTION:
 			tft->setColor(VGA_MAROON);
-			tft->print("-|||", 400, 210);
+			tft->print(F("-|||"), 400, 210);
 			break;
 		case ASCEND_CRITICAL:
 			tft->setColor(VGA_RED);
-			tft->print("||||", 400, 210);
+			tft->print(F("||||"), 400, 210);
 			break;
 		case ASCEND_DANGER:
 			tft->setColor(VGA_RED);
-			tft->print("SLOW", 400, 210);
+			tft->print(F("SLOW"), 400, 210);
 			break;
 		default:
 			tft->setColor(VGA_GREEN);
-			tft->print("<<--", 400, 210);
+			tft->print(F("<<--"), 400, 210);
 	}
 }
 

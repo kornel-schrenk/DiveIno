@@ -2,6 +2,8 @@
 
 #define LOGBOOK_FILE_NAME "LOGBOOK.TXT"
 
+const String NEW_LINE = "\n";
+
 Logbook::Logbook() {
 }
 
@@ -51,37 +53,37 @@ void Logbook::updateLogbookData(LogbookData* logbookData)
 
 	File logbookFile = SD.open(LOGBOOK_FILE_NAME, FILE_WRITE);
 
-	logbookFile.print("************\n");
-	logbookFile.print("* Summary: *\n");
-	logbookFile.print("************\n");
-	logbookFile.print("\n");
-	logbookFile.print("Number of dives = ");
+	logbookFile.print(F("************\n"));
+	logbookFile.print(F("* Summary: *\n"));
+	logbookFile.print(F("************\n"));
+	logbookFile.print(NEW_LINE);
+	logbookFile.print(F("Number of dives = "));
 	logbookFile.print(logbookData->totalNumberOfDives);
-	logbookFile.print("\n");
-	logbookFile.print("Logged dive hours = ");
+	logbookFile.print(NEW_LINE);
+	logbookFile.print(F("Logged dive hours = "));
 	logbookFile.print(logbookData->totalDiveHours);
-	logbookFile.print("\n");
-	logbookFile.print("Logged dive minutes = ");
+	logbookFile.print(NEW_LINE);
+	logbookFile.print(F("Logged dive minutes = "));
 	logbookFile.print(logbookData->totalDiveMinutes);
-	logbookFile.print("\n");
-	logbookFile.print("Maximum depth (meter) = ");
+	logbookFile.print(NEW_LINE);
+	logbookFile.print(F("Maximum depth (meter) = "));
 	logbookFile.print(logbookData->totalMaximumDepth, 1);
-	logbookFile.print("\n");
-	logbookFile.print("Last dive = ");
+	logbookFile.print(NEW_LINE);
+	logbookFile.print(F("Last dive = "));
 	logbookFile.print(logbookData->lastDiveDateTime);
-	logbookFile.print("\n");
-	logbookFile.print("\n");
+	logbookFile.print(NEW_LINE);
+	logbookFile.print(NEW_LINE);
 	logbookFile.flush();
 
-	logbookFile.print("**********\n");
-	logbookFile.print("* Dives: *\n");
-	logbookFile.print("**********\n");
-	logbookFile.print("\n");
+	logbookFile.print(F("**********\n"));
+	logbookFile.print(F("* Dives: *\n"));
+	logbookFile.print(F("**********\n"));
+	logbookFile.print(NEW_LINE);
 	logbookFile.flush();
 
 	for (int i=1; i<=logbookData->numberOfStoredProfiles; i++) {
 		logbookFile.print(getFileNameFromProfileNumber(i, false));
-		logbookFile.print("\n");
+		logbookFile.print(NEW_LINE);
 	}
 	logbookFile.flush();
 
@@ -133,38 +135,42 @@ void Logbook::storeDiveSummary(int profileNumber, File profileFile, unsigned int
 {
 	File finalFile = SD.open(getFileNameFromProfileNumber(profileNumber, false), FILE_WRITE);
 
-	finalFile.println("************");
-	finalFile.println("* Summary: *");
-	finalFile.println("************");
-	finalFile.println("");
-	finalFile.print("Duration (seconds) = ");
-	finalFile.println(duration);
-	finalFile.print("Maximum depth (meter) = ");
-	finalFile.println(maxDepth, 1);
-	finalFile.print("Minimum temperature (celsius) = ");
-	finalFile.println(minTemperature, 1);
-	finalFile.print("Oxygen percentage = ");
-	finalFile.println(oxigenPercentage, 1);
-	finalFile.print("Dive date = ");
+	finalFile.print(F("************\n"));
+	finalFile.print(F("* Summary: *\n"));
+	finalFile.print(F("************\n"));
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("Duration (seconds) = "));
+	finalFile.print(duration);
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("Maximum depth (meter) = "));
+	finalFile.print(maxDepth, 1);
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("Minimum temperature (celsius) = "));
+	finalFile.print(minTemperature, 1);
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("Oxygen percentage = "));
+	finalFile.print(oxigenPercentage, 1);
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("Dive date = "));
 	finalFile.print(date);
-	finalFile.print('\n');
-	finalFile.print("Dive time = ");
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("Dive time = "));
 	finalFile.print(time);
-	finalFile.print('\n');
-	finalFile.print('\n');
-	finalFile.println("**********");
-	finalFile.println("* Notes: *");
-	finalFile.println("**********");
-	finalFile.println("");
-	finalFile.println("");
-	finalFile.println("");
-	finalFile.println("");
-	finalFile.println("************");
-	finalFile.println("* Profile: *");
-	finalFile.println("************");
-	finalFile.println("");
-	finalFile.println("Pressure (milliBar), Depth (meter), Temperature (celsius), Duration (seconds)");
-	finalFile.println("-----------------------------------------------------------------------------");
+	finalFile.print(NEW_LINE);
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("**********\n"));
+	finalFile.print(F("* Notes: *\n"));
+	finalFile.print(F("**********\n"));
+	finalFile.print(NEW_LINE);
+	finalFile.print(NEW_LINE);
+	finalFile.print(NEW_LINE);
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("************\n"));
+	finalFile.print(F("* Profile: *\n"));
+	finalFile.print(F("************\n"));
+	finalFile.print(NEW_LINE);
+	finalFile.print(F("Pressure (milliBar), Depth (meter), Temperature (celsius), Duration (seconds)\n"));
+	finalFile.println(F("-----------------------------------------------------------------------------\n"));
 	finalFile.flush();
 
 	profileFile.seek(0);
@@ -214,7 +220,7 @@ ProfileData* Logbook::loadProfileDataFromFile(String profileFileName)
 	profileFileName.toCharArray(fileName, profileFileName.length()+1);
 
 	if (SD.exists(fileName)) {
-		Serial.print("Exists: ");
+		Serial.print(F("Exists: "));
 		Serial.println(fileName);
 
 		File profileFile = SD.open(fileName);
