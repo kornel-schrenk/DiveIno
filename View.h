@@ -3,6 +3,9 @@
 
 #include "Arduino.h"
 #include "UTFT.h"
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	#include <avr/pgmspace.h>
+#endif
 
 #include "Buhlmann.h"
 #include "Logbook.h"
