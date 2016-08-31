@@ -567,7 +567,7 @@ void View::displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dat
 
 	// Display settings
 	tft->setColor(VGA_YELLOW);
-	for (int i = 0; i < SETTINGS_SIZE; i++) {
+	for (int i = 0; i < SETTINGS_SIZE+1; i++) {
 		tft->print(dateTimeSettingsList[i], 0, (i * 40) + SETTINGS_TOP);
 	}
 
