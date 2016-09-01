@@ -651,7 +651,7 @@ void View::displayAboutScreen()
 	tft->print(F("DiveIno - About"), 64, 10);
 
 	// Draw separation line
-	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);	tft->setFont(Grotesk16x32);
+	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);
 
 	tft->setColor(VGA_WHITE);
 	tft->print(F("Version: 1.0.1"), CENTER, 140);
