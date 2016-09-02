@@ -35,7 +35,9 @@ MS_5803 sensor = MS_5803(512);
 
 // TFT setup - 480x320 pixel
 UTFT tft(ILI9481,38,39,40,41);
-View view(&tft);
+UTFT_SdRaw sdFatFiles(&tft);
+View view(&tft, &sdFatFiles);
+
 
 // Currently elected menu item
 byte selectedMenuItemIndex;
@@ -213,6 +215,16 @@ void loop() {
 			replayDive();
 		} else {
 			dive();
+		}
+	} else if (currentScreen == ABOUT_SCREEN) {
+		unsigned int measurementDifference = nowTimestamp() - timerTimestamp;
+
+		if (measurementDifference > 0) {
+			timerTimestamp = nowTimestamp();
+
+			//Refresh the current time and battery information
+			view.drawCurrentTime(settings.getCurrentTimeText());
+			view.drawBatteryStateOfCharge(batterySoc);
 		}
 	}
 }
@@ -1202,6 +1214,7 @@ void displayScreen(byte screen) {
 			view.displayDateTimeSettingScreen(0, currentDateTimeSettings);
 			break;
 		case ABOUT_SCREEN:
+			timerTimestamp = nowTimestamp();
 			view.displayAboutScreen();
 			view.drawCurrentTime(settings.getCurrentTimeText());
 			view.drawBatteryStateOfCharge(batterySoc);

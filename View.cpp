@@ -35,8 +35,9 @@ char* dateTimeSettingsList[] = {" Year ",
 		" Hour",
 		" Minute"};
 
-View::View(UTFT* utft) {
+View::View(UTFT* utft, UTFT_SdRaw* sdFatFiles) {
 	tft = utft;
+	sdFiles = sdFatFiles;
 }
 
 void View::moveMenuSelection(byte selectedMenuItemIndex, byte menuItemIndex)
@@ -642,21 +643,39 @@ void View::displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTime
 
 void View::displayAboutScreen()
 {
+//	tft->clrScr();
+//	tft->setBackColor(VGA_BLACK);
+//	tft->setFont(Grotesk16x32);
+//
+//	// Display the header of the menu - the header is the first item
+//	tft->setColor(VGA_LIME);
+//	tft->print(F("DiveIno - About"), 64, 10);
+//
+//	// Draw separation line
+//	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);
+//
+//	tft->setColor(VGA_WHITE);
+//	tft->print(F("Version: 1.0.1"), CENTER, 140);
+//	tft->setColor(VGA_GREEN);
+//	tft->print(F("www.diveino.hu"), CENTER, 180);
+
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
 	tft->setFont(Grotesk16x32);
 
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
-	tft->print(F("DiveIno - About"), 64, 10);
+	tft->print(F("DiveIno - About"), 110, 10);
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);
 
 	tft->setColor(VGA_WHITE);
-	tft->print(F("Version: 1.0.1"), CENTER, 140);
+	sdFiles->load(50, 90, 128, 122, "Images/LogoGreen.raw", 8, 0);
+
+	tft->print(F("Version: 1.0.2"), 200 , 110);
 	tft->setColor(VGA_GREEN);
-	tft->print(F("www.diveino.hu"), CENTER, 180);
+	tft->print(F("www.diveino.hu"), 200, 160);
 }
 
 void View::displayTestScreen()
@@ -819,7 +838,7 @@ void View::drawCurrentTime(String time)
 {
 	tft->setFont(Grotesk16x32);
 	tft->setColor(VGA_TEAL);
-	tft->print(time, 55, 265);
+	tft->print(time, 40, 265);
 }
 
 void View::drawOxigenPercentage(float oxigenPercentage)

@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "UTFT.h"
+#include "UTFT_SdRaw.h"
 
 #include "Buhlmann.h"
 #include "Logbook.h"
@@ -26,9 +27,11 @@
 #define SETTINGS_SIZE 4
 #define MENU_SIZE 6
 
+extern SdFat SD;
+
 class View {
 public:
-	View(UTFT* utft);
+	View(UTFT* utft, UTFT_SdRaw* sdFatFiles);
 
 	void moveMenuSelection(byte selectedMenuItemIndex, byte menuItemIndex);
 
@@ -60,6 +63,7 @@ public:
 
 private:
 	UTFT* tft;
+	UTFT_SdRaw* sdFiles;
 };
 
 #endif
