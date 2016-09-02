@@ -87,6 +87,11 @@
 			<location>/home/kornel/Arduino/libraries/UTFT</location>
 		</link>
 		<link>
+			<name>libraries/UTFT_SdRaw</name>
+			<type>2</type>
+			<location>/home/kornel/Arduino/libraries/UTFT_SdRaw</location>
+		</link>
+		<link>
 			<name>libraries/Wire</name>
 			<type>2</type>
 			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.13/libraries/Wire</location>

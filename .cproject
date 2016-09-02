@@ -34,6 +34,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/IRremote2}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SdFat}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SdFat/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/UTFT_SdRaw}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/UTFT_SdRaw/src}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.cpp.sketch.input.915532346" name="CPP source files" superClass="it.baeyens.arduino.compiler.cpp.sketch.input"/>
 							</tool>
@@ -54,6 +56,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/IRremote2}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SdFat}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SdFat/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/UTFT_SdRaw}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/UTFT_SdRaw/src}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.c.sketch.input.707667371" name="C Source Files" superClass="it.baeyens.arduino.compiler.c.sketch.input"/>
 							</tool>

@@ -96,25 +96,10 @@ int maximumProfileNumber = 0;
 
 LastDive lastDive = LastDive();
 
-#define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
+#define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
 #define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
 
 void setup() {
-
-	// SD Card initialization
-	pinMode(csPin, OUTPUT);
-	if (SD.begin(csPin)) {
-		isSdCardPresent = true;
-
-		DiveInoSettings* diveInoSettings = settings.loadDiveInoSettings();
-		seaLevelPressureSetting = diveInoSettings->seaLevelPressureSetting;
-		oxygenRateSetting = diveInoSettings->oxygenRateSetting;
-		soundSetting = diveInoSettings->soundSetting;
-		imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
-	} else {
-		//Stop the sketch execution
-		SD.initErrorHalt();
-	}
 
 	Serial.begin(115200);
 	// Wait for USB Serial
@@ -126,6 +111,21 @@ void setup() {
 	Serial.println("");
 	Serial.println(F("DiveIno - START"));
 	Serial.println("");
+
+	// SD Card initialization
+	pinMode(csPin, OUTPUT);
+	if (SD.begin(csPin, SPI_HALF_SPEED)) {
+		isSdCardPresent = true;
+
+		DiveInoSettings* diveInoSettings = settings.loadDiveInoSettings();
+		seaLevelPressureSetting = diveInoSettings->seaLevelPressureSetting;
+		oxygenRateSetting = diveInoSettings->oxygenRateSetting;
+		soundSetting = diveInoSettings->soundSetting;
+		imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
+	} else {
+		//Stop the sketch execution
+		SD.initErrorHalt();
+	}
 
 	Serial.print(F("SD Card present: "));
 	if (isSdCardPresent) {

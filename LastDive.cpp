@@ -16,12 +16,12 @@ LastDiveData* LastDive::loadLastDiveData()
 	LastDiveData* lastDiveData = new LastDiveData;
 
 	if (SD.exists(LASTDIVE_FILE_NAME)) {
-		File lastDiveFile = SD.open(LASTDIVE_FILE_NAME);
-		if (lastDiveFile) {
+		SdFile lastDiveFile;
+		if (lastDiveFile.open(LASTDIVE_FILE_NAME, O_READ)) {
 			String line;
 			int counter = 0;
 			while (lastDiveFile.available()) {
-				line = lastDiveFile.readStringUntil('\n');
+				line = readStringUntil(&lastDiveFile, '\n');
 
 				if (counter == 0) {
 					lastDiveData->diveDateTimestamp = readLongFromLineEnd(line);
@@ -48,37 +48,39 @@ void LastDive::storeLastDiveData(LastDiveData* lastDiveData)
 {
 	SD.remove(LASTDIVE_FILE_NAME);
 
-	File lastDiveFile = SD.open(LASTDIVE_FILE_NAME, FILE_WRITE);
+	SdFile lastDiveFile;
+	if (lastDiveFile.open(LASTDIVE_FILE_NAME, O_WRITE | O_CREAT | O_APPEND)) {
 
-	lastDiveFile.print(F("Timestamp = "));
-	lastDiveFile.print(lastDiveData->diveDateTimestamp);
-	lastDiveFile.print(NEW_LINE);
-	lastDiveFile.print(F("Date = "));
-	lastDiveFile.print(lastDiveData->diveDate);
-	lastDiveFile.print(NEW_LINE);
-	lastDiveFile.print(F("Max depth (m) = "));
-	lastDiveFile.print(lastDiveData->maxDepthInMeters);
-	lastDiveFile.print(NEW_LINE);
-	lastDiveFile.print(F("Duration (sec) = "));
-	lastDiveFile.print(lastDiveData->durationInSeconds);
-	lastDiveFile.print(NEW_LINE);
-	lastDiveFile.print(F("No fly time (min) = "));
-	lastDiveFile.print(lastDiveData->noFlyTimeInMinutes);
-	lastDiveFile.print(NEW_LINE);
-	lastDiveFile.flush();
-
-	for (int i=0; i<COMPARTMENT_COUNT; i++) {
-		if (i<10) {
-			lastDiveFile.print(F("0"));
-		}
-		lastDiveFile.print(i);
-		lastDiveFile.print(F(" Compartment ppN2 = "));
-		lastDiveFile.print(lastDiveData->compartmentPartialPressures[i]);
+		lastDiveFile.print(F("Timestamp = "));
+		lastDiveFile.print(lastDiveData->diveDateTimestamp);
 		lastDiveFile.print(NEW_LINE);
-	}
-	lastDiveFile.flush();
+		lastDiveFile.print(F("Date = "));
+		lastDiveFile.print(lastDiveData->diveDate);
+		lastDiveFile.print(NEW_LINE);
+		lastDiveFile.print(F("Max depth (m) = "));
+		lastDiveFile.print(lastDiveData->maxDepthInMeters);
+		lastDiveFile.print(NEW_LINE);
+		lastDiveFile.print(F("Duration (sec) = "));
+		lastDiveFile.print(lastDiveData->durationInSeconds);
+		lastDiveFile.print(NEW_LINE);
+		lastDiveFile.print(F("No fly time (min) = "));
+		lastDiveFile.print(lastDiveData->noFlyTimeInMinutes);
+		lastDiveFile.print(NEW_LINE);
+		lastDiveFile.flush();
 
-	lastDiveFile.close();
+		for (int i=0; i<COMPARTMENT_COUNT; i++) {
+			if (i<10) {
+				lastDiveFile.print(F("0"));
+			}
+			lastDiveFile.print(i);
+			lastDiveFile.print(F(" Compartment ppN2 = "));
+			lastDiveFile.print(lastDiveData->compartmentPartialPressures[i]);
+			lastDiveFile.print(NEW_LINE);
+		}
+		lastDiveFile.flush();
+
+		lastDiveFile.close();
+	}
 }
 
 /////////////////////
@@ -99,4 +101,16 @@ float LastDive::readFloatFromLineEnd(String line) {
 
 String LastDive::readStringFromLineEnd(String line) {
 	return line.substring(line.indexOf('=')+2);
+}
+
+String LastDive::readStringUntil(SdFile* file, char terminator)
+{
+  String ret;
+  int c = file->read();
+  while (c >= 0 && c != terminator)
+  {
+    ret += (char)c;
+    c = file->read();
+  }
+  return ret;
 }

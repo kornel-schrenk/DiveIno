@@ -18,12 +18,13 @@ DiveInoSettings* Settings::loadDiveInoSettings()
 	DiveInoSettings* diveInoSettings = new DiveInoSettings;
 
 	if (SD.exists(SETTINGS_FILE_NAME)) {
-		File settingsFile = SD.open(SETTINGS_FILE_NAME);
-		if (settingsFile) {
+		SdFile settingsFile;
+		if (settingsFile.open(SETTINGS_FILE_NAME, O_READ)) {
 			String line;
 			int counter = 0;
 			while (settingsFile.available()) {
-				line = settingsFile.readStringUntil('\n');
+				settingsFile.read();
+				line = readStringUntil(&settingsFile, '\n');
 
 				if (counter == 0) {
 					diveInoSettings->seaLevelPressureSetting = readFloatFromLineEnd(line);
@@ -49,31 +50,33 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 {
 	SD.remove(SETTINGS_FILE_NAME);
 
-	File settingsFile = SD.open(SETTINGS_FILE_NAME, FILE_WRITE);
+	SdFile settingsFile;
+	if (settingsFile.open(SETTINGS_FILE_NAME, O_WRITE | O_CREAT | O_APPEND )) {
 
-	settingsFile.print(F("seaLevelPressure = "));
-	settingsFile.print(diveInoSettings->seaLevelPressureSetting);
-	settingsFile.print(NEW_LINE);
-	settingsFile.print(F("oxygenRate = "));
-	settingsFile.print(diveInoSettings->oxygenRateSetting);
-	settingsFile.print(NEW_LINE);
-	settingsFile.print(F("sound = "));
-	if (!diveInoSettings->soundSetting) {
-		settingsFile.print(ZERO);
-	} else {
-		settingsFile.print(ONE);
-	}
-	settingsFile.print(NEW_LINE);
-	settingsFile.print(F("units = "));
-	if (!diveInoSettings->imperialUnitsSetting) {
-		settingsFile.print(ZERO);
-	} else {
-		settingsFile.print(ONE);
-	}
-	settingsFile.print(NEW_LINE);
-	settingsFile.flush();
+		settingsFile.print(F("seaLevelPressure = "));
+		settingsFile.print(diveInoSettings->seaLevelPressureSetting);
+		settingsFile.print(NEW_LINE);
+		settingsFile.print(F("oxygenRate = "));
+		settingsFile.print(diveInoSettings->oxygenRateSetting);
+		settingsFile.print(NEW_LINE);
+		settingsFile.print(F("sound = "));
+		if (!diveInoSettings->soundSetting) {
+			settingsFile.print(ZERO);
+		} else {
+			settingsFile.print(ONE);
+		}
+		settingsFile.print(NEW_LINE);
+		settingsFile.print(F("units = "));
+		if (!diveInoSettings->imperialUnitsSetting) {
+			settingsFile.print(ZERO);
+		} else {
+			settingsFile.print(ONE);
+		}
+		settingsFile.print(NEW_LINE);
+		settingsFile.flush();
 
-	settingsFile.close();
+		settingsFile.close();
+	}
 }
 
 /////////////////////////////
@@ -169,4 +172,16 @@ bool Settings::readBoolFromLineEnd(String line) {
 
 float Settings::readFloatFromLineEnd(String line) {
 	return line.substring(line.indexOf('=')+1).toFloat();
+}
+
+String Settings::readStringUntil(SdFile* file, char terminator)
+{
+  String ret;
+  int c = file->read();
+  while (c >= 0 && c != terminator)
+  {
+    ret += (char)c;
+    c = file->read();
+  }
+  return ret;
 }

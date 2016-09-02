@@ -35,6 +35,7 @@ public:
 private:
 	bool readBoolFromLineEnd(String line);
 	float readFloatFromLineEnd(String line);
+	String readStringUntil(SdFile* file, char terminator);
 };
 
 #endif /* SETTINGS_H_ */

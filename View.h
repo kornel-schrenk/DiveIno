@@ -9,6 +9,8 @@
 #include "Logbook.h"
 #include "Settings.h"
 
+#define TEXT_MAIN_MENU_ENABLED 0
+
 #define MENU_SCREEN 		0
 #define DIVE_SCREEN 	    1
 #define LOGBOOK_SCREEN      2
@@ -60,6 +62,8 @@ public:
 	void drawAscend(int ascendRate);
 
 	void drawBatteryStateOfCharge(float soc);
+
+	void drawButtonFrame(int x, int y, int w, int h, int r, word color, bool selected);
 
 private:
 	UTFT* tft;

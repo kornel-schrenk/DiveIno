@@ -6,16 +6,6 @@ extern uint8_t SevenSegNumFontPlusPlus[];  //32x50 pixel
 extern uint8_t BigFont[];                  //16x16 pixel
 extern uint8_t SevenSeg_XXXL[];            //64x100 pixel
 
-#if defined(__SAM3X8E__) || defined(__SAM3X8H__)
-//Main menu images
-extern unsigned short Dive[4096];
-extern unsigned short Gauge[4096];
-extern unsigned short Surface[4096];
-extern unsigned short Logbook[4096];
-extern unsigned short Settings[4096];
-extern unsigned short About[4096];
-#endif
-
 char* mainMenu[] = {" DiveIno - Main Menu ",
         " Dive          ",
         " Logbook       ",
@@ -42,109 +32,61 @@ View::View(UTFT* utft, UTFT_SdRaw* sdFatFiles) {
 
 void View::moveMenuSelection(byte selectedMenuItemIndex, byte menuItemIndex)
 {
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-	tft->setFont(Grotesk16x32);
-	tft->setColor(VGA_YELLOW);
+	if (TEXT_MAIN_MENU_ENABLED) {
+		tft->setFont(Grotesk16x32);
+		tft->setColor(VGA_YELLOW);
 
-	// Remove the highlight from the currently selected menu item
-	tft->setBackColor(VGA_BLACK);
-	tft->print(mainMenu[selectedMenuItemIndex], 0, ((selectedMenuItemIndex - 1) * 40) + MENU_TOP);
+		// Remove the highlight from the currently selected menu item
+		tft->setBackColor(VGA_BLACK);
+		tft->print(mainMenu[selectedMenuItemIndex], 0, ((selectedMenuItemIndex - 1) * 40) + MENU_TOP);
 
-	// Highlight the new selected menu item
-	tft->setBackColor(VGA_BLUE);
-	tft->print(mainMenu[menuItemIndex], 0, ((menuItemIndex - 1) * 40) + MENU_TOP);
+		// Highlight the new selected menu item
+		tft->setBackColor(VGA_BLUE);
+		tft->print(mainMenu[menuItemIndex], 0, ((menuItemIndex - 1) * 40) + MENU_TOP);
 
-#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
-	switch (selectedMenuItemIndex) {
-		case 1: {
-			tft->setColor(VGA_TEAL);
-			tft->fillRoundRect(70, 90, 160, 180);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(80, 100, 150, 170);
-			tft->drawBitmap(83, 103, 64, 64, Dive);
-		} break;
-		case 2: {
-			tft->setColor(VGA_TEAL);
-			tft->fillRoundRect(190, 90, 280, 180);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(200, 100, 270, 170);
-			tft->drawBitmap(203, 103, 64, 64, Logbook);
-		} break;
-		case 3: {
-			tft->setColor(VGA_TEAL);
-			tft->fillRoundRect(310, 90, 400, 180);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(320, 100, 390, 170);
-			tft->drawBitmap(323, 103, 64, 64, Surface);
-		} break;
-		case 4: {
-			tft->setColor(VGA_TEAL);
-			tft->fillRoundRect(70, 210, 160, 300);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(80, 220, 150, 290);
-			tft->drawBitmap(83, 223, 64, 64, Gauge);
-		} break;
-		case 5: {
-			tft->setColor(VGA_TEAL);
-			tft->fillRoundRect(190, 210, 280, 300);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(200, 220, 270, 290);
-			tft->drawBitmap(203, 223, 64, 64, Settings);
-		} break;
-		case 6: {
-			tft->setColor(VGA_TEAL);
-			tft->fillRoundRect(310, 210, 400, 300);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(320, 220, 390, 290);
-			tft->drawBitmap(323, 223, 64, 64, About);
-		} break;
+	} else {
+		switch (selectedMenuItemIndex) {
+			case 1: {
+				drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, false);
+			} break;
+			case 2: {
+				drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, false);
+			} break;
+			case 3: {
+				drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, false);
+			} break;
+			case 4: {
+				drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, false);
+			} break;
+			case 5: {
+				drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, false);
+			} break;
+			case 6: {
+				drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, false);
+			} break;
+		}
+
+		switch (menuItemIndex) {
+			case 1: {
+				drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, true);
+			} break;
+			case 2: {
+				drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, true);
+			} break;
+			case 3: {
+				drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, true);
+			} break;
+			case 4: {
+				drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, true);
+			} break;
+			case 5: {
+				drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, true);
+			} break;
+			case 6: {
+				drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, true);
+			} break;
+		}
 	}
-
-	switch (menuItemIndex) {
-		case 1: {
-			tft->setColor(VGA_YELLOW);
-			tft->fillRoundRect(70, 90, 160, 180);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(80, 100, 150, 170);
-			tft->drawBitmap(83, 103, 64, 64, Dive);
-		} break;
-		case 2: {
-			tft->setColor(VGA_YELLOW);
-			tft->fillRoundRect(190, 90, 280, 180);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(200, 100, 270, 170);
-			tft->drawBitmap(203, 103, 64, 64, Logbook);
-		} break;
-		case 3: {
-			tft->setColor(VGA_YELLOW);
-			tft->fillRoundRect(310, 90, 400, 180);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(320, 100, 390, 170);
-			tft->drawBitmap(323, 103, 64, 64, Surface);
-		} break;
-		case 4: {
-			tft->setColor(VGA_YELLOW);
-			tft->fillRoundRect(70, 210, 160, 300);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(80, 220, 150, 290);
-			tft->drawBitmap(83, 223, 64, 64, Gauge);
-		} break;
-		case 5: {
-			tft->setColor(VGA_YELLOW);
-			tft->fillRoundRect(190, 210, 280, 300);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(200, 220, 270, 290);
-			tft->drawBitmap(203, 223, 64, 64, Settings);
-		} break;
-		case 6: {
-			tft->setColor(VGA_YELLOW);
-			tft->fillRoundRect(310, 210, 400, 300);
-			tft->setColor(VGA_BLACK);
-			tft->fillRoundRect(320, 220, 390, 290);
-			tft->drawBitmap(323, 223, 64, 64, About);
-		} break;
-	}
-#endif
 }
 
 void View::displayMenuScreen()
@@ -160,40 +102,36 @@ void View::displayMenuScreen()
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
 
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-	//Display other menu items
-	tft->setColor(VGA_YELLOW);
-	for (int i = 1; i <= MENU_SIZE; i++) {
-		tft->print(mainMenu[i], 0, ((i - 1) * 40) + MENU_TOP);
+	if (TEXT_MAIN_MENU_ENABLED) {
+		//Display other menu items
+		tft->setColor(VGA_YELLOW);
+		for (int i = 1; i <= MENU_SIZE; i++) {
+			tft->print(mainMenu[i], 0, ((i - 1) * 40) + MENU_TOP);
+		}
+	} else {
+		drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, false);
+		sdFiles->load(83, 103, 64, 64, "Images/Dive.raw", 8, 0);
+		drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, false);
+		sdFiles->load(203, 103, 64, 64, "Images/Logbook.raw", 8, 0);
+		drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, false);
+		sdFiles->load(323, 103, 64, 64, "Images/Surface.raw", 8, 0);
+
+		drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, false);
+		sdFiles->load(83, 223, 64, 64, "Images/Gauge.raw", 8, 0);
+		drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, false);
+		sdFiles->load(203, 223, 64, 64, "Images/Settings.raw", 8, 0);
+		drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, false);
+		sdFiles->load(323, 223, 64, 64, "Images/About.raw", 8, 0);
 	}
-#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
+}
 
-	tft->setColor(VGA_TEAL);
-	tft->fillRoundRect(70, 90, 160, 180);
-	tft->fillRoundRect(190, 90, 280, 180);
-	tft->fillRoundRect(310, 90, 400, 180);
-
-	tft->fillRoundRect(70, 210, 160, 300);
-	tft->fillRoundRect(190, 210, 280, 300);
-	tft->fillRoundRect(310, 210, 400, 300);
-
-	tft->setColor(VGA_BLACK);
-	tft->fillRoundRect(80, 100, 150, 170);
-	tft->fillRoundRect(200, 100, 270, 170);
-	tft->fillRoundRect(320, 100, 390, 170);
-
-	tft->fillRoundRect(80, 220, 150, 290);
-	tft->fillRoundRect(200, 220, 270, 290);
-	tft->fillRoundRect(320, 220, 390, 290);
-
-	tft->drawBitmap(83, 103, 64, 64, Dive);
-	tft->drawBitmap(203, 103, 64, 64, Logbook);
-	tft->drawBitmap(323, 103, 64, 64, Surface);
-
-	tft->drawBitmap(83, 223, 64, 64, Gauge);
-	tft->drawBitmap(203, 223, 64, 64, Settings);
-	tft->drawBitmap(323, 223, 64, 64, About);
-#endif
+void View::drawButtonFrame(int x, int y, int w, int h, int r, word color, bool selected)
+{
+  selected ? tft->setColor(VGA_YELLOW) : tft->setColor(color);
+  tft->fillRect(x, y, x+w, y+r);         //Top
+  tft->fillRect(x, y+r, x+r, y+h-r);     //Left
+  tft->fillRect(x+w-r, y+r, x+w, y+h-r); //Right
+  tft->fillRect(x, y+h-r, x+w, y+h);     //Bottom
 }
 
 void View::displayDiveScreen(float oxygenRateSetting)
@@ -643,22 +581,6 @@ void View::displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTime
 
 void View::displayAboutScreen()
 {
-//	tft->clrScr();
-//	tft->setBackColor(VGA_BLACK);
-//	tft->setFont(Grotesk16x32);
-//
-//	// Display the header of the menu - the header is the first item
-//	tft->setColor(VGA_LIME);
-//	tft->print(F("DiveIno - About"), 64, 10);
-//
-//	// Draw separation line
-//	tft->drawLine(0, MENU_TOP-10, 479, MENU_TOP-10);
-//
-//	tft->setColor(VGA_WHITE);
-//	tft->print(F("Version: 1.0.1"), CENTER, 140);
-//	tft->setColor(VGA_GREEN);
-//	tft->print(F("www.diveino.hu"), CENTER, 180);
-
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
 	tft->setFont(Grotesk16x32);

@@ -27,6 +27,7 @@ private:
 	int readIntFromLineEnd(String line);
 	float readFloatFromLineEnd(String line);
 	String readStringFromLineEnd(String line);
+	String readStringUntil(SdFile* file, char terminator);
 };
 
 #endif /* LASTDIVE_H_ */
