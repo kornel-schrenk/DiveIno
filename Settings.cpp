@@ -1,6 +1,6 @@
 #include "Settings.h"
 
-#define SETTINGS_FILE_NAME "settings.txt"
+#define SETTINGS_FILE_NAME "SETTINGS.TXT"
 
 const String NEW_LINE = "\n";
 const char ZERO = '0';

@@ -1,11 +1,10 @@
-#include "MS5803_14.h"
 #include "SPI.h"
 #include "Wire.h"
 #include "UTFT.h"
-#include "SD.h"
-#include "SimpleTimer.h"
-#include "MAX17043.h"
+#include "SdFat.h"
 #include "IRremote2.h"
+#include "MAX17043.h"
+#include "MS5803_14.h"
 #include "DS1307RTC.h"
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
@@ -20,6 +19,8 @@
 #include "Settings.h"
 #include "Logbook.h"
 #include "LastDive.h"
+
+SdFat SD;
 
 //Infrared Receiver initialization
 int RECV_PIN = 11;
@@ -90,11 +91,10 @@ float batteryVoltage = 5;
 Logbook logbook = Logbook();
 int currentProfileNumber = 0; //There is no stored profile - default state
 int maximumProfileNumber = 0;
-File profileFile;
 
 LastDive lastDive = LastDive();
 
-#define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
+#define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
 #define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
 
 void setup() {
@@ -109,9 +109,16 @@ void setup() {
 		oxygenRateSetting = diveInoSettings->oxygenRateSetting;
 		soundSetting = diveInoSettings->soundSetting;
 		imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
+	} else {
+		//Stop the sketch execution
+		SD.initErrorHalt();
 	}
 
 	Serial.begin(115200);
+	// Wait for USB Serial
+	while (!Serial) {
+		SysCall::yield();
+	}
 	delay(1000);
 
 	Serial.println("");
@@ -459,7 +466,11 @@ void startDive()
 		if (maximumProfileNumber <= 0) {
 			maximumProfileNumber = logbook.loadLogbookData()->numberOfStoredProfiles;
 		}
-		profileFile = logbook.createNewProfileFile(maximumProfileNumber+1);
+		if (!logbook.createNewProfileFile(maximumProfileNumber+1)) {
+			Serial.println("ERROR: Temporary profile file creation was failed.");
+			displayScreen(MENU_SCREEN);
+			return;
+		}
 
 		DiveResult* diveResult = new DiveResult;
 		diveResult = buhlmann.initializeCompartments();
@@ -527,7 +538,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 	view.drawDecoArea(diveInfo, imperialUnitsSetting);
 
 	//Store the current dive data in the dive profile
-	logbook.storeProfileItem(profileFile, pressureInMillibar, depthInMeter, temperatureInCelsius, durationInSeconds);
+	logbook.storeProfileItem(pressureInMillibar, depthInMeter, temperatureInCelsius, durationInSeconds);
 
 	//Finish the dive in about 1 m deep
 	if ((seaLevelPressureSetting + 100) > pressureInMillibar) {
@@ -545,7 +556,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		// Update Logbook //
 
 		maximumProfileNumber = maximumProfileNumber+1;
-		logbook.storeDiveSummary(maximumProfileNumber, profileFile,
+		logbook.storeDiveSummary(maximumProfileNumber,
 				diveResult->durationInSeconds, diveResult->maxDepthInMeters, minTemperatureInCelsius,
 				oxygenRateSetting*100, currentTimeText.substring(0, 10), currentTimeText.substring(11, 16));
 

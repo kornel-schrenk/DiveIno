@@ -113,12 +113,20 @@ String Logbook::getFileNameFromProfileNumber(int profileNumber, bool isTemp)
 	return fileName;
 }
 
-File Logbook::createNewProfileFile(int profileNumber)
+/**
+ * The value true is returned for success and the value false is returned for failure.
+ */
+bool Logbook::createNewProfileFile(int profileNumber)
 {
-	return SD.open(getFileNameFromProfileNumber(profileNumber, true), FILE_WRITE);
+	//The String has to be converted into a char array, otherwise the board will reset itself
+    String tempProfileFileName = getFileNameFromProfileNumber(profileNumber, true);
+	char tempProfileFileNameArray[tempProfileFileName.length()+1];
+	tempProfileFileName.toCharArray(tempProfileFileNameArray, tempProfileFileName.length()+1);
+
+	return profileFile.open(tempProfileFileNameArray, O_WRITE | O_CREAT | O_APPEND );
 }
 
-void Logbook::storeProfileItem(File profileFile, float pressure, float depth, float temperature, int duration)
+void Logbook::storeProfileItem(float pressure, float depth, float temperature, int duration)
 {
 	profileFile.print(pressure, 0);
 	profileFile.print(",");
@@ -128,12 +136,22 @@ void Logbook::storeProfileItem(File profileFile, float pressure, float depth, fl
 	profileFile.print(",");
 	profileFile.println(duration);
 
-	profileFile.flush();
+	if (!profileFile.sync() || profileFile.getWriteError()) {
+		error("SD card write error during dive profile save!");
+	}
 }
 
-void Logbook::storeDiveSummary(int profileNumber, File profileFile, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time)
+void Logbook::storeDiveSummary(int profileNumber, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time)
 {
+    profileFile.close();
+
+	//The String has to be converted into a char array, otherwise the board will reset itself
+    String tempProfileFileName = getFileNameFromProfileNumber(profileNumber, true);
+	char tempProfileFileNameArray[tempProfileFileName.length()+1];
+	tempProfileFileName.toCharArray(tempProfileFileNameArray, tempProfileFileName.length()+1);
+
 	File finalFile = SD.open(getFileNameFromProfileNumber(profileNumber, false), FILE_WRITE);
+	File tempProfileFile = SD.open(tempProfileFileName, FILE_READ);
 
 	finalFile.print(F("************\n"));
 	finalFile.print(F("* Summary: *\n"));
@@ -170,44 +188,24 @@ void Logbook::storeDiveSummary(int profileNumber, File profileFile, unsigned int
 	finalFile.print(F("************\n"));
 	finalFile.print(NEW_LINE);
 	finalFile.print(F("Pressure (milliBar), Depth (meter), Temperature (celsius), Duration (seconds)\n"));
-	finalFile.println(F("-----------------------------------------------------------------------------\n"));
+	finalFile.println(F("-----------------------------------------------------------------------------"));
 	finalFile.flush();
 
-	profileFile.seek(0);
+	tempProfileFile.seek(0);
 	String line;
-	while (profileFile.available()) {
-		line = profileFile.readStringUntil('\n');
+	while (tempProfileFile.available()) {
+		line = tempProfileFile.readStringUntil('\n');
 		finalFile.print(line);
 		finalFile.print('\n');
 		finalFile.flush();
 	}
 
-	profileFile.close();
+	tempProfileFile.close();
 	finalFile.close();
 
 	//Remove the temporary dive profile file
-
-	//String to char* conversion has to be done, because remove() only works with char*
-	String tempFileName = getFileNameFromProfileNumber(profileNumber, true);
-	char* tempFileRef = new char[tempFileName.length()+1];
-	tempFileName.toCharArray(tempFileRef, tempFileName.length()+1, 0);
-
-	if (SD.exists(tempFileRef)) {
-		SD.remove(tempFileRef);
-	}
-}
-
-void Logbook::printFile(String fileName)
-{
-	File file = SD.open(fileName, FILE_READ);
-	if (file) {
-		String line;
-		while (file.available()) {
-			line = file.readStringUntil('\n');
-			Serial.print(line);
-			file.print(line);
-		}
-		file.close();
+	if (SD.exists(tempProfileFileNameArray)) {
+		SD.remove(tempProfileFileNameArray);
 	}
 }
 

@@ -2,8 +2,13 @@
 #define LOGBOOK_H_
 
 #include "Arduino.h"
-#include "SD.h"
+#include "SdFat.h"
 #include "UTFT.h"
+
+extern SdFat SD;
+
+// Error messages stored in flash.
+#define error(msg) SD.errorHalt(F(msg))
 
 typedef struct LogbookData {
 	int totalNumberOfDives = 0;
@@ -30,13 +35,14 @@ public:
 	LogbookData* loadLogbookData();
 	void updateLogbookData(LogbookData* logbookData);
 	String getFileNameFromProfileNumber(int profileNumber, bool isTemp);
-	File createNewProfileFile(int profileNumber);
-	void storeProfileItem(File profileFile, float pressure, float depth, float temperature, int duration);
-	void storeDiveSummary(int profileNumber, File profileFile, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time);
-	void printFile(String fileName);
+	bool createNewProfileFile(int profileNumber);
+	void storeProfileItem(float pressure, float depth, float temperature, int duration);
+	void storeDiveSummary(int profileNumber, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time);
 	ProfileData* loadProfileDataFromFile(String profileFileName);
     void drawProfileItems(UTFT* tft, int profileNumber, int pageNumber);
 private:
+    SdFile profileFile;
+
     float getDepthFromProfileLine(String line);
 	int readIntFromLineEnd(String line);
 	float readFloatFromLineEnd(String line);

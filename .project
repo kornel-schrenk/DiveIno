@@ -62,19 +62,14 @@
 			<location>/home/kornel/Arduino/libraries/MS5803_14</location>
 		</link>
 		<link>
-			<name>libraries/SD</name>
-			<type>2</type>
-			<location>/home/kornel/Development/sloeber/arduinoPlugin/libraries/SD/1.0.6</location>
-		</link>
-		<link>
 			<name>libraries/SPI</name>
 			<type>2</type>
 			<location>/home/kornel/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.13/libraries/SPI</location>
 		</link>
 		<link>
-			<name>libraries/SimpleTimer</name>
+			<name>libraries/SdFat</name>
 			<type>2</type>
-			<location>/home/kornel/Arduino/libraries/SimpleTimer</location>
+			<location>/home/kornel/Arduino/libraries/SdFat</location>
 		</link>
 		<link>
 			<name>libraries/Time</name>

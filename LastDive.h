@@ -2,7 +2,9 @@
 #define LASTDIVE_H_
 
 #include "Arduino.h"
-#include "SD.h"
+#include "SdFat.h"
+
+extern SdFat SD;
 
 #define COMPARTMENT_COUNT 16
 

@@ -2,9 +2,11 @@
 #define SETTINGS_H_
 
 #include "Arduino.h"
-#include "SD.h"
+#include "SdFat.h"
 #include "TimeLib.h"
 #include "DS1307RTC.h"
+
+extern SdFat SD;
 
 typedef struct DiveInoSettings {
 	float seaLevelPressureSetting = 1013.2;
