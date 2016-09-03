@@ -24,7 +24,7 @@
 
 // Position of first menu item from the top of the screen
 #define MENU_TOP 60
-#define SETTINGS_TOP 60
+#define SETTINGS_TOP 70
 
 #define SETTINGS_SIZE 4
 #define MENU_SIZE 6

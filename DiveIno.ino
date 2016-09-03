@@ -794,7 +794,7 @@ void upButtonPressed()
 		break;
 		case SETTINGS_SCREEN: {
 			if (selectedSettingIndex == 0) {
-				settingsSelect(8);
+				settingsSelect(7);
 			} else {
 				settingsSelect(selectedSettingIndex - 1);
 			}
@@ -835,7 +835,7 @@ void downButtonPressed()
 		}
 		break;
 		case SETTINGS_SCREEN: {
-			if (selectedSettingIndex < 8) {
+			if (selectedSettingIndex < 7) {
 				settingsSelect(selectedSettingIndex + 1);
 			} else {
 				settingsSelect(0);

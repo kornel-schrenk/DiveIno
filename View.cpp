@@ -379,14 +379,11 @@ void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSett
 	// Settings:
 	//
 	// From SETTINGS.TXT:
-	//  seaLevelPressure = 1013.25
+	//  seaLevelPressure = 1013.2
 	//  oxygenRate = 0.21
 	//  sound = 1 : 0 = Off, 1 = On
 	//  units = 0 : 0 = metric, 1 = imperial
 	//
-	// Real Time Clock settings - for this a separate application can be used:
-	//  time = 18:05
-	//  date = 2015-11-14
 
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
@@ -394,15 +391,15 @@ void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSett
 
 	// Display the header of the screen
 	tft->setColor(VGA_LIME);
-	tft->print(F("DiveIno - Settings"), 64, 10);
+	tft->print(F("DiveIno - Settings"), 100, 10);
 
 	// Draw separation line
-	tft->drawLine(0, SETTINGS_TOP-10, tft->getDisplayXSize()-1, SETTINGS_TOP-10);
+	tft->drawLine(0, SETTINGS_TOP-20, tft->getDisplayXSize()-1, SETTINGS_TOP-20);
 
 	// Display settings
 	tft->setColor(VGA_YELLOW);
 	for (int i = 0; i < SETTINGS_SIZE; i++) {
-		tft->print(settingsList[i], 0, (i * 40) + SETTINGS_TOP);
+		tft->print(settingsList[i], 100, (i * 40) + SETTINGS_TOP);
 	}
 
 	displaySettings(selectionIndex, seaLevelPressureSetting, oxygenRateSetting, soundSetting, imperialUnitsSetting);
@@ -411,84 +408,76 @@ void View::displaySettingsScreen(byte selectionIndex, float seaLevelPressureSett
 void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool soundSetting, bool imperialUnitsSetting)
 {
 	if (settingIndex == 0) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_BLACK);
+		tft->setBackColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
+		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumF(seaLevelPressureSetting, 1, 240, SETTINGS_TOP);
+	tft->printNumF(seaLevelPressureSetting, 1, 280, SETTINGS_TOP);
 
 	if (settingIndex == 1) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_BLACK);
+		tft->setBackColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
+		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumF(oxygenRateSetting, 2, 240, 40 + SETTINGS_TOP);
+	tft->printNumF(oxygenRateSetting, 2, 280, 40 + SETTINGS_TOP);
 
 	if (settingIndex == 2) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
-		tft->setBackColor(VGA_BLACK);
+		tft->setColor(VGA_BLACK);
 	}
+	tft->fillRect(270, 80 + SETTINGS_TOP, 279, 80 + SETTINGS_TOP+31);
+	tft->fillRect(312, 80 + SETTINGS_TOP, 321, 80 + SETTINGS_TOP+31);
 	if (soundSetting) {
-		tft->print(F("On "), 240, 80 + SETTINGS_TOP);
+		sdFiles->load(280, 80 + SETTINGS_TOP, 32, 32, "Images/On.raw", 8, 0);
 	} else {
-		tft->print(F("Off"), 240, 80 + SETTINGS_TOP);
+		sdFiles->load(280, 80 + SETTINGS_TOP, 32, 32, "Images/Off.raw", 8, 0);
 	}
 
 	if (settingIndex == 3) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
-		tft->setBackColor(VGA_BLACK);
+		tft->setColor(VGA_BLACK);
 	}
+	tft->fillRect(270, 120 + SETTINGS_TOP, 279, 120 + SETTINGS_TOP+31);
+	tft->fillRect(312, 120 + SETTINGS_TOP, 321, 120 + SETTINGS_TOP+31);
 	if (imperialUnitsSetting) {
-		tft->print(F("Imperial"), 240, 120 + SETTINGS_TOP);
+		sdFiles->load(280, 120 + SETTINGS_TOP, 32, 32, "Images/Fahrenheit.raw", 8, 0);
 	} else {
-		tft->print(F("Metric  "), 240, 120 + SETTINGS_TOP);
+		sdFiles->load(280, 120 + SETTINGS_TOP, 32, 32, "Images/Celsius.raw", 8, 0);
 	}
 
+	sdFiles->load(81, 251, 48, 48, "Images/Save.raw", 8, 0);
 	if (settingIndex == 4) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		drawButtonFrame(70, 240, 70, 70, 5, VGA_TEAL, true);
 	} else {
-		tft->setColor(VGA_GREEN);
-		tft->setBackColor(VGA_BLACK);
+		drawButtonFrame(70, 240, 70, 70, 5, VGA_TEAL, false);
 	}
-	tft->print(F("Save"), 10, 211 + SETTINGS_TOP);
 
+	sdFiles->load(171, 251, 48, 48, "Images/Cancel.raw", 8, 0);
 	if (settingIndex == 5) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		drawButtonFrame(160, 240, 70, 70, 5, VGA_TEAL, true);
 	} else {
-		tft->setColor(VGA_RED);
-		tft->setBackColor(VGA_BLACK);
+		drawButtonFrame(160, 240, 70, 70, 5, VGA_TEAL, false);
 	}
-	tft->print(F("Cancel"), 90, 211 + SETTINGS_TOP);
 
+	sdFiles->load(261, 251, 48, 48, "Images/Default.raw", 8, 0);
 	if (settingIndex == 6) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		drawButtonFrame(250, 240, 70, 70, 5, VGA_TEAL, true);
 	} else {
-		tft->setColor(VGA_BLUE);
-		tft->setBackColor(VGA_BLACK);
+		drawButtonFrame(250, 240, 70, 70, 5, VGA_TEAL, false);
 	}
-	tft->print(F("Default"), 200, 210 + SETTINGS_TOP);
 
+	sdFiles->load(351, 251, 48, 48, "Images/Calendar.raw", 8, 0);
 	if (settingIndex == 7) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		drawButtonFrame(340, 240, 70, 70, 5, VGA_TEAL, true);
 	} else {
-		tft->setColor(VGA_FUCHSIA);
-		tft->setBackColor(VGA_BLACK);
+		drawButtonFrame(340, 240, 70, 70, 5, VGA_TEAL, false);
 	}
-	tft->print(F("Date&Time"), 330, 210 + SETTINGS_TOP);
 }
 
 void View::displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dateTimeSettings)
