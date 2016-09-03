@@ -1172,12 +1172,26 @@ void displayScreen(byte screen) {
 					diveResult->maxDepthInMeters = lastDiveData->maxDepthInMeters;
 					for (byte i=0; i <COMPARTMENT_COUNT; i++) {
 						diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
+
+				        Serial.print(F("BEFORE: Dive compartment "));
+				        Serial.print(i);
+				        Serial.print(F(": "));
+				        Serial.print(diveResult->compartmentPartialPressures[i], 0);
+				        Serial.println(F(" ppN2"));
 					}
 
 					//Spend the time on the surface
 					buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
 					buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
 					diveResult = buhlmann.surfaceInterval(surfaceIntervalInMinutes, diveResult);
+
+					for (byte i=0; i <COMPARTMENT_COUNT; i++) {
+				        Serial.print(F("AFTER: Dive compartment "));
+				        Serial.print(i);
+				        Serial.print(F(": "));
+				        Serial.print(diveResult->compartmentPartialPressures[i], 0);
+				        Serial.println(F(" ppN2"));
+					}
 
 					Serial.print(F("After "));
 					Serial.print(surfaceIntervalInMinutes);
