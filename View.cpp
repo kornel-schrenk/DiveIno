@@ -5,17 +5,12 @@ extern uint8_t Grotesk16x32[];             //16x32 pixel
 extern uint8_t SevenSegNumFontPlusPlus[];  //32x50 pixel
 extern uint8_t BigFont[];                  //16x16 pixel
 extern uint8_t SevenSeg_XXXL[];            //64x100 pixel
+extern uint8_t TinyFont[];                  //8x8 pixel
 
 char* settingsList[] = {" Sea level",
 		" Oxygen %",
 		" Sound",
 		" Units"};
-
-char* dateTimeSettingsList[] = {" Year ",
-		" Month",
-		" Day",
-		" Hour",
-		" Minute"};
 
 View::View(UTFT* utft, UTFT_SdRaw* sdFatFiles) {
 	tft = utft;
@@ -461,81 +456,90 @@ void View::displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dat
 	tft->print(F("DiveIno - Date & Time"), 64, 10);
 
 	// Draw separation line
-	tft->drawLine(0, SETTINGS_TOP-10, tft->getDisplayXSize()-1, SETTINGS_TOP-10);
+	tft->drawLine(0, SETTINGS_TOP - 20, 479, SETTINGS_TOP - 20);
 
+	tft->setFont(TinyFont);
 	// Display settings
-	tft->setColor(VGA_YELLOW);
-	for (int i = 0; i < SETTINGS_SIZE+1; i++) {
-		tft->print(dateTimeSettingsList[i], 0, (i * 40) + SETTINGS_TOP);
-	}
+	tft->setColor(VGA_SILVER);
+	tft->print(F("Year"), 100, 160);
+	tft->print(F("Month"), 155, 160);
+	tft->print(F("Day"), 210, 160);
+	tft->print(F("Hour"), 256, 160);
+	tft->print(F("Minute"), 304, 160);
+
+	tft->setFont(Grotesk16x32);
+	tft->setColor(VGA_TEAL);
+	tft->setBackColor(VGA_BLACK);
+	tft->print(F("-"), 144, 120);
+	tft->print(F("-"), 192, 120);
+	tft->print(F(":"), 288, 120);
+	tft->print(F(":00"), 336, 120);
 
 	displayDateTimeSettings(settingIndex, dateTimeSettings);
 }
 
 void View::displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTimeSettings)
 {
+	tft->setFont(Grotesk16x32);
+
 	if (settingIndex == 0) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_BLACK);
+		tft->setBackColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
+		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumI(dateTimeSettings->year, 160, SETTINGS_TOP, 4);
+	tft->printNumI(dateTimeSettings->year, 80, 120, 4);
 
 	if (settingIndex == 1) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_BLACK);
+		tft->setBackColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
+		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumI(dateTimeSettings->month, 160, 40 + SETTINGS_TOP, 2, '0');
+	tft->printNumI(dateTimeSettings->month, 160, 120, 2, '0');
 
 	if (settingIndex == 2) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_BLACK);
+		tft->setBackColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
+		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumI(dateTimeSettings->day, 160, 80 + SETTINGS_TOP, 2, '0');
+	tft->printNumI(dateTimeSettings->day, 208, 120, 2, '0');
 
 	if (settingIndex == 3) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_BLACK);
+		tft->setBackColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
+		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumI(dateTimeSettings->hour, 160, 120 + SETTINGS_TOP, 2, '0');
+	tft->printNumI(dateTimeSettings->hour, 256, 120, 2, '0');
 
 	if (settingIndex == 4) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		tft->setColor(VGA_BLACK);
+		tft->setBackColor(VGA_YELLOW);
 	} else {
-		tft->setColor(VGA_AQUA);
+		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumI(dateTimeSettings->minute, 160, 160 + SETTINGS_TOP, 2, '0');
+	tft->printNumI(dateTimeSettings->minute, 304, 120, 2, '0');
 
+	sdFiles->load(161, 251, 48, 48, "Images/Save.raw", 8, 0);
 	if (settingIndex == 5) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		drawButtonFrame(150, 240, 70, 70, 5, VGA_TEAL, true);
 	} else {
-		tft->setColor(VGA_GREEN);
-		tft->setBackColor(VGA_BLACK);
+		drawButtonFrame(150, 240, 70, 70, 5, VGA_TEAL, false);
 	}
-	tft->print(F("Save"), 120, 210 + SETTINGS_TOP);
 
+	sdFiles->load(251, 251, 48, 48, "Images/Cancel.raw", 8, 0);
 	if (settingIndex == 6) {
-		tft->setColor(VGA_WHITE);
-		tft->setBackColor(VGA_BLUE);
+		drawButtonFrame(240, 240, 70, 70, 5, VGA_TEAL, true);
 	} else {
-		tft->setColor(VGA_RED);
-		tft->setBackColor(VGA_BLACK);
+		drawButtonFrame(240, 240, 70, 70, 5, VGA_TEAL, false);
 	}
-	tft->print(F("Cancel"), 210, 210 + SETTINGS_TOP);
 }
 
 void View::displayAboutScreen()
@@ -554,7 +558,7 @@ void View::displayAboutScreen()
 	tft->setColor(VGA_WHITE);
 	sdFiles->load(50, 90, 128, 122, "Images/LogoGreen.raw", 8, 0);
 
-	tft->print(F("Version: 1.0.2"), 200 , 110);
+	tft->print(F("Version: 1.0.3"), 200 , 110);
 	tft->setColor(VGA_GREEN);
 	tft->print(F("www.diveino.hu"), 200, 160);
 }

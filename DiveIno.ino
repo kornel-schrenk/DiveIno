@@ -791,10 +791,50 @@ void upButtonPressed()
 		}
 		break;
 		case DATETIME_SCREEN: {
-			if (selectedDateTimeSettingIndex == 0) {
-				dateTimeSettingsSelect(6);
-			} else {
-				dateTimeSettingsSelect(selectedDateTimeSettingIndex - 1);
+			if (currentDateTimeSettings != NULL) {
+				switch (selectedDateTimeSettingIndex) {
+					case 0: { //Year
+						currentDateTimeSettings->year++;
+						dateTimeSettingsSelect(0);
+					}
+					break;
+					case 1: { //Month
+						if (currentDateTimeSettings->month < 12) {
+							currentDateTimeSettings->month++;
+						} else {
+							currentDateTimeSettings->month = 1;
+						}
+						dateTimeSettingsSelect(1);
+					}
+					break;
+					case 2: { //Day
+						if (currentDateTimeSettings->day < 31) {
+							currentDateTimeSettings->day++;
+						} else {
+							currentDateTimeSettings->day = 1;
+						}
+						dateTimeSettingsSelect(2);
+					}
+					break;
+					case 3: { //Hour
+						if (currentDateTimeSettings->hour < 23) {
+							currentDateTimeSettings->hour++;
+						} else {
+							currentDateTimeSettings->hour = 0;
+						}
+						dateTimeSettingsSelect(3);
+					}
+					break;
+					case 4: { //Minute
+						if (currentDateTimeSettings->minute < 59) {
+							currentDateTimeSettings->minute++;
+						} else {
+							currentDateTimeSettings->minute = 0;
+						}
+						dateTimeSettingsSelect(4);
+					}
+					break;
+				}
 			}
 		}
 		break;
@@ -823,10 +863,50 @@ void downButtonPressed()
 		}
 		break;
 		case DATETIME_SCREEN: {
-			if (selectedDateTimeSettingIndex < 6) {
-				dateTimeSettingsSelect(selectedDateTimeSettingIndex + 1);
-			} else {
-				dateTimeSettingsSelect(0);
+			if (currentDateTimeSettings != NULL) {
+				switch (selectedDateTimeSettingIndex) {
+					case 0: { //Year
+						currentDateTimeSettings->year--;
+						dateTimeSettingsSelect(0);
+					}
+					break;
+					case 1: { //Month
+						if (currentDateTimeSettings->month > 0) {
+							currentDateTimeSettings->month--;
+						} else {
+							currentDateTimeSettings->month = 12;
+						}
+						dateTimeSettingsSelect(1);
+					}
+					break;
+					case 2: { //Day
+						if (currentDateTimeSettings->day > 1) {
+							currentDateTimeSettings->day--;
+						} else {
+							currentDateTimeSettings->day = 31;
+						}
+						dateTimeSettingsSelect(2);
+					}
+					break;
+					case 3: { //Hour
+						if (currentDateTimeSettings->hour > 0) {
+							currentDateTimeSettings->hour--;
+						} else {
+							currentDateTimeSettings->hour = 23;
+						}
+						dateTimeSettingsSelect(3);
+					}
+					break;
+					case 4: { //Minute
+						if (currentDateTimeSettings->minute > 0) {
+							currentDateTimeSettings->minute--;
+						} else {
+							currentDateTimeSettings->minute = 59;
+						}
+						dateTimeSettingsSelect(4);
+					}
+					break;
+				}
 			}
 		}
 		break;
@@ -887,50 +967,10 @@ void leftButtonPressed()
 		}
 		break;
 		case DATETIME_SCREEN: {
-			if (currentDateTimeSettings != NULL) {
-				switch (selectedDateTimeSettingIndex) {
-					case 0: { //Year
-						currentDateTimeSettings->year--;
-						dateTimeSettingsSelect(0);
-					}
-					break;
-					case 1: { //Month
-						if (currentDateTimeSettings->month > 0) {
-							currentDateTimeSettings->month--;
-						} else {
-							currentDateTimeSettings->month = 12;
-						}
-						dateTimeSettingsSelect(1);
-					}
-					break;
-					case 2: { //Day
-						if (currentDateTimeSettings->day > 1) {
-							currentDateTimeSettings->day--;
-						} else {
-							currentDateTimeSettings->day = 31;
-						}
-						dateTimeSettingsSelect(2);
-					}
-					break;
-					case 3: { //Hour
-						if (currentDateTimeSettings->hour > 0) {
-							currentDateTimeSettings->hour--;
-						} else {
-							currentDateTimeSettings->hour = 23;
-						}
-						dateTimeSettingsSelect(3);
-					}
-					break;
-					case 4: { //Minute
-						if (currentDateTimeSettings->minute > 0) {
-							currentDateTimeSettings->minute--;
-						} else {
-							currentDateTimeSettings->minute = 59;
-						}
-						dateTimeSettingsSelect(4);
-					}
-					break;
-				}
+			if (selectedDateTimeSettingIndex == 0) {
+				dateTimeSettingsSelect(6);
+			} else {
+				dateTimeSettingsSelect(selectedDateTimeSettingIndex - 1);
 			}
 		}
 		break;
@@ -991,50 +1031,10 @@ void rightButtonPressed()
 		}
 		break;
 		case DATETIME_SCREEN: {
-			if (currentDateTimeSettings != NULL) {
-				switch (selectedDateTimeSettingIndex) {
-					case 0: { //Year
-						currentDateTimeSettings->year++;
-						dateTimeSettingsSelect(0);
-					}
-					break;
-					case 1: { //Month
-						if (currentDateTimeSettings->month < 12) {
-							currentDateTimeSettings->month++;
-						} else {
-							currentDateTimeSettings->month = 1;
-						}
-						dateTimeSettingsSelect(1);
-					}
-					break;
-					case 2: { //Day
-						if (currentDateTimeSettings->day < 31) {
-							currentDateTimeSettings->day++;
-						} else {
-							currentDateTimeSettings->day = 1;
-						}
-						dateTimeSettingsSelect(2);
-					}
-					break;
-					case 3: { //Hour
-						if (currentDateTimeSettings->hour < 23) {
-							currentDateTimeSettings->hour++;
-						} else {
-							currentDateTimeSettings->hour = 0;
-						}
-						dateTimeSettingsSelect(3);
-					}
-					break;
-					case 4: { //Minute
-						if (currentDateTimeSettings->minute < 59) {
-							currentDateTimeSettings->minute++;
-						} else {
-							currentDateTimeSettings->minute = 0;
-						}
-						dateTimeSettingsSelect(4);
-					}
-					break;
-				}
+			if (selectedDateTimeSettingIndex < 6) {
+				dateTimeSettingsSelect(selectedDateTimeSettingIndex + 1);
+			} else {
+				dateTimeSettingsSelect(0);
 			}
 		}
 		break;
