@@ -768,16 +768,6 @@ void selectButtonPressed()
 void upButtonPressed()
 {
 	switch (currentScreen) {
-		case MENU_SCREEN: {
-			if (selectedMenuItemIndex == 1) {
-				// Position to the last menu item
-				menuSelect(MENU_SIZE);
-			} else {
-				// Move down the selection
-				menuSelect(selectedMenuItemIndex - 1);
-			}
-		}
-		break;
 		case LOGBOOK_SCREEN: {
 			currentMode = SURFACE_MODE;
 			displayScreen(MENU_SCREEN);
@@ -824,16 +814,6 @@ void upButtonPressed()
 void downButtonPressed()
 {
 	switch (currentScreen) {
-		case MENU_SCREEN: {
-			if (selectedMenuItemIndex < MENU_SIZE) {
-				// Move down the selection
-				menuSelect(selectedMenuItemIndex + 1);
-			} else {
-				// Position to the first menu item
-				menuSelect(1);
-			}
-		}
-		break;
 		case SETTINGS_SCREEN: {
 			if (selectedSettingIndex < 7) {
 				settingsSelect(selectedSettingIndex + 1);
@@ -867,6 +847,16 @@ void downButtonPressed()
 void leftButtonPressed()
 {
 	switch (currentScreen) {
+		case MENU_SCREEN: {
+			if (selectedMenuItemIndex == 1) {
+				// Position to the last menu item
+				menuSelect(MENU_SIZE);
+			} else {
+				// Move down the selection
+				menuSelect(selectedMenuItemIndex - 1);
+			}
+		}
+		break;
 		case SETTINGS_SCREEN: {
 			switch (selectedSettingIndex) {
 				case 0: {
@@ -961,6 +951,16 @@ void leftButtonPressed()
 void rightButtonPressed()
 {
 	switch (currentScreen) {
+		case MENU_SCREEN: {
+			if (selectedMenuItemIndex < MENU_SIZE) {
+				// Move down the selection
+				menuSelect(selectedMenuItemIndex + 1);
+			} else {
+				// Position to the first menu item
+				menuSelect(1);
+			}
+		}
+		break;
 		case SETTINGS_SCREEN: {
 			switch (selectedSettingIndex) {
 				case 0: {

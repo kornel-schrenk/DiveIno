@@ -6,14 +6,6 @@ extern uint8_t SevenSegNumFontPlusPlus[];  //32x50 pixel
 extern uint8_t BigFont[];                  //16x16 pixel
 extern uint8_t SevenSeg_XXXL[];            //64x100 pixel
 
-char* mainMenu[] = {" DiveIno - Main Menu ",
-        " Dive          ",
-        " Logbook       ",
-		" Surface Time  ",
-		" Gauge         ",
-        " Settings      ",
-        " About         "};
-
 char* settingsList[] = {" Sea level",
 		" Oxygen %",
 		" Sound",
@@ -32,60 +24,46 @@ View::View(UTFT* utft, UTFT_SdRaw* sdFatFiles) {
 
 void View::moveMenuSelection(byte selectedMenuItemIndex, byte menuItemIndex)
 {
-	if (TEXT_MAIN_MENU_ENABLED) {
-		tft->setFont(Grotesk16x32);
-		tft->setColor(VGA_YELLOW);
+	switch (selectedMenuItemIndex) {
+		case 1: {
+			drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, false);
+		} break;
+		case 2: {
+			drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, false);
+		} break;
+		case 3: {
+			drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, false);
+		} break;
+		case 4: {
+			drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, false);
+		} break;
+		case 5: {
+			drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, false);
+		} break;
+		case 6: {
+			drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, false);
+		} break;
+	}
 
-		// Remove the highlight from the currently selected menu item
-		tft->setBackColor(VGA_BLACK);
-		tft->print(mainMenu[selectedMenuItemIndex], 0, ((selectedMenuItemIndex - 1) * 40) + MENU_TOP);
-
-		// Highlight the new selected menu item
-		tft->setBackColor(VGA_BLUE);
-		tft->print(mainMenu[menuItemIndex], 0, ((menuItemIndex - 1) * 40) + MENU_TOP);
-
-	} else {
-		switch (selectedMenuItemIndex) {
-			case 1: {
-				drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, false);
-			} break;
-			case 2: {
-				drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, false);
-			} break;
-			case 3: {
-				drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, false);
-			} break;
-			case 4: {
-				drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, false);
-			} break;
-			case 5: {
-				drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, false);
-			} break;
-			case 6: {
-				drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, false);
-			} break;
-		}
-
-		switch (menuItemIndex) {
-			case 1: {
-				drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, true);
-			} break;
-			case 2: {
-				drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, true);
-			} break;
-			case 3: {
-				drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, true);
-			} break;
-			case 4: {
-				drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, true);
-			} break;
-			case 5: {
-				drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, true);
-			} break;
-			case 6: {
-				drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, true);
-			} break;
-		}
+	switch (menuItemIndex) {
+		case 1: {
+			drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, true);
+		} break;
+		case 2: {
+			drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, true);
+		} break;
+		case 3: {
+			drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, true);
+		} break;
+		case 4: {
+			drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, true);
+		} break;
+		case 5: {
+			drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, true);
+		} break;
+		case 6: {
+			drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, true);
+		} break;
 	}
 }
 
@@ -97,32 +75,24 @@ void View::displayMenuScreen()
 
 	// Display the header of the menu - the header is the first item
 	tft->setColor(VGA_LIME);
-	tft->print(mainMenu[0], 68, 10);
+	tft->print(F(" DiveIno - Main Menu "), 68, 10);
 
 	// Draw separation line
 	tft->drawLine(0, MENU_TOP-10, tft->getDisplayXSize()-1, MENU_TOP-10);
 
-	if (TEXT_MAIN_MENU_ENABLED) {
-		//Display other menu items
-		tft->setColor(VGA_YELLOW);
-		for (int i = 1; i <= MENU_SIZE; i++) {
-			tft->print(mainMenu[i], 0, ((i - 1) * 40) + MENU_TOP);
-		}
-	} else {
-		drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, false);
-		sdFiles->load(83, 103, 64, 64, "Images/Dive.raw", 8, 0);
-		drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, false);
-		sdFiles->load(203, 103, 64, 64, "Images/Logbook.raw", 8, 0);
-		drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, false);
-		sdFiles->load(323, 103, 64, 64, "Images/Surface.raw", 8, 0);
+	drawButtonFrame(70, 90, 90, 90, 10, VGA_TEAL, false);
+	sdFiles->load(83, 103, 64, 64, "Images/Dive.raw", 8, 0);
+	drawButtonFrame(190, 90, 90, 90, 10, VGA_TEAL, false);
+	sdFiles->load(203, 103, 64, 64, "Images/Logbook.raw", 8, 0);
+	drawButtonFrame(310, 90, 90, 90, 10, VGA_TEAL, false);
+	sdFiles->load(323, 103, 64, 64, "Images/Surface.raw", 8, 0);
 
-		drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, false);
-		sdFiles->load(83, 223, 64, 64, "Images/Gauge.raw", 8, 0);
-		drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, false);
-		sdFiles->load(203, 223, 64, 64, "Images/Settings.raw", 8, 0);
-		drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, false);
-		sdFiles->load(323, 223, 64, 64, "Images/About.raw", 8, 0);
-	}
+	drawButtonFrame(70, 210, 90, 90, 10, VGA_TEAL, false);
+	sdFiles->load(83, 223, 64, 64, "Images/Gauge.raw", 8, 0);
+	drawButtonFrame(190, 210, 90, 90, 10, VGA_TEAL, false);
+	sdFiles->load(203, 223, 64, 64, "Images/Settings.raw", 8, 0);
+	drawButtonFrame(310, 210, 90, 90, 10, VGA_TEAL, false);
+	sdFiles->load(323, 223, 64, 64, "Images/About.raw", 8, 0);
 }
 
 void View::drawButtonFrame(int x, int y, int w, int h, int r, word color, bool selected)

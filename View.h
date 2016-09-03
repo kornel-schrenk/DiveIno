@@ -9,8 +9,6 @@
 #include "Logbook.h"
 #include "Settings.h"
 
-#define TEXT_MAIN_MENU_ENABLED 0
-
 #define MENU_SCREEN 		0
 #define DIVE_SCREEN 	    1
 #define LOGBOOK_SCREEN      2
