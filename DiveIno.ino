@@ -1110,7 +1110,7 @@ void displayScreen(byte screen) {
 
 	DiveResult* diveResult;
 	LastDiveData* lastDiveData;
-	unsigned long surfaceIntervalInMinutes = 0;
+	unsigned long surfaceIntervalInMinutes = 0L;
 
 	currentScreen = screen;
 	switch (screen) {

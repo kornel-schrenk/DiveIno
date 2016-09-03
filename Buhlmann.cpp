@@ -228,7 +228,7 @@ int Buhlmann::calculateAscentRate(float timeSpentInLevelInSeconds, float previou
 // Dive Progress //
 ///////////////////
 
-DiveResult* Buhlmann::surfaceInterval(int surfaceIntervalInMinutes, DiveResult* previousDiveResult) {
+DiveResult* Buhlmann::surfaceInterval(long surfaceIntervalInMinutes, DiveResult* previousDiveResult) {
 
 	//Set the given compartment pressure data
     for (byte j = 0; j < COMPARTMENT_COUNT; j++) {

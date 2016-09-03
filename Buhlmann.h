@@ -52,7 +52,7 @@ public:
 	int maxSearch(int array[], int size);
 	int minSearch(int array[], int size);
 
-	DiveResult* surfaceInterval(int surfaceIntervalInMinutes, DiveResult* previousDiveResult);
+	DiveResult* surfaceInterval(long surfaceIntervalInMinutes, DiveResult* previousDiveResult);
     DiveResult* initializeCompartments();
     void startDive(DiveResult* previousDiveResult);
     DiveInfo progressDive(DiveData* diveData);
