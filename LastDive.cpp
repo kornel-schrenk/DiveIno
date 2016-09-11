@@ -32,9 +32,11 @@ LastDiveData* LastDive::loadLastDiveData()
 				} else if (counter == 3) {
 					lastDiveData->durationInSeconds = readIntFromLineEnd(line);
 				} else if (counter == 4) {
-					lastDiveData->noFlyTimeInMinutes = readIntFromLineEnd(line);
+					lastDiveData->noFlyTimeInMinutes = readLongFromLineEnd(line);
+				} else if (counter == 5) {
+					lastDiveData->wasDecoDive = readBoolFromLineEnd(line);
 				} else {
-					lastDiveData->compartmentPartialPressures[counter-5] = readFloatFromLineEnd(line);
+					lastDiveData->compartmentPartialPressures[counter-6] = readFloatFromLineEnd(line);
 				}
 				counter++;
 			}
@@ -66,6 +68,13 @@ void LastDive::storeLastDiveData(LastDiveData* lastDiveData)
 		lastDiveFile.print(F("No fly time (min) = "));
 		lastDiveFile.print(lastDiveData->noFlyTimeInMinutes);
 		lastDiveFile.print(NEW_LINE);
+		lastDiveFile.print(F("Was deco dive = "));
+		if (lastDiveData->wasDecoDive) {
+			lastDiveFile.print('1');
+		} else {
+			lastDiveFile.print('0');
+		}
+		lastDiveFile.print(NEW_LINE);
 		lastDiveFile.flush();
 
 		for (int i=0; i<COMPARTMENT_COUNT; i++) {
@@ -87,7 +96,15 @@ void LastDive::storeLastDiveData(LastDiveData* lastDiveData)
 // Private methods //
 /////////////////////
 
-long LastDive::readLongFromLineEnd(String line) {
+bool LastDive::readBoolFromLineEnd(String line) {
+	int value = line.substring(line.indexOf('=')+1).toInt();
+	if (value > 0) {
+		return true;
+	}
+	return false;
+}
+
+unsigned long LastDive::readLongFromLineEnd(String line) {
 	return line.substring(line.indexOf('=')+1).toInt();
 }
 

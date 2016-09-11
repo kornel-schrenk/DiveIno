@@ -3,7 +3,6 @@
 #include "Buhlmann.h"
 
 Buhlmann::Buhlmann(float minimumAircraftCabinPressure, float waterVapourPressureCorrection) {
-	_minimumAircraftCabinPressure = minimumAircraftCabinPressure;
 	_waterVapourPressureCorrection = waterVapourPressureCorrection;
 
 	//Coefficients of the ZH-L16C-GF algorithm
@@ -131,7 +130,7 @@ float Buhlmann::calculateNitrogenPartialPressureInLung(float currentPressure) {
 	return _nitrogenRateInGas * (currentPressure - _waterVapourPressureCorrection);
 }
 
-float Buhlmann::calculateCompartmentInertGasPartialPressure(float timeInSeconds, float halfTimeInSeconds, float currentInertGasPartialPressureInCompartment, float currentInertGasPartialPressureInLung) {
+float Buhlmann::calculateCompartmentInertGasPartialPressure(long timeInSeconds, float halfTimeInSeconds, float currentInertGasPartialPressureInCompartment, float currentInertGasPartialPressureInLung) {
 	return currentInertGasPartialPressureInCompartment + (currentInertGasPartialPressureInLung - currentInertGasPartialPressureInCompartment) * (1 - pow(2, (-timeInSeconds/halfTimeInSeconds)));
 }
 
@@ -264,6 +263,9 @@ DiveResult* Buhlmann::surfaceInterval(long surfaceIntervalInMinutes, DiveResult*
 	} else {
 		diveResult->noFlyTimeInMinutes = 0;
 	}
+	//Copy over surface time and deco information
+	diveResult->wasDecoDive = previousDiveResult->wasDecoDive;
+	diveResult->previousDiveDateTimestamp = previousDiveResult->previousDiveDateTimestamp;
 	return diveResult;
 }
 
@@ -287,9 +289,18 @@ DiveResult* Buhlmann::initializeCompartments() {
     return diveResult;
 }
 
-void Buhlmann::startDive(DiveResult* previousDiveResult) {
-    //Set dive duration calculation to zero
+void Buhlmann::startDive(DiveResult* previousDiveResult, unsigned long diveStartTimestamp) {
+	_previousDiveResult = previousDiveResult;
+	_diveStartTimestamp = diveStartTimestamp;
+
+	//Set dive duration calculation to zero
     _currentDiveDuration = 0;
+
+    //Set the deco indicator to false
+    _wasDecoDive = false;
+
+    //Reset maximum depth
+    _maxDepth = 0;
 
     //Initialize the compartments based on the previous compartment partial pressure values
     for (byte j = 0; j < COMPARTMENT_COUNT; j++) {
@@ -297,14 +308,12 @@ void Buhlmann::startDive(DiveResult* previousDiveResult) {
     }
 }
 
-DiveInfo Buhlmann::progressDive(DiveData* diveData) {
+DiveInfo Buhlmann::progressDive(float currentPressure, unsigned int duration) {
 
 	DiveInfo diveInfo;
 
-    unsigned int timeSpentInLevel = diveData->duration - _currentDiveDuration; //In seconds
+    unsigned int timeSpentInLevel = duration - _currentDiveDuration; //In seconds
     if (timeSpentInLevel > 0) {
-
-        float currentPressure = diveData->pressure; //In milliBars
 
         //Calculate ascent - descent depth here
         int ascendRate = calculateAscentRate(timeSpentInLevel, _currentDepth, calculateDepthFromPressure(currentPressure));
@@ -379,6 +388,9 @@ DiveInfo Buhlmann::progressDive(DiveData* diveData) {
             Serial.print(F("NO DECO | Min to deco: "));
             Serial.println(minutesToDeco);
         } else {
+        	//The dive became a DECO dive
+        	_wasDecoDive = true;
+
             //Find the deepest ascent ceiling (the biggest pressure)
             float ascentCeiling = maxSearch(ascentCeilingArray, COMPARTMENT_COUNT);
 
@@ -413,17 +425,136 @@ DiveInfo Buhlmann::progressDive(DiveData* diveData) {
     return diveInfo;
 }
 
-DiveResult* Buhlmann::stopDive() {
+DiveResult* Buhlmann::stopDive(unsigned long diveStopTimestamp) {
 
-    //This is just an approximation
-    int noFlyTimeInMinutes = calculateMinutesRequiredToReachCertainPressure(_minimumAircraftCabinPressure);
+	Serial.println(F("Buhmann - Stop Dive"));
 
-    DiveResult * diveResult = new DiveResult;
+	long desaturationTimeInMinutes = calculateDesaturationTime(1.02);
+    long noFlyTimeInMinutes = calculateNoFlyTime(desaturationTimeInMinutes);
+
+    DiveResult* diveResult = new DiveResult;
     for (byte j = 0; j < COMPARTMENT_COUNT; j++) {
     	diveResult->compartmentPartialPressures[j] = _compartmentCurrentPartialPressures[j];
     }
     diveResult->maxDepthInMeters = _maxDepth;
     diveResult->durationInSeconds = _currentDiveDuration;
     diveResult->noFlyTimeInMinutes = noFlyTimeInMinutes;
+    diveResult->wasDecoDive = _wasDecoDive;
+    diveResult->previousDiveDateTimestamp = diveStopTimestamp;
+
     return diveResult;
+}
+
+/**
+ * Calculates the maximum time until each compartment partial pressure returns back to the initial value adjusted by the given percentage.
+ */
+long Buhlmann::calculateDesaturationTime(float limitPercentage) {
+
+	float initialPartialPressure = calculateNitrogenPartialPressureInLung(_seaLevelAtmosphericPressure);
+	Serial.print(F("Initial partial pressure: "));
+	Serial.println(initialPartialPressure);
+
+	float desatPartialPressureLimit = initialPartialPressure * limitPercentage;
+	Serial.print(F("Desaturation partial pressure limit: "));
+	Serial.println(desatPartialPressureLimit);
+	Serial.println(F("-----------------------------------\n"));
+
+	long desaturationTimeInMinutes = 1;
+	for (int i=0; i < COMPARTMENT_COUNT; i++) {
+		long timeInMinutes = 1;
+
+		float currentPartialPressure = getCompartmentPartialPressure(i);
+		Serial.print(i);
+		Serial.print(F(" compartment partial pressure: "));
+		Serial.println(currentPartialPressure);
+
+		while (desatPartialPressureLimit < calculateCompartmentInertGasPartialPressure(timeInMinutes * 60,
+				getCompartmentHalfTimeInSeconds(i), currentPartialPressure, initialPartialPressure)) {
+			timeInMinutes++;
+		}
+
+		Serial.print(F(">> desaturation time: "));
+		Serial.println(timeInMinutes);
+
+		//Maximum search to find the maximum desaturation time
+		if (desaturationTimeInMinutes < timeInMinutes) {
+			desaturationTimeInMinutes = timeInMinutes;
+		}
+	}
+
+	Serial.print(F("Desaturation time: "));
+	Serial.println(desaturationTimeInMinutes);
+
+	return desaturationTimeInMinutes;
+}
+
+/**
+ * Definitions:
+ * ************
+ * Repetitive dive: The end of the previous dive was within 24 hours of the start of the current dive.
+ * No-deco dive: There was no decompression stop calculated during the dive.
+ *
+ * Calculation rules:
+ * ******************
+ *
+ * Non-repetitive AND No-deco dive:
+ *     Desaturation time >  12 hours => No Fly time = Desaturation time
+ *     Desaturation time <= 12 hours => No Fly time = 12 hours
+ *
+ * Repetitive OR Decompression dive:
+ *     Desaturation time >  24 hours => No Fly time = Desaturation time
+ *     Desaturation time <= 24 hours => No Fly time = 24 hours
+ *
+ * @param desaturationTimeInMinutes
+ * @return The calculated No Fly time
+ */
+long Buhlmann::calculateNoFlyTime(long desaturationTimeInMinutes) {
+
+	bool isRepetitiveDive = false;
+	bool isDecoDive = false;
+
+	Serial.println("Calculate - No Fly time\n");
+
+	Serial.print("Dive start timestamp: ");
+	Serial.println(_diveStartTimestamp);
+	Serial.print("Previous dive stop timestamp: ");
+	Serial.println(_previousDiveResult->previousDiveDateTimestamp);
+
+	//Test if the previous dive ended within 24 hours(1 day) = 24 × 60 × 60 = 86400 seconds
+	if ((_diveStartTimestamp - _previousDiveResult->previousDiveDateTimestamp) < 86400) {
+		isRepetitiveDive = true;
+	}
+
+	Serial.print("Was DECO dive? ");
+	Serial.println(_wasDecoDive);
+	Serial.print("Previous dive was DECO dive? ");
+	Serial.println(_previousDiveResult->wasDecoDive);
+
+	//Test if this or the previous dive was a decompression dive
+	if (_wasDecoDive || _previousDiveResult->wasDecoDive) {
+		isDecoDive = true;
+	}
+	long noFlyTimeInMinutes = 1;
+	if (isRepetitiveDive || isDecoDive) {
+		if (desaturationTimeInMinutes > 1440) { //24 hours
+			noFlyTimeInMinutes = desaturationTimeInMinutes;
+		} else {
+			noFlyTimeInMinutes = 1440;
+		}
+	} else {
+		if (desaturationTimeInMinutes > 720) { //12 hours
+			noFlyTimeInMinutes = desaturationTimeInMinutes;
+		} else {
+			noFlyTimeInMinutes = 720;
+		}
+	}
+
+	Serial.print(F("No Fly time: "));
+	Serial.print(noFlyTimeInMinutes);
+	Serial.print(F(", Is deco? "));
+	Serial.print(isDecoDive);
+	Serial.print(F(", Is repetitive? "));
+	Serial.println(isRepetitiveDive);
+
+	return noFlyTimeInMinutes;
 }

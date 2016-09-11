@@ -16,16 +16,13 @@ enum ascendRates
 	ASCEND_DANGER = 5,
 };
 
-typedef struct DiveData {
-	float pressure; //The current pressure in milliBars
-	unsigned int duration; //The duration of the dive in seconds
-};
-
 typedef struct DiveResult {
 	float compartmentPartialPressures[COMPARTMENT_COUNT];
-	float maxDepthInMeters;
-	unsigned int durationInSeconds;
-	int noFlyTimeInMinutes;
+	float maxDepthInMeters = 0;
+	unsigned int durationInSeconds = 0;
+	long noFlyTimeInMinutes = 1;
+	bool wasDecoDive = false;
+	unsigned long previousDiveDateTimestamp = 0;
 };
 
 typedef struct DiveInfo {
@@ -54,32 +51,37 @@ public:
 
 	DiveResult* surfaceInterval(long surfaceIntervalInMinutes, DiveResult* previousDiveResult);
     DiveResult* initializeCompartments();
-    void startDive(DiveResult* previousDiveResult);
-    DiveInfo progressDive(DiveData* diveData);
-    DiveResult* stopDive();
+    void startDive(DiveResult* previousDiveResult, unsigned long diveStartTimestamp);
+    DiveInfo progressDive(float currentPressure, unsigned int duration);
+    DiveResult* stopDive(unsigned long diveStopTimestamp);
 
     float calculateNitrogenPartialPressureInLung(float currentPressure);
+    long calculateDesaturationTime(float limitPercentage);
+    long calculateNoFlyTime(long desaturationTimeInMinutes);
 
 private:
 	float _seaLevelAtmosphericPressure;
 	float _nitrogenRateInGas;
-	float _minimumAircraftCabinPressure;
 	float _waterVapourPressureCorrection;
 
 	float _halfTimesNitrogen[COMPARTMENT_COUNT];
 	float _aValuesNitrogen[COMPARTMENT_COUNT];
 	float _bValuesNitrogen[COMPARTMENT_COUNT];
 
+	DiveResult* _previousDiveResult;
+	long _diveStartTimestamp;
+
 	float _compartmentCurrentPartialPressures[COMPARTMENT_COUNT];
 	unsigned int _currentDiveDuration; //In seconds
 	float _currentDepth;
 	float _maxDepth;
+	bool _wasDecoDive;
 
 	float getCompartmentHalfTimeInSeconds(int compartmentIndex);
 	float getCompartmentPartialPressure(int compartmentIndex);
 	void setCompartmentPartialPressure(int compartmentIndex, float partialPressure);
 
-	float calculateCompartmentInertGasPartialPressure(float timeInSeconds, float halfTimeInSeconds, float currentInertGasPartialPressureInCompartment, float currentInertGasPartialPressureInLung);
+	float calculateCompartmentInertGasPartialPressure(long timeInSeconds, float halfTimeInSeconds, float currentInertGasPartialPressureInCompartment, float currentInertGasPartialPressureInLung);
 	float getAscendToPartialPressureForCompartment(int compartmentIndex, float compartmentPartialPressure);
 	bool isDecoNeeded(float ascendToPartialPressure);
 	int getMinutesNeededTillDeco(int compartmentIndex, float currentPressure);

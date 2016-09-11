@@ -88,7 +88,6 @@ float previousPressureInMillibar;
 
 MAX17043 batteryMonitor;
 float batterySoc = 255;
-float batteryVoltage = 5;
 
 Logbook logbook = Logbook();
 int currentProfileNumber = 0; //There is no stored profile - default state
@@ -96,7 +95,7 @@ int maximumProfileNumber = 0;
 
 LastDive lastDive = LastDive();
 
-#define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
+#define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
 #define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
 
 void setup() {
@@ -496,8 +495,10 @@ void startDive()
 			Serial.print(F("BEFORE dive No Fly time (min): "));
 			Serial.println(lastDiveData->noFlyTimeInMinutes);
 
-			//Copy Last Dive Data compartments
+			//Copy Last Dive Data
 			diveResult->noFlyTimeInMinutes = lastDiveData->noFlyTimeInMinutes;
+			diveResult->previousDiveDateTimestamp = lastDiveData->diveDateTimestamp;
+			diveResult->wasDecoDive = lastDiveData->wasDecoDive;
 			for (byte i=0; i <COMPARTMENT_COUNT; i++) {
 				diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
 
@@ -529,7 +530,7 @@ void startDive()
 			Serial.println(diveResult->noFlyTimeInMinutes);
 		}
 
-		buhlmann.startDive(diveResult);
+		buhlmann.startDive(diveResult, nowTimestamp());
 	}
 }
 
@@ -543,8 +544,7 @@ void stopDive()
 
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
 
-	DiveData diveData = {pressureInMillibar, durationInSeconds};
-	DiveInfo diveInfo = buhlmann.progressDive(&diveData);
+	DiveInfo diveInfo = buhlmann.progressDive(pressureInMillibar, durationInSeconds);
 	view.drawAscend(diveInfo.ascendRate);
 
 	view.drawDecoArea(diveInfo, imperialUnitsSetting);
@@ -560,7 +560,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		Serial.println(F("DIVE - Finished"));
 
-		DiveResult* diveResult = buhlmann.stopDive();
+		DiveResult* diveResult = buhlmann.stopDive(nowTimestamp());
 
 		String currentTimeText = settings.getCurrentTimeText();
 
@@ -609,6 +609,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		lastDiveData->maxDepthInMeters = diveResult->maxDepthInMeters;
 		lastDiveData->durationInSeconds = diveResult->durationInSeconds;
 		lastDiveData->noFlyTimeInMinutes = diveResult->noFlyTimeInMinutes;
+		lastDiveData->wasDecoDive = diveResult->wasDecoDive;
 
 		for (byte i=0; i<COMPARTMENT_COUNT; i++) {
 			lastDiveData->compartmentPartialPressures[i] = diveResult->compartmentPartialPressures[i];
