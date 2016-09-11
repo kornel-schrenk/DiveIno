@@ -580,14 +580,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		logbookData->lastDiveDateTime = currentTimeText.substring(0, 16);
 
 		//Add the dive duration to the overall logged duration
-		Serial.print(F("Dive duration (min): "));
-		Serial.println(durationInMinutes);
-		Serial.print(F("Previous duration (min): "));
-		Serial.println(logbookData->totalDiveMinutes);
-
 		durationInMinutes = logbookData->totalDiveMinutes + durationInMinutes;
-		Serial.print(F("New duration (min): "));
-		Serial.println(durationInMinutes);
 
 		logbookData->totalDiveHours += durationInMinutes / 60;
 		logbookData->totalDiveMinutes = durationInMinutes % 60;
@@ -600,7 +593,7 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 		///////////////////////////
 		// Update Last Dive Data //
 
-		Serial.print(F("Stopped timestamp: "));
+		Serial.print(F("Dive stop timestamp: "));
 		Serial.println(nowTimestamp());
 
 		LastDiveData* lastDiveData = new LastDiveData;
@@ -1149,11 +1142,6 @@ void displayScreen(byte screen) {
 
 			if (lastDiveData != NULL && lastDiveData->diveDateTimestamp > 0 ) {
 
-			    Serial.print(F("Now timestamp: "));
-			    Serial.println(nowTimestamp());
-				Serial.print(F("Last dive timestamp: "));
-				Serial.println(lastDiveData->diveDateTimestamp);
-
 				//Calculate surface interval
 				surfaceIntervalInMinutes = (nowTimestamp() - lastDiveData->diveDateTimestamp) / 60;
 
@@ -1173,26 +1161,12 @@ void displayScreen(byte screen) {
 					diveResult->maxDepthInMeters = lastDiveData->maxDepthInMeters;
 					for (byte i=0; i <COMPARTMENT_COUNT; i++) {
 						diveResult->compartmentPartialPressures[i] = lastDiveData->compartmentPartialPressures[i];
-
-				        Serial.print(F("BEFORE: Dive compartment "));
-				        Serial.print(i);
-				        Serial.print(F(": "));
-				        Serial.print(diveResult->compartmentPartialPressures[i], 0);
-				        Serial.println(F(" ppN2"));
 					}
 
 					//Spend the time on the surface
 					buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
 					buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
 					diveResult = buhlmann.surfaceInterval(surfaceIntervalInMinutes, diveResult);
-
-					for (byte i=0; i <COMPARTMENT_COUNT; i++) {
-				        Serial.print(F("AFTER: Dive compartment "));
-				        Serial.print(i);
-				        Serial.print(F(": "));
-				        Serial.print(diveResult->compartmentPartialPressures[i], 0);
-				        Serial.println(F(" ppN2"));
-					}
 
 					Serial.print(F("After "));
 					Serial.print(surfaceIntervalInMinutes);

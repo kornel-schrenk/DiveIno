@@ -558,7 +558,7 @@ void View::displayAboutScreen()
 	tft->setColor(VGA_WHITE);
 	sdFiles->load(50, 90, 128, 122, "Images/LogoGreen.raw", 8, 0);
 
-	tft->print(F("Version: 1.1.1"), 200 , 110);
+	tft->print(F("Version: 1.1.2"), 200 , 110);
 	tft->setColor(VGA_GREEN);
 	tft->print(F("www.diveino.hu"), 200, 160);
 }

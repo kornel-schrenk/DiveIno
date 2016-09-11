@@ -451,13 +451,7 @@ DiveResult* Buhlmann::stopDive(unsigned long diveStopTimestamp) {
 long Buhlmann::calculateDesaturationTime(float limitPercentage) {
 
 	float initialPartialPressure = calculateNitrogenPartialPressureInLung(_seaLevelAtmosphericPressure);
-	Serial.print(F("Initial partial pressure: "));
-	Serial.println(initialPartialPressure);
-
 	float desatPartialPressureLimit = initialPartialPressure * limitPercentage;
-	Serial.print(F("Desaturation partial pressure limit: "));
-	Serial.println(desatPartialPressureLimit);
-	Serial.println(F("-----------------------------------\n"));
 
 	long desaturationTimeInMinutes = 1;
 	for (int i=0; i < COMPARTMENT_COUNT; i++) {
@@ -512,13 +506,6 @@ long Buhlmann::calculateNoFlyTime(long desaturationTimeInMinutes) {
 
 	bool isRepetitiveDive = false;
 	bool isDecoDive = false;
-
-	Serial.println("Calculate - No Fly time\n");
-
-	Serial.print("Dive start timestamp: ");
-	Serial.println(_diveStartTimestamp);
-	Serial.print("Previous dive stop timestamp: ");
-	Serial.println(_previousDiveResult->previousDiveDateTimestamp);
 
 	//Test if the previous dive ended within 24 hours(1 day) = 24 × 60 × 60 = 86400 seconds
 	if ((_diveStartTimestamp - _previousDiveResult->previousDiveDateTimestamp) < 86400) {
