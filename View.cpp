@@ -542,7 +542,7 @@ void View::displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTime
 	}
 }
 
-void View::displayAboutScreen()
+void View::displayAboutScreen(String versionNumber)
 {
 	tft->clrScr();
 	tft->setBackColor(VGA_BLACK);
@@ -558,7 +558,8 @@ void View::displayAboutScreen()
 	tft->setColor(VGA_WHITE);
 	sdFiles->load(50, 90, 128, 122, "Images/LogoGreen.raw", 8, 0);
 
-	tft->print(F("Version: 1.1.2"), 200 , 110);
+	tft->print(F("Version: "), 200 , 110);
+	tft->print(versionNumber, 344 , 110);
 	tft->setColor(VGA_GREEN);
 	tft->print(F("www.diveino.hu"), 200, 160);
 }

@@ -1,10 +1,9 @@
 #include "Settings.h"
 
-#define SETTINGS_FILE_NAME "SETTINGS.TXT"
+#define SETTINGS_FILE_NAME "Settings.json"
 
 const String NEW_LINE = "\n";
 const char ZERO = '0';
-const char ONE = '1';
 
 Settings::Settings() {
 }
@@ -20,24 +19,22 @@ DiveInoSettings* Settings::loadDiveInoSettings()
 	if (SD.exists(SETTINGS_FILE_NAME)) {
 		SdFile settingsFile;
 		if (settingsFile.open(SETTINGS_FILE_NAME, O_READ)) {
-			String line;
+
+			char fileContent[settingsFile.fileSize()];
 			int counter = 0;
 			while (settingsFile.available()) {
-				settingsFile.read();
-				line = readStringUntil(&settingsFile, '\n');
-
-				if (counter == 0) {
-					diveInoSettings->seaLevelPressureSetting = readFloatFromLineEnd(line);
-				} else if (counter == 1) {
-					diveInoSettings->oxygenRateSetting = readFloatFromLineEnd(line);
-				} else if (counter == 2) {
-					diveInoSettings->soundSetting = readBoolFromLineEnd(line);
-				} else if (counter == 3) {
-					diveInoSettings->imperialUnitsSetting = readBoolFromLineEnd(line);
-				}
+				fileContent[counter] = settingsFile.read();
 				counter++;
 			}
 			settingsFile.close();
+
+			StaticJsonBuffer<JSON_OBJECT_SIZE(5)> jsonBuffer;
+			JsonObject& root = jsonBuffer.parseObject(fileContent);
+
+			diveInoSettings->seaLevelPressureSetting = root["seaLevelPressure"];
+			diveInoSettings->oxygenRateSetting = root["oxygenPercentage"];
+			diveInoSettings->soundSetting = root["soundEnabled"];
+			diveInoSettings->imperialUnitsSetting = root["isImperialUnits"];
 		}
 	} else {
 		//Create a new Settings file, if it is not on the SD card with default values
@@ -53,29 +50,20 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 	SdFile settingsFile;
 	if (settingsFile.open(SETTINGS_FILE_NAME, O_WRITE | O_CREAT | O_APPEND )) {
 
-		settingsFile.print(F("seaLevelPressure = "));
-		settingsFile.print(diveInoSettings->seaLevelPressureSetting);
-		settingsFile.print(NEW_LINE);
-		settingsFile.print(F("oxygenRate = "));
-		settingsFile.print(diveInoSettings->oxygenRateSetting);
-		settingsFile.print(NEW_LINE);
-		settingsFile.print(F("sound = "));
-		if (!diveInoSettings->soundSetting) {
-			settingsFile.print(ZERO);
-		} else {
-			settingsFile.print(ONE);
-		}
-		settingsFile.print(NEW_LINE);
-		settingsFile.print(F("units = "));
-		if (!diveInoSettings->imperialUnitsSetting) {
-			settingsFile.print(ZERO);
-		} else {
-			settingsFile.print(ONE);
-		}
-		settingsFile.print(NEW_LINE);
-		settingsFile.flush();
+		StaticJsonBuffer<JSON_OBJECT_SIZE(5)> jsonBuffer;
 
-		settingsFile.close();
+		JsonObject& root = jsonBuffer.createObject();
+		root["seaLevelPressure"] = double_with_n_digits(diveInoSettings->seaLevelPressureSetting, 5);
+		root.set("oxygenPercentage", diveInoSettings->oxygenRateSetting);
+		root.set("soundEnabled", diveInoSettings->soundSetting);
+		root.set("isImperialUnits", diveInoSettings->imperialUnitsSetting);
+
+		SdFile settingsFile;
+		if (settingsFile.open(SETTINGS_FILE_NAME, O_WRITE | O_CREAT | O_APPEND )) {
+			root.prettyPrintTo(settingsFile);
+			settingsFile.flush();
+			settingsFile.close();
+		}
 	}
 }
 
@@ -157,31 +145,3 @@ void Settings::setCurrentTime(DateTimeSettings* dateTimeSettings) {
 #endif
 }
 
-
-/////////////////////
-// Private methods //
-/////////////////////
-
-bool Settings::readBoolFromLineEnd(String line) {
-	int value = line.substring(line.indexOf('=')+1).toInt();
-	if (value > 0) {
-		return true;
-	}
-	return false;
-}
-
-float Settings::readFloatFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+1).toFloat();
-}
-
-String Settings::readStringUntil(SdFile* file, char terminator)
-{
-  String ret;
-  int c = file->read();
-  while (c >= 0 && c != terminator)
-  {
-    ret += (char)c;
-    c = file->read();
-  }
-  return ret;
-}

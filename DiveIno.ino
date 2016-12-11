@@ -20,6 +20,8 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
+const String VERSION_NUMBER = "1.1.3";
+
 SdFat SD;
 
 //Infrared Receiver initialization
@@ -52,7 +54,6 @@ DateTimeSettings* currentDateTimeSettings;
 
 byte selectedSettingIndex = 0;
 byte selectedDateTimeSettingIndex = 0;
-bool isSdCardPresent = false;
 
 #define SURFACE_MODE 		0  // Menu, Logbook, Surface Time, Settings and About are available
 #define DIVE_START_MODE 	1  // When the driver pressed the dive button but not below 2 meters
@@ -95,7 +96,7 @@ int maximumProfileNumber = 0;
 
 LastDive lastDive = LastDive();
 
-#define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
+#define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
 #define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
 
 void setup() {
@@ -107,34 +108,27 @@ void setup() {
 	}
 	delay(1000);
 
-	Serial.println("");
-	Serial.println(F("DiveIno - START"));
-	Serial.println("");
+	Serial.print(F("\nDiveIno - version: "));
+	Serial.print(VERSION_NUMBER);
+	Serial.println("\n");
 
 	// SD Card initialization
 	pinMode(csPin, OUTPUT);
 	if (SD.begin(csPin, SPI_HALF_SPEED)) {
-		isSdCardPresent = true;
-
-		DiveInoSettings* diveInoSettings = settings.loadDiveInoSettings();
-		seaLevelPressureSetting = diveInoSettings->seaLevelPressureSetting;
-		oxygenRateSetting = diveInoSettings->oxygenRateSetting;
-		soundSetting = diveInoSettings->soundSetting;
-		imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
+		Serial.println(F("SD card check: OK\n"));
 	} else {
+		Serial.println(F("SD card check: FAILED\n"));
 		//Stop the sketch execution
 		SD.initErrorHalt();
 	}
 
-	Serial.print(F("SD Card present: "));
-	if (isSdCardPresent) {
-		Serial.println(F("YES"));
-	} else {
-		Serial.println(F("NO"));
-	}
-	Serial.println("");
+	DiveInoSettings* diveInoSettings = settings.loadDiveInoSettings();
+	seaLevelPressureSetting = diveInoSettings->seaLevelPressureSetting;
+	oxygenRateSetting = diveInoSettings->oxygenRateSetting;
+	soundSetting = diveInoSettings->soundSetting;
+	imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
 
-	Serial.println(F("Settings: "));
+	Serial.println(F("Settings check: OK\n"));
 	Serial.print(F("seaLevelPressure: "));
 	Serial.println(seaLevelPressureSetting, 2);
 	Serial.print(F("oxygenRate: "));
@@ -160,27 +154,28 @@ void setup() {
     batteryMonitor.reset();
     batteryMonitor.quickStart();
 
-    if (sensor.initializeMS_5803()) {
-      Serial.println(F("MS5803 CRC check OK."));
+    if (sensor.initializeMS_5803(false)) {
+      Serial.println(F("MS5803 sensor check: OK\n"));
     }
     else {
-      Serial.println(F("MS5803 CRC check FAILED!"));
+      Serial.println(F("MS5803 sensor check: FAILED\n"));
     }
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 	setSyncProvider((unsigned long int (*)())RTC.get);
     if(timeStatus() != timeSet){
-        Serial.println(F("RTC - time was not set!"));
+        Serial.println(F("RTC time check: OK\n"));
     } else {
-        Serial.println(F("RTC - time was set"));
+        Serial.println(F("RTC time check: FAILED\n"));
     }
 #endif
 
-    Serial.print(F("RTC time: "));
+    Serial.print(F("Current time: "));
     Serial.println(settings.getCurrentTimeText());
 
-    Serial.print(F("Now timestamp: "));
+    Serial.print(F("Timestamp: "));
     Serial.println(nowTimestamp());
+    Serial.println("");
 
 	tft.InitLCD();
 
@@ -1071,16 +1066,14 @@ void setSettingsToDefault()
 
 void saveSettings()
 {
-	if (isSdCardPresent) {
-		DiveInoSettings* diveInoSettings = new DiveInoSettings;
-		diveInoSettings->seaLevelPressureSetting = seaLevelPressureSetting;
-		diveInoSettings->oxygenRateSetting = oxygenRateSetting;
-		diveInoSettings->soundSetting = soundSetting;
-		diveInoSettings->imperialUnitsSetting = imperialUnitsSetting;
-		settings.saveDiveInoSettings(diveInoSettings);
+	DiveInoSettings* diveInoSettings = new DiveInoSettings;
+	diveInoSettings->seaLevelPressureSetting = seaLevelPressureSetting;
+	diveInoSettings->oxygenRateSetting = oxygenRateSetting;
+	diveInoSettings->soundSetting = soundSetting;
+	diveInoSettings->imperialUnitsSetting = imperialUnitsSetting;
+	settings.saveDiveInoSettings(diveInoSettings);
 
-		Serial.println(F("Settings were saved to the SD Card."));
-	}
+	Serial.println(F("Settings were saved to the SD Card."));
 
 	buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
 	buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
@@ -1204,7 +1197,7 @@ void displayScreen(byte screen) {
 			break;
 		case ABOUT_SCREEN:
 			timerTimestamp = nowTimestamp();
-			view.displayAboutScreen();
+			view.displayAboutScreen(VERSION_NUMBER);
 			view.drawCurrentTime(settings.getCurrentTimeText());
 			view.drawBatteryStateOfCharge(batterySoc);
 			break;

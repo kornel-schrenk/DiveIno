@@ -5,6 +5,7 @@
 #include "SdFat.h"
 #include "TimeLib.h"
 #include "DS1307RTC.h"
+#include "ArduinoJson.h"
 
 extern SdFat SD;
 
@@ -33,9 +34,6 @@ public:
 	DateTimeSettings* getCurrentTime();
 	void setCurrentTime(DateTimeSettings* dateTimeSettings);
 private:
-	bool readBoolFromLineEnd(String line);
-	float readFloatFromLineEnd(String line);
-	String readStringUntil(SdFile* file, char terminator);
 };
 
 #endif /* SETTINGS_H_ */

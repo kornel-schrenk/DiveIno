@@ -43,7 +43,7 @@ public:
 	void displayGaugeScreen();
 	void displaySettings(byte settingIndex, float seaLevelPressureSetting, float oxygenRateSetting,	bool soundSetting, bool imperialUnitsSetting);
 	void displaySettingsScreen(byte selectionIndex, float seaLevelPressureSetting, float oxygenRateSetting, bool soundSetting, bool imperialUnitsSetting);
-	void displayAboutScreen();
+	void displayAboutScreen(String versionNumber);
 	void displayTestScreen();
 	void displayDateTimeSettingScreen(byte settingIndex, DateTimeSettings* dateTimeSettings);
 	void displayDateTimeSettings(byte settingIndex, DateTimeSettings* dateTimeSettings);
