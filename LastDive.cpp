@@ -1,6 +1,6 @@
 #include "LastDive.h"
 
-#define LASTDIVE_FILE_NAME "LASTDIVE.TXT"
+#define LASTDIVE_FILE_NAME "Lastdive.json"
 
 const String NEW_LINE = "\n";
 
@@ -18,29 +18,29 @@ LastDiveData* LastDive::loadLastDiveData()
 	if (SD.exists(LASTDIVE_FILE_NAME)) {
 		SdFile lastDiveFile;
 		if (lastDiveFile.open(LASTDIVE_FILE_NAME, O_READ)) {
-			String line;
+
+			char fileContent[lastDiveFile.fileSize()];
 			int counter = 0;
 			while (lastDiveFile.available()) {
-				line = readStringUntil(&lastDiveFile, '\n');
-
-				if (counter == 0) {
-					lastDiveData->diveDateTimestamp = readLongFromLineEnd(line);
-				} else if (counter == 1) {
-					lastDiveData->diveDate = readStringFromLineEnd(line);
-				} else if (counter == 2) {
-					lastDiveData->maxDepthInMeters = readFloatFromLineEnd(line);
-				} else if (counter == 3) {
-					lastDiveData->durationInSeconds = readIntFromLineEnd(line);
-				} else if (counter == 4) {
-					lastDiveData->noFlyTimeInMinutes = readLongFromLineEnd(line);
-				} else if (counter == 5) {
-					lastDiveData->wasDecoDive = readBoolFromLineEnd(line);
-				} else {
-					lastDiveData->compartmentPartialPressures[counter-6] = readFloatFromLineEnd(line);
-				}
+				fileContent[counter] = lastDiveFile.read();
 				counter++;
 			}
 			lastDiveFile.close();
+
+			StaticJsonBuffer<JSON_OBJECT_SIZE(8)+JSON_ARRAY_SIZE(16)> jsonBuffer;
+			JsonObject& root = jsonBuffer.parseObject(fileContent);
+
+			lastDiveData->diveDateTimestamp = root["timestamp"];
+			lastDiveData->diveDate = root["diveDate"].as<String>();
+			lastDiveData->diveTime = root["diveTime"].as<String>();
+			lastDiveData->durationInSeconds = root["diveDuration"];
+			lastDiveData->noFlyTimeInMinutes = root["noFlyTime"];
+			lastDiveData->maxDepthInMeters = root["maxDepth"];
+			lastDiveData->wasDecoDive = root["wasDecoDive"];
+
+			for (int i=0; i<COMPARTMENT_COUNT; i++) {
+				lastDiveData->compartmentPartialPressures[i] = root["compartmentPartialPressures"][i];
+			}
 		}
 	}
 	return lastDiveData;
@@ -53,81 +53,25 @@ void LastDive::storeLastDiveData(LastDiveData* lastDiveData)
 	SdFile lastDiveFile;
 	if (lastDiveFile.open(LASTDIVE_FILE_NAME, O_WRITE | O_CREAT | O_APPEND)) {
 
-		lastDiveFile.print(F("Timestamp = "));
-		lastDiveFile.print(lastDiveData->diveDateTimestamp);
-		lastDiveFile.print(NEW_LINE);
-		lastDiveFile.print(F("Date = "));
-		lastDiveFile.print(lastDiveData->diveDate);
-		lastDiveFile.print(NEW_LINE);
-		lastDiveFile.print(F("Max depth (m) = "));
-		lastDiveFile.print(lastDiveData->maxDepthInMeters);
-		lastDiveFile.print(NEW_LINE);
-		lastDiveFile.print(F("Duration (sec) = "));
-		lastDiveFile.print(lastDiveData->durationInSeconds);
-		lastDiveFile.print(NEW_LINE);
-		lastDiveFile.print(F("No fly time (min) = "));
-		lastDiveFile.print(lastDiveData->noFlyTimeInMinutes);
-		lastDiveFile.print(NEW_LINE);
-		lastDiveFile.print(F("Was deco dive = "));
-		if (lastDiveData->wasDecoDive) {
-			lastDiveFile.print('1');
-		} else {
-			lastDiveFile.print('0');
-		}
-		lastDiveFile.print(NEW_LINE);
-		lastDiveFile.flush();
+		StaticJsonBuffer<JSON_OBJECT_SIZE(8)+JSON_ARRAY_SIZE(16)> jsonBuffer;
 
+		JsonObject& root = jsonBuffer.createObject();
+		root.set("timestamp", lastDiveData->diveDateTimestamp);
+		root.set("diveDate", lastDiveData->diveDate);
+		root.set("diveTime", lastDiveData->diveTime);
+		root.set("diveDuration", lastDiveData->durationInSeconds);
+		root.set("noFlyTime", lastDiveData->noFlyTimeInMinutes);
+		root.set("maxDepth", lastDiveData->maxDepthInMeters, 2);
+		root.set("wasDecoDive", lastDiveData->wasDecoDive);
+
+		JsonArray& partialPressures = root.createNestedArray("compartmentPartialPressures");
 		for (int i=0; i<COMPARTMENT_COUNT; i++) {
-			if (i<10) {
-				lastDiveFile.print(F("0"));
-			}
-			lastDiveFile.print(i);
-			lastDiveFile.print(F(" Compartment ppN2 = "));
-			lastDiveFile.print(lastDiveData->compartmentPartialPressures[i]);
-			lastDiveFile.print(NEW_LINE);
+			partialPressures.add(lastDiveData->compartmentPartialPressures[i]);
 		}
-		lastDiveFile.flush();
 
+		root.prettyPrintTo(lastDiveFile);
+
+		lastDiveFile.flush();
 		lastDiveFile.close();
 	}
-}
-
-/////////////////////
-// Private methods //
-/////////////////////
-
-bool LastDive::readBoolFromLineEnd(String line) {
-	int value = line.substring(line.indexOf('=')+1).toInt();
-	if (value > 0) {
-		return true;
-	}
-	return false;
-}
-
-unsigned long LastDive::readLongFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+1).toInt();
-}
-
-int LastDive::readIntFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+1).toInt();
-}
-
-float LastDive::readFloatFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+1).toFloat();
-}
-
-String LastDive::readStringFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+2);
-}
-
-String LastDive::readStringUntil(SdFile* file, char terminator)
-{
-  String ret;
-  int c = file->read();
-  while (c >= 0 && c != terminator)
-  {
-    ret += (char)c;
-    c = file->read();
-  }
-  return ret;
 }

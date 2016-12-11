@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.1.3";
+const String VERSION_NUMBER = "1.1.4";
 
 SdFat SD;
 
@@ -96,7 +96,7 @@ int maximumProfileNumber = 0;
 
 LastDive lastDive = LastDive();
 
-#define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
+#define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
 #define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
 
 void setup() {
@@ -163,11 +163,6 @@ void setup() {
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 	setSyncProvider((unsigned long int (*)())RTC.get);
-    if(timeStatus() != timeSet){
-        Serial.println(F("RTC time check: OK\n"));
-    } else {
-        Serial.println(F("RTC time check: FAILED\n"));
-    }
 #endif
 
     Serial.print(F("Current time: "));
@@ -593,7 +588,8 @@ void diveProgress(float temperatureInCelsius, float pressureInMillibar, float de
 
 		LastDiveData* lastDiveData = new LastDiveData;
 		lastDiveData->diveDateTimestamp = nowTimestamp();
-		lastDiveData->diveDate = currentTimeText;
+		lastDiveData->diveDate = currentTimeText.substring(0, 10);
+		lastDiveData->diveTime = currentTimeText.substring(11);
 		lastDiveData->maxDepthInMeters = diveResult->maxDepthInMeters;
 		lastDiveData->durationInSeconds = diveResult->durationInSeconds;
 		lastDiveData->noFlyTimeInMinutes = diveResult->noFlyTimeInMinutes;
