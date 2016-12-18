@@ -66,7 +66,7 @@ void LastDive::storeLastDiveData(LastDiveData* lastDiveData)
 
 		JsonArray& partialPressures = root.createNestedArray("compartmentPartialPressures");
 		for (int i=0; i<COMPARTMENT_COUNT; i++) {
-			partialPressures.add(lastDiveData->compartmentPartialPressures[i]);
+			partialPressures.add(double_with_n_digits(lastDiveData->compartmentPartialPressures[i], 5));
 		}
 
 		root.prettyPrintTo(lastDiveFile);

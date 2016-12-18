@@ -97,9 +97,9 @@ String Logbook::getFileNameFromProfileNumber(int profileNumber, bool isTemp)
 	//Create the name of the new profile file
 	String fileName = "";
 	if (isTemp) {
-		fileName += "TEMP";
+		fileName += "Temp";
 	} else {
-		fileName += "DIVE";
+		fileName += "Dive";
 	}
 
 	if (profileNumber < 10) {
@@ -110,7 +110,7 @@ String Logbook::getFileNameFromProfileNumber(int profileNumber, bool isTemp)
 		fileName += "0";
 	}
 	fileName += profileNumber;
-	fileName += ".TXT";
+	fileName += ".json";
 
 	return fileName;
 }
@@ -130,13 +130,19 @@ bool Logbook::createNewProfileFile(int profileNumber)
 
 void Logbook::storeProfileItem(float pressure, float depth, float temperature, int duration)
 {
-	profileFile.print(pressure, 0);
-	profileFile.print(",");
-	profileFile.print(depth, 1);
-	profileFile.print(",");
-	profileFile.print(temperature, 1);
-	profileFile.print(",");
-	profileFile.println(duration);
+	StaticJsonBuffer<JSON_OBJECT_SIZE(4)> jsonBuffer;
+
+	JsonObject& root = jsonBuffer.createObject();
+	root.set("depth", depth);
+	root.set("pressure", pressure, 5);
+	root.set("duration", duration);
+	root.set("temperature", temperature);
+
+	root.printTo(profileFile);
+	profileFile.flush();
+
+	profileFile.print(F("\n"));
+	profileFile.flush();
 
 	if (!profileFile.sync() || profileFile.getWriteError()) {
 		error("SD card write error during dive profile save!");
@@ -161,51 +167,42 @@ void Logbook::storeDiveSummary(int profileNumber, unsigned int duration, float m
 	if (finalFile.open(finalProfileFileNameArray,  O_WRITE | O_CREAT | O_APPEND ) &&
 		tempProfileFile.open(tempProfileFileNameArray, O_READ )) {
 
-		finalFile.print(F("************\n"));
-		finalFile.print(F("* Summary: *\n"));
-		finalFile.print(F("************\n"));
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("Duration (seconds) = "));
-		finalFile.print(duration);
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("Maximum depth (meter) = "));
-		finalFile.print(maxDepth, 1);
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("Minimum temperature (celsius) = "));
-		finalFile.print(minTemperature, 1);
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("Oxygen percentage = "));
-		finalFile.print(oxigenPercentage, 1);
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("Dive date = "));
-		finalFile.print(date);
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("Dive time = "));
-		finalFile.print(time);
-		finalFile.print(NEW_LINE);
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("**********\n"));
-		finalFile.print(F("* Notes: *\n"));
-		finalFile.print(F("**********\n"));
-		finalFile.print(NEW_LINE);
-		finalFile.print(NEW_LINE);
-		finalFile.print(NEW_LINE);
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("************\n"));
-		finalFile.print(F("* Profile: *\n"));
-		finalFile.print(F("************\n"));
-		finalFile.print(NEW_LINE);
-		finalFile.print(F("Pressure (milliBar), Depth (meter), Temperature (celsius), Duration (seconds)\n"));
-		finalFile.println(F("-----------------------------------------------------------------------------"));
+		finalFile.print(F("{ \"summary\":\n"));
 		finalFile.flush();
 
+		StaticJsonBuffer<JSON_OBJECT_SIZE(6)> jsonBuffer;
+
+		JsonObject& root = jsonBuffer.createObject();
+		root.set("diveDuration", duration);
+		root.set("maxDepth", maxDepth);
+		root.set("minTemperature", minTemperature);
+		root.set("oxigenPercentage", oxigenPercentage);
+		root.set("diveDate", date.c_str());
+		root.set("diveTime", time.c_str());
+
+		root.printTo(finalFile);
+		finalFile.flush();
+
+		finalFile.print(F(",\n"));
+		finalFile.print(F("\"profile\": [\n"));
+		finalFile.flush();
+
+		bool isFirstline = true;
 		String line;
 		while (tempProfileFile.available()) {
+			if (isFirstline) {
+				isFirstline = false;
+			} else {
+				finalFile.print(",\n");
+				finalFile.flush();
+			}
 			line = readStringUntil(&tempProfileFile, '\n');
 			finalFile.print(line);
-			finalFile.print('\n');
 			finalFile.flush();
 		}
+
+		finalFile.print(F("\n]\n}\n"));
+		finalFile.flush();
 
 		tempProfileFile.close();
 		finalFile.close();

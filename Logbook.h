@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "SdFat.h"
 #include "UTFT.h"
+#include "ArduinoJson.h"
 
 extern SdFat SD;
 
