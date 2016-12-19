@@ -1,6 +1,6 @@
 #include "Logbook.h"
 
-#define LOGBOOK_FILE_NAME "LOGBOOK.TXT"
+#define LOGBOOK_FILE_NAME "Logbook.json"
 
 const String NEW_LINE = "\n";
 
@@ -18,27 +18,24 @@ LogbookData* Logbook::loadLogbookData()
 	if (SD.exists(LOGBOOK_FILE_NAME)) {
 		SdFile logbookFile;
 		if (logbookFile.open(LOGBOOK_FILE_NAME, O_READ)) {
-			String line;
+
+			char fileContent[logbookFile.fileSize()];
 			int counter = 0;
 			while (logbookFile.available()) {
-				line = readStringUntil(&logbookFile, '\n');
-
-				if (counter == 4) {
-					logbookData->totalNumberOfDives = readIntFromLineEnd(line);
-				} else if (counter == 5) {
-					logbookData->totalDiveHours = readIntFromLineEnd(line);
-				} else if (counter == 6) {
-					logbookData->totalDiveMinutes = readIntFromLineEnd(line);
-				} else if (counter == 7) {
-					logbookData->totalMaximumDepth = readFloatFromLineEnd(line);
-				} else if (counter == 8) {
-					logbookData->lastDiveDateTime = readStringFromLineEnd(line);
-				}
+				fileContent[counter] = logbookFile.read();
 				counter++;
 			}
-			// The first 4 lines were skipped - this is the Summary section
-			logbookData->numberOfStoredProfiles = counter - 14;
 			logbookFile.close();
+
+			StaticJsonBuffer<JSON_OBJECT_SIZE(8)+JSON_ARRAY_SIZE(16)> jsonBuffer;
+			JsonObject& root = jsonBuffer.parseObject(fileContent);
+
+			logbookData->totalNumberOfDives = root["numberOfDives"];
+			logbookData->totalDiveHours = root["loggedDiveHours"];
+			logbookData->totalDiveMinutes = root["loggedDiveMinutes"];
+			logbookData->totalMaximumDepth = root["maxDepth"];
+			logbookData->lastDiveDateTime = root["lastDiveDate"].as<String>() + " " + root["lastDiveTime"].as<String>();
+			logbookData->numberOfStoredProfiles = root["numberOfStoredProfiles"];
 		}
 	} else {
 		//Create a new Logbook file, if it is not on the SD card with default values
@@ -54,40 +51,28 @@ void Logbook::updateLogbookData(LogbookData* logbookData)
 	SdFile logbookFile;
 	if (logbookFile.open(LOGBOOK_FILE_NAME, O_WRITE | O_CREAT | O_APPEND )) {
 
-		logbookFile.print(F("************\n"));
-		logbookFile.print(F("* Summary: *\n"));
-		logbookFile.print(F("************\n"));
-		logbookFile.print(NEW_LINE);
-		logbookFile.print(F("Number of dives = "));
-		logbookFile.print(logbookData->totalNumberOfDives);
-		logbookFile.print(NEW_LINE);
-		logbookFile.print(F("Logged dive hours = "));
-		logbookFile.print(logbookData->totalDiveHours);
-		logbookFile.print(NEW_LINE);
-		logbookFile.print(F("Logged dive minutes = "));
-		logbookFile.print(logbookData->totalDiveMinutes);
-		logbookFile.print(NEW_LINE);
-		logbookFile.print(F("Maximum depth (meter) = "));
-		logbookFile.print(logbookData->totalMaximumDepth, 1);
-		logbookFile.print(NEW_LINE);
-		logbookFile.print(F("Last dive = "));
-		logbookFile.print(logbookData->lastDiveDateTime);
-		logbookFile.print(NEW_LINE);
-		logbookFile.print(NEW_LINE);
-		logbookFile.flush();
+		StaticJsonBuffer<JSON_OBJECT_SIZE(7)> jsonBuffer;
 
-		logbookFile.print(F("**********\n"));
-		logbookFile.print(F("* Dives: *\n"));
-		logbookFile.print(F("**********\n"));
-		logbookFile.print(NEW_LINE);
-		logbookFile.flush();
+		String lastDiveDate = "";
+		String lastDiveTime = "";
 
-		for (int i=1; i<=logbookData->numberOfStoredProfiles; i++) {
-			logbookFile.print(getFileNameFromProfileNumber(i, false));
-			logbookFile.print(NEW_LINE);
+		if (NULL != logbookData->lastDiveDateTime && logbookData->lastDiveDateTime.length() > 12) {
+			lastDiveDate = logbookData->lastDiveDateTime.substring(0, 10);
+			lastDiveTime = logbookData->lastDiveDateTime.substring(11);
 		}
-		logbookFile.flush();
 
+		JsonObject& root = jsonBuffer.createObject();
+		root.set("numberOfDives", logbookData->totalNumberOfDives);
+		root.set("loggedDiveHours", logbookData->totalDiveHours);
+		root.set("loggedDiveMinutes", logbookData->totalDiveMinutes);
+		root.set("maxDepth", logbookData->totalMaximumDepth);
+		root.set("lastDiveDate", lastDiveDate);
+		root.set("lastDiveTime", lastDiveTime);
+		root.set("numberOfStoredProfiles", logbookData->numberOfStoredProfiles);
+
+		root.prettyPrintTo(logbookFile);
+
+		logbookFile.flush();
 		logbookFile.close();
 	}
 }
