@@ -27,7 +27,7 @@ LogbookData* Logbook::loadLogbookData()
 			}
 			logbookFile.close();
 
-			StaticJsonBuffer<JSON_OBJECT_SIZE(8)+JSON_ARRAY_SIZE(16)> jsonBuffer;
+			StaticJsonBuffer<JSON_OBJECT_SIZE(10)> jsonBuffer;
 			JsonObject& root = jsonBuffer.parseObject(fileContent);
 
 			logbookData->totalNumberOfDives = root["numberOfDives"];
@@ -51,7 +51,7 @@ void Logbook::updateLogbookData(LogbookData* logbookData)
 	SdFile logbookFile;
 	if (logbookFile.open(LOGBOOK_FILE_NAME, O_WRITE | O_CREAT | O_APPEND )) {
 
-		StaticJsonBuffer<JSON_OBJECT_SIZE(7)> jsonBuffer;
+		StaticJsonBuffer<JSON_OBJECT_SIZE(10)> jsonBuffer;
 
 		String lastDiveDate = "";
 		String lastDiveTime = "";
