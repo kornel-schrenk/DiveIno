@@ -45,9 +45,7 @@ private:
     SdFile profileFile;
 
     float getDepthFromProfileLine(String line);
-	int readIntFromLineEnd(String line);
-	float readFloatFromLineEnd(String line);
-	String readStringFromLineEnd(String line);
+	String readJsonStringFromLineEnd(String line);
 	String readStringUntil(SdFile* file, char terminator);
 };
 

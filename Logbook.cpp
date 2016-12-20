@@ -209,31 +209,36 @@ ProfileData* Logbook::loadProfileDataFromFile(String profileFileName)
 
 	SdFile profileFile;
 	if (profileFile.open(fileName, O_READ)) {
-		Serial.print(F("Exists: "));
-		Serial.println(fileName);
-
 		String line;
 		int counter = 0;
 		while (profileFile.available()) {
 			line = readStringUntil(&profileFile, '\n');
 			line.trim();
-			if (counter == 4) {
-				profileData->diveDuration = readIntFromLineEnd(line);
-			} else if (counter == 5) {
-				profileData->maximumDepth = readFloatFromLineEnd(line);
-			} else if (counter == 6) {
-				profileData->minimumTemperature = readFloatFromLineEnd(line);
-			} else if (counter == 7) {
-				profileData->oxigenPercentage = readFloatFromLineEnd(line);
-			} else if (counter == 8) {
-				profileData->diveDate = readStringFromLineEnd(line);
-			} else if (counter == 9) {
-				profileData->diveTime = readStringFromLineEnd(line);
+			if (counter == 1) {
+				String summaryJson = readJsonStringFromLineEnd(line);
+
+				//Array conversion is required, because the JSON parser works only with arrays
+				char summaryJsonArray[summaryJson.length()+1];
+				summaryJson.toCharArray(summaryJsonArray, summaryJson.length()+1);
+
+				StaticJsonBuffer<JSON_OBJECT_SIZE(10)> jsonBuffer;
+				JsonObject& root = jsonBuffer.parseObject(summaryJsonArray);
+
+				profileData->diveDuration = root["diveDuration"];
+				profileData->maximumDepth = root["maxDepth"];
+				profileData->minimumTemperature = root["minTemperature"];
+				profileData->oxigenPercentage = root["oxigenPercentage"];
+				profileData->diveDate = root["diveDate"].as<String>();
+				profileData->diveTime = root["diveTime"].as<String>();
 			}
 			counter ++;
 		}
-		profileData->numberOfProfileItems = counter - 24;
+		profileData->numberOfProfileItems = counter - 5;
 		profileFile.close();
+
+		Serial.print(fileName);
+		Serial.print(F(" number of profile items: "));
+		Serial.println(profileData->numberOfProfileItems);
 	}
 	return profileData;
 }
@@ -250,9 +255,6 @@ void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 	if (SD.exists(fileName)) {
 		File profileFile = SD.open(fileName);
 		if (profileFile) {
-			//Skip the Summary section
-			profileFile.seek(40);
-
 			int firstLineNumberOnPage = 24 + ((pageNumber-1) * 460);
 			int lastLineNumberOnPage = 24 + (pageNumber * 460);
 			float heightUnit = 150/profileData->maximumDepth;
@@ -261,10 +263,15 @@ void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 			tft->fillRect(10,160,470,315);
 			tft->setColor(VGA_FUCHSIA);
 
+			//Skip the Summary section
+			profileFile.readStringUntil('\n');
+			profileFile.readStringUntil('\n');
+			profileFile.readStringUntil('\n');
+
 			String line;
 			int counter = 0;
 			int positionOnPage = 0;
-			while (profileFile.available()) {
+			while (profileFile.available() && counter < profileData->numberOfProfileItems) {
 				line = profileFile.readStringUntil('\n');
 
 				if (firstLineNumberOnPage < counter && counter <= lastLineNumberOnPage) {
@@ -284,19 +291,11 @@ void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 
 float Logbook::getDepthFromProfileLine(String line)
 {
-	return line.substring(line.indexOf(',')+1).substring(0, line.indexOf(',')).toFloat();
+	return line.substring(line.indexOf(':')+1, line.indexOf(',')).toFloat();
 }
 
-int Logbook::readIntFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+1).toInt();
-}
-
-float Logbook::readFloatFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+1).toFloat();
-}
-
-String Logbook::readStringFromLineEnd(String line) {
-	return line.substring(line.indexOf('=')+2);
+String Logbook::readJsonStringFromLineEnd(String line) {
+	return line.substring(0, line.indexOf('}')+1);
 }
 
 String Logbook::readStringUntil(SdFile* file, char terminator)

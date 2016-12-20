@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.1.4";
+const String VERSION_NUMBER = "1.2.0";
 
 SdFat SD;
 
@@ -96,7 +96,7 @@ int maximumProfileNumber = 0;
 
 LastDive lastDive = LastDive();
 
-#define EMULATOR_ENABLED 1 // Valid values: 0 = disabled, 1 = enabled
+#define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
 #define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
 
 void setup() {
