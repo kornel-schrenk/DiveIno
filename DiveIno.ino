@@ -100,8 +100,8 @@ LastDive lastDive = LastDive();
 String messageBuffer = "";
 bool recordMessage = false;
 
-#define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
-#define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
+bool emulatorEnabled = false;
+bool replayEnabled = false;
 
 void setup() {
 
@@ -204,7 +204,7 @@ void loop() {
 	///////////////
 
 	if (currentScreen == GAUGE_SCREEN || currentScreen == DIVE_SCREEN) {
-		if (REPLAY_ENABLED) {
+		if (replayEnabled) {
 			replayDive();
 		} else {
 			dive();
@@ -282,6 +282,28 @@ void handleMessage(String message) {
 		}
 	} else if (message.startsWith(F("LOGBOOK")) || message.startsWith(F("logbook"))) {
 		logbook.printLogbook();
+	} else if (message.startsWith(F("EMULATOR")) || message.startsWith(F("emulator"))) {
+		String onOffEmulator = message.substring(8);
+		onOffEmulator.trim();
+		if (onOffEmulator.startsWith(F("on")) || onOffEmulator.startsWith(F("ON"))) {
+			emulatorEnabled = true;
+			responseMessage += F("EMULATOR - Enabled");
+		} else {
+			emulatorEnabled = false;
+			responseMessage += F("EMULATOR - Disabled");
+		}
+		Serial.println(responseMessage);
+	} else if (message.startsWith(F("REPLAY")) || message.startsWith(F("replay"))) {
+		String onOffReplay = message.substring(6);
+		onOffReplay.trim();
+		if (onOffReplay.startsWith(F("on")) || onOffReplay.startsWith(F("ON"))) {
+			replayEnabled = true;
+			responseMessage += F("REPLAY - Enabled");
+		} else {
+			replayEnabled = false;
+			responseMessage += F("REPLAY - Disabled");
+		}
+		Serial.println(responseMessage);
 	}
 	Serial.flush();
 }
@@ -411,7 +433,7 @@ void dive()
 
 		float pressureInMillibar = seaLevelPressureSetting;
 		float temperatureInCelsius = 99;
-		if (EMULATOR_ENABLED) {
+		if (emulatorEnabled) {
 			Serial.println(F("@GET#"));
 			if (Serial.available() > 0) {
 				pressureInMillibar = Serial.parseFloat();
@@ -479,7 +501,7 @@ void dive()
 
 void startDive()
 {
-	if (EMULATOR_ENABLED) {
+	if (emulatorEnabled) {
 		Serial.println(F("@START#"));
 	}
 
@@ -570,7 +592,7 @@ void startDive()
 
 void stopDive()
 {
-	if (EMULATOR_ENABLED) {
+	if (emulatorEnabled) {
 		Serial.println(F("@STOP#"));
 	}
 	Serial.println(F("\nDIVE - Stopped"));
