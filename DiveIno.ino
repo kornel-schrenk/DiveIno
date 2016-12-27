@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.2.0";
+const String VERSION_NUMBER = "1.2.1";
 
 SdFat SD;
 
@@ -95,6 +95,10 @@ int currentProfileNumber = 0; //There is no stored profile - default state
 int maximumProfileNumber = 0;
 
 LastDive lastDive = LastDive();
+
+//Serial API implementation related variables
+String messageBuffer = "";
+bool recordMessage = false;
 
 #define EMULATOR_ENABLED 0 // Valid values: 0 = disabled, 1 = enabled
 #define REPLAY_ENABLED 0   // Valid values: 0 = disabled, 1 = enabled
@@ -205,6 +209,11 @@ void loop() {
 		} else {
 			dive();
 		}
+	} else if (currentScreen == MENU_SCREEN) {
+		//Read messages from the standard Serial interface
+		if (Serial.available() > 0) {
+			readMessageFromSerial(Serial.read());
+		}
 	} else if (currentScreen == ABOUT_SCREEN) {
 		unsigned int measurementDifference = nowTimestamp() - timerTimestamp;
 
@@ -240,6 +249,41 @@ time_t nowTimestamp()
 	}
 #endif
 	return 0;
+}
+
+////////////////
+// Serial API //
+////////////////
+
+void readMessageFromSerial(char data)
+{
+	if (data == '@') {
+		messageBuffer = "";
+		recordMessage = true;
+	} else if (data == '#') {
+		handleMessage(messageBuffer);
+		recordMessage = false;
+	} else {
+		if (recordMessage) {
+			messageBuffer += data;
+		}
+	}
+}
+
+void handleMessage(String message) {
+	String responseMessage = "";
+	if (message.startsWith(F("PROFILE")) || message.startsWith(F("profile"))) {
+		int profileNumber = message.substring(7).toInt();
+		if (profileNumber > 0) {
+			logbook.printProfile(profileNumber);
+		} else {
+			responseMessage += F("ERROR: Invalid argument - Positive Integer value expected!");
+			Serial.println(responseMessage);
+		}
+	} else if (message.startsWith(F("LOGBOOK")) || message.startsWith(F("logbook"))) {
+		logbook.printLogbook();
+	}
+	Serial.flush();
 }
 
 //////////
@@ -368,7 +412,7 @@ void dive()
 		float pressureInMillibar = seaLevelPressureSetting;
 		float temperatureInCelsius = 99;
 		if (EMULATOR_ENABLED) {
-			Serial.println(F("#GET"));
+			Serial.println(F("@GET#"));
 			if (Serial.available() > 0) {
 				pressureInMillibar = Serial.parseFloat();
 				temperatureInCelsius = Serial.parseFloat();
@@ -436,7 +480,7 @@ void dive()
 void startDive()
 {
 	if (EMULATOR_ENABLED) {
-		Serial.println(F("#START"));
+		Serial.println(F("@START#"));
 	}
 
 	//Store the the current time as seconds since Jan 1 1970 at the start of the dive
@@ -527,9 +571,9 @@ void startDive()
 void stopDive()
 {
 	if (EMULATOR_ENABLED) {
-		Serial.println(F("#STOP"));
+		Serial.println(F("@STOP#"));
 	}
-	Serial.println(F("DIVE - Stopped"));
+	Serial.println(F("\nDIVE - Stopped"));
 }
 
 void diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {

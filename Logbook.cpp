@@ -77,6 +77,21 @@ void Logbook::updateLogbookData(LogbookData* logbookData)
 	}
 }
 
+void Logbook::printLogbook()
+{
+	SdFile logbookFile;
+	if (logbookFile.open(LOGBOOK_FILE_NAME, O_READ)) {
+		  int data;
+		  while ((data = logbookFile.read()) >= 0) {
+			Serial.write(data);
+		  }
+		  logbookFile.close();
+	} else {
+		Serial.print(F("ERROR: Unable to open - "));
+		Serial.print(LOGBOOK_FILE_NAME);
+	}
+}
+
 String Logbook::getFileNameFromProfileNumber(int profileNumber, bool isTemp)
 {
 	//Create the name of the new profile file
@@ -283,6 +298,26 @@ void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 			profileFile.close();
 		}
 	}
+}
+
+void Logbook::printProfile(int profileNumber)
+{
+	String profileFileName = getFileNameFromProfileNumber(profileNumber, false);
+	char profileFileNameArray[profileFileName.length()+1];
+	profileFileName.toCharArray(profileFileNameArray, profileFileName.length()+1);
+
+	SdFile profileFile;
+	if (profileFile.open(profileFileNameArray, O_READ)) {
+		  int data;
+		  while ((data = profileFile.read()) >= 0) {
+		    Serial.write(data);
+		  }
+		  profileFile.close();
+	} else {
+		Serial.print(F("ERROR: The following file does not exist - "));
+		Serial.println(profileFileName);
+	}
+	Serial.flush();
 }
 
 /////////////////////
