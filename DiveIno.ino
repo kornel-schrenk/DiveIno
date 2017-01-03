@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.3.0";
+const String VERSION_NUMBER = "1.3.1";
 
 SdFat SD;
 
@@ -112,16 +112,22 @@ void setup() {
 	}
 	delay(1000);
 
-	Serial.print(F("\nDiveIno - version: "));
+	Serial.println(F(" ____   _              ___"));
+	Serial.println(F("|  _ \\ (_)__   __ ___ |_ _| _ __    ___"));
+	Serial.println(F("| | | || |\\ \\ / // _ \\ | | | '_ \\  / _ \\"));
+	Serial.println(F("| |_| || | \\ V /|  __/ | | | | | || (_) |"));
+	Serial.print(F("|____/ |_|  \\_/  \\___||___||_| |_| \\___/  "));
+
+	Serial.print(F("v"));
 	Serial.print(VERSION_NUMBER);
 	Serial.println("\n");
 
 	// SD Card initialization
 	pinMode(csPin, OUTPUT);
 	if (SD.begin(csPin, SPI_HALF_SPEED)) {
-		Serial.println(F("SD card check: OK\n"));
+		Serial.println(F("SD card: OK\n"));
 	} else {
-		Serial.println(F("SD card check: FAILED\n"));
+		Serial.println(F("SD card: FAILED\n"));
 		//Stop the sketch execution
 		SD.initErrorHalt();
 	}
@@ -132,18 +138,19 @@ void setup() {
 	soundSetting = diveInoSettings->soundSetting;
 	imperialUnitsSetting = diveInoSettings->imperialUnitsSetting;
 
-	Serial.println(F("Settings check: OK\n"));
-	Serial.print(F("seaLevelPressure: "));
-	Serial.println(seaLevelPressureSetting, 2);
-	Serial.print(F("oxygenRate: "));
+	Serial.println(F("Settings:\n"));
+	Serial.print(F("Pressure: "));
+	Serial.print(seaLevelPressureSetting, 2);
+	Serial.println(F(" millibar"));
+	Serial.print(F("Oxygen %: "));
 	Serial.println(oxygenRateSetting, 2);
-	Serial.print(F("sound: "));
+	Serial.print(F("Sound:    "));
 	if (soundSetting) {
 		Serial.println(F("On"));
 	} else {
 		Serial.println(F("Off"));
 	}
-	Serial.print(F("units: "));
+	Serial.print(F("Units:    "));
 	if (imperialUnitsSetting) {
 		Serial.println(F("Imperial"));
 	} else {
@@ -159,26 +166,33 @@ void setup() {
     batteryMonitor.quickStart();
 
     if (sensor.initializeMS_5803(false)) {
-      Serial.println(F("MS5803 sensor check: OK\n"));
+      Serial.println(F("Pressure sensor: OK\n"));
     }
     else {
-      Serial.println(F("MS5803 sensor check: FAILED\n"));
+      Serial.println(F("Pressure sensor: FAILED\n"));
     }
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 	setSyncProvider((unsigned long int (*)())RTC.get);
 #endif
-    Serial.print(F("Current time: "));
-    Serial.println(settings.getCurrentTimeText());
+    Serial.print(F("Time: "));
+    Serial.print(settings.getCurrentTimeText());
 
-    Serial.print(F("Timestamp: "));
+    Serial.print(F(" = "));
     Serial.println(nowTimestamp());
     Serial.println("");
 
 	tft.InitLCD();
 
 	batterySoc = batteryMonitor.getSoC();
+
+	Serial.print(F("Battery: "));
+	Serial.print(batterySoc, 0);
+	Serial.println(F(" %\n"));
+
 	displayScreen(MENU_SCREEN);
+
+	Serial.println(F("READY\n"));
 }
 
 void loop() {
