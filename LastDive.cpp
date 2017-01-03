@@ -75,3 +75,8 @@ void LastDive::storeLastDiveData(LastDiveData* lastDiveData)
 		lastDiveFile.close();
 	}
 }
+
+bool LastDive::clearLastDiveData()
+{
+	return SD.remove(LASTDIVE_FILE_NAME);
+}

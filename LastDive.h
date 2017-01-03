@@ -25,6 +25,7 @@ public:
 	LastDive();
 	LastDiveData* loadLastDiveData();
 	void storeLastDiveData(LastDiveData* lastDiveData);
+	bool clearLastDiveData();
 private:
 };
 

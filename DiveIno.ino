@@ -431,6 +431,13 @@ void handleMessage(String message) {
 			responseMessage += settings.getCurrentTimeText();
 		}
 		Serial.println(responseMessage);
+	} else if (message.startsWith(F("CLEAR")) || message.startsWith(F("clear"))) {
+		if (lastDive.clearLastDiveData()) {
+			responseMessage += F("CLEAR - OK");
+		} else {
+			responseMessage += F("ERROR: Surface time clean operation failed!");
+		}
+		Serial.println(responseMessage);
 	}
 
 	Serial.flush();
