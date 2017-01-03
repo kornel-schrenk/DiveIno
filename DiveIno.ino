@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.2.1";
+const String VERSION_NUMBER = "1.2.2";
 
 SdFat SD;
 
@@ -306,6 +306,23 @@ void handleMessage(String message) {
 		Serial.println(responseMessage);
 	} else if (message.startsWith(F("VERSION")) || message.startsWith(F("version"))) {
 		responseMessage += VERSION_NUMBER;
+		Serial.println(responseMessage);
+	} else if (message.startsWith(F("DIAG")) || message.startsWith(F("diag"))) {
+		String what = message.substring(4);
+		what.trim();
+		if (what.startsWith(F("TEMP")) || what.startsWith(F("temp"))) {
+			sensor.readSensor();
+			responseMessage += sensor.temperature();
+		} else if (what.startsWith(F("PRES")) || what.startsWith(F("pres"))) {
+			sensor.readSensor();
+			responseMessage += sensor.pressure();
+		} else if (what.startsWith(F("BAT")) || what.startsWith(F("bat"))) {
+			responseMessage += batterySoc;
+		} else if (what.startsWith(F("DATE")) || what.startsWith(F("date"))) {
+			responseMessage += settings.getCurrentTimeText();
+		} else if (what.startsWith(F("TIMESTAMP")) || what.startsWith(F("timestamp"))) {
+			responseMessage += nowTimestamp();
+		}
 		Serial.println(responseMessage);
 	}
 	Serial.flush();
