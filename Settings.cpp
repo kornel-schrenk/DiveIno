@@ -67,6 +67,21 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 	}
 }
 
+void Settings::printSettings()
+{
+	SdFile settingsFile;
+	if (settingsFile.open(SETTINGS_FILE_NAME, O_READ)) {
+		  int data;
+		  while ((data = settingsFile.read()) >= 0) {
+			Serial.write(data);
+		  }
+		  settingsFile.close();
+	} else {
+		Serial.print(F("ERROR: Unable to open - "));
+		Serial.print(SETTINGS_FILE_NAME);
+	}
+}
+
 /////////////////////////////
 // Date and Time functions //
 /////////////////////////////

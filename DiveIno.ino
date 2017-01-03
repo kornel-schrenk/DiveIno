@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.2.2";
+const String VERSION_NUMBER = "1.2.3";
 
 SdFat SD;
 
@@ -324,6 +324,8 @@ void handleMessage(String message) {
 			responseMessage += nowTimestamp();
 		}
 		Serial.println(responseMessage);
+	} else if (message.startsWith(F("SETTINGS")) || message.startsWith(F("settings"))) {
+		settings.printSettings();
 	}
 	Serial.flush();
 }
