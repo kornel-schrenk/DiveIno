@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.2.3";
+const String VERSION_NUMBER = "1.2.4";
 
 SdFat SD;
 
@@ -326,7 +326,59 @@ void handleMessage(String message) {
 		Serial.println(responseMessage);
 	} else if (message.startsWith(F("SETTINGS")) || message.startsWith(F("settings"))) {
 		settings.printSettings();
+	} else if (message.startsWith(F("SOUND")) || message.startsWith(F("sound"))) {
+		String state = message.substring(5);
+		state.trim();
+		if (state.startsWith(F("ON")) || state.startsWith(F("on"))) {
+			soundSetting = true;
+			responseMessage += F("SOUND - ON");
+		} else {
+			soundSetting = false;
+			responseMessage += F("SOUND - OFF");
+		}
+		saveSettings();
+		Serial.println(responseMessage);
+	} else if (message.startsWith(F("METRIC")) || message.startsWith(F("metric"))) {
+		String state = message.substring(5);
+		state.trim();
+		if (state.startsWith(F("ON")) || state.startsWith(F("on"))) {
+			imperialUnitsSetting = false;
+			responseMessage += F("METRIC - ON");
+		} else {
+			imperialUnitsSetting = true;
+			responseMessage += F("METRIC - OFF");
+		}
+		saveSettings();
+		Serial.println(responseMessage);
+	} else if (message.startsWith(F("PRESSURE")) || message.startsWith(F("pressure"))) {
+		float seaLevelPressure = message.substring(8).toFloat();
+		if (seaLevelPressure > 900 && seaLevelPressure < 1200) {
+			seaLevelPressureSetting = seaLevelPressure;
+			responseMessage += F("PRESSURE - ");
+			responseMessage += seaLevelPressureSetting;
+			saveSettings();
+		} else {
+			responseMessage += F("ERROR: Invalid argument - Must be between 900 and 1200 millibar!");
+		}
+		Serial.println(responseMessage);
+	} else if (message.startsWith(F("OXYGEN")) || message.startsWith(F("oxygen"))) {
+		float oxygenRate = message.substring(6).toFloat();
+		if (oxygenRate >= 0.16 && oxygenRate <= 0.5) {
+			oxygenRateSetting = oxygenRate;
+			responseMessage += F("OXYGEN - ");
+			responseMessage += oxygenRateSetting;
+			saveSettings();
+		} else {
+			responseMessage += F("ERROR: Invalid argument - Must be between 0.16 and 0.50!");
+		}
+		Serial.println(responseMessage);
+	} else if (message.startsWith(F("DEFAULT")) || message.startsWith(F("default"))) {
+		setSettingsToDefault();
+		saveSettings();
+		responseMessage += F("DEFAULT settings were set.");
+		Serial.println(responseMessage);
 	}
+
 	Serial.flush();
 }
 
