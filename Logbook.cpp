@@ -92,6 +92,16 @@ void Logbook::printLogbook()
 	}
 }
 
+bool Logbook::clearLogbook()
+{
+	bool result = SD.remove(LOGBOOK_FILE_NAME);
+	if (result) {
+		//Create a default logbook file
+		loadLogbookData();
+	}
+	return result;
+}
+
 String Logbook::getFileNameFromProfileNumber(int profileNumber, bool isTemp)
 {
 	//Create the name of the new profile file
@@ -318,6 +328,32 @@ void Logbook::printProfile(int profileNumber)
 		Serial.println(profileFileName);
 	}
 	Serial.flush();
+}
+
+bool Logbook::clearProfiles()
+{
+	int maximumProfileNumber = loadLogbookData()->numberOfStoredProfiles;
+	if (maximumProfileNumber > 0) {
+
+		for (int profileNumber = 1; profileNumber <= maximumProfileNumber; profileNumber++) {
+		    String tempProfileFileName = getFileNameFromProfileNumber(profileNumber, false);
+			char tempProfileFileNameArray[tempProfileFileName.length()+1];
+			tempProfileFileName.toCharArray(tempProfileFileNameArray, tempProfileFileName.length()+1);
+
+			if (SD.remove(tempProfileFileNameArray)) {
+				Serial.print(F("PROFILE "));
+				Serial.print(profileNumber);
+				Serial.print(F(" - The "));
+				Serial.print(tempProfileFileNameArray);
+				Serial.println(F(" dive profile file was successfully removed."));
+			} else {
+				Serial.print(F("ERROR: The following dive profile file can't be removed: "));
+				Serial.println(tempProfileFileNameArray);
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 /////////////////////

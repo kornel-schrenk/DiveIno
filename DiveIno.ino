@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.2.4";
+const String VERSION_NUMBER = "1.3.0";
 
 SdFat SD;
 
@@ -436,6 +436,33 @@ void handleMessage(String message) {
 			responseMessage += F("CLEAR - OK");
 		} else {
 			responseMessage += F("ERROR: Surface time clean operation failed!");
+		}
+		Serial.println(responseMessage);
+	} else if (message.startsWith(F("RESET")) || message.startsWith(F("reset"))) {
+		//Revert settings to default
+		responseMessage += F("SETTINGS - Default settings will be restored.\n");
+		setSettingsToDefault();
+		saveSettings();
+
+		//Remove last dive information
+		if (lastDive.clearLastDiveData()) {
+			responseMessage += F("LAST DIVE - Last dive information was deleted.\n");
+		} else {
+			responseMessage += F("ERROR: Failed to delete last dive information!\n");
+		}
+
+		//Remove all dive profile files
+		if (logbook.clearProfiles()) {
+			responseMessage += F("PROFILE - All dive profiles were successfully deleted.\n");
+		} else {
+			responseMessage += F("ERROR: Failed to delete all dive profiles!\n");
+		}
+
+		//Reset logbook
+		if (logbook.clearLogbook()) {
+			responseMessage += F("LOGBOOK - Reset was successful.\n");
+		} else {
+			responseMessage += F("ERROR: Logbook reset failed!\n");
 		}
 		Serial.println(responseMessage);
 	}
@@ -1268,12 +1295,15 @@ void saveSettings()
 	diveInoSettings->oxygenRateSetting = oxygenRateSetting;
 	diveInoSettings->soundSetting = soundSetting;
 	diveInoSettings->imperialUnitsSetting = imperialUnitsSetting;
-	settings.saveDiveInoSettings(diveInoSettings);
+	if (settings.saveDiveInoSettings(diveInoSettings)) {
 
-	Serial.println(F("Settings were saved to the SD Card."));
+		buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
+		buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
 
-	buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
-	buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
+		Serial.println(F("SETTINGS - Saved to the SD Card."));
+	} else {
+		Serial.println(F("ERROR: Save operation failed - Settings were not saved to the SD Card."));
+	}
 }
 
 //////////

@@ -78,5 +78,8 @@ void LastDive::storeLastDiveData(LastDiveData* lastDiveData)
 
 bool LastDive::clearLastDiveData()
 {
-	return SD.remove(LASTDIVE_FILE_NAME);
+	if (SD.exists(LASTDIVE_FILE_NAME)) {
+		return SD.remove(LASTDIVE_FILE_NAME);
+	}
+	return true;
 }

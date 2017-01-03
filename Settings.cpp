@@ -43,7 +43,7 @@ DiveInoSettings* Settings::loadDiveInoSettings()
 	return diveInoSettings;
 }
 
-void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
+bool Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 {
 	SD.remove(SETTINGS_FILE_NAME);
 
@@ -63,8 +63,10 @@ void Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 			root.prettyPrintTo(settingsFile);
 			settingsFile.flush();
 			settingsFile.close();
+			return true;
 		}
 	}
+	return false;
 }
 
 void Settings::printSettings()

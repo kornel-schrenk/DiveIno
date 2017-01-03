@@ -36,6 +36,7 @@ public:
 	LogbookData* loadLogbookData();
 	void updateLogbookData(LogbookData* logbookData);
 	void printLogbook();
+	bool clearLogbook();
 	String getFileNameFromProfileNumber(int profileNumber, bool isTemp);
 	bool createNewProfileFile(int profileNumber);
 	void storeProfileItem(float pressure, float depth, float temperature, int duration);
@@ -43,6 +44,7 @@ public:
 	ProfileData* loadProfileDataFromFile(String profileFileName);
     void drawProfileItems(UTFT* tft, int profileNumber, int pageNumber);
     void printProfile(int profileNumber);
+    bool clearProfiles();
 private:
     SdFile profileFile;
 
