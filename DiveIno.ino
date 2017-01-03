@@ -168,7 +168,6 @@ void setup() {
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 	setSyncProvider((unsigned long int (*)())RTC.get);
 #endif
-
     Serial.print(F("Current time: "));
     Serial.println(settings.getCurrentTimeText());
 
@@ -376,6 +375,61 @@ void handleMessage(String message) {
 		setSettingsToDefault();
 		saveSettings();
 		responseMessage += F("DEFAULT settings were set.");
+		Serial.println(responseMessage);
+	} else if (message.startsWith(F("DATETIME")) || message.startsWith(F("datetime"))) {
+		String dateTime = message.substring(8);
+		dateTime.trim();
+
+		int year = 2016;
+		int month = 0;
+		int day = 0;
+		int hour = 0;
+		int minute = 0;
+		int second = 0;
+
+		year = dateTime.substring(0, 4).toInt();
+		month = dateTime.substring(5, 7).toInt();
+		day = dateTime.substring(8, 10).toInt();
+		hour = dateTime.substring(11, 13).toInt();
+		minute = dateTime.substring(14, 16).toInt();
+
+		responseMessage += F("Year: ");
+		responseMessage += year;
+		responseMessage += F(" Month: ");
+		responseMessage += month;
+		responseMessage += F(" Day: ");
+		responseMessage += day;
+
+		responseMessage += F(" Hour: ");
+		responseMessage += hour;
+		responseMessage += F(" Minute: ");
+		responseMessage += minute;
+		responseMessage += "\n";
+
+		if (year < 2017) {
+			responseMessage += F("ERROR: Invalid argument - Year must be greater than 2017!");
+		} else if (month < 1 || month > 12) {
+			responseMessage += F("ERROR: Invalid argument - Month must be between 1 and 12!");
+		} else if (day < 1 || day > 31) {
+			responseMessage += F("ERROR: Invalid argument - Day must be between 1 and 31!");
+		} else if (hour < 0 || hour > 23) {
+			responseMessage += F("ERROR: Invalid argument - Hour must be between 0 and 23!");
+		} else if (minute < 0 || minute > 59) {
+			responseMessage += F("ERROR: Invalid argument - Minute must be between 0 and 59!");
+		} else {
+			DateTimeSettings* dateTimeSettings = new DateTimeSettings;
+			dateTimeSettings->year = year;
+			dateTimeSettings->month = month;
+			dateTimeSettings->day = day;
+			dateTimeSettings->hour = hour;
+			dateTimeSettings->minute = minute;
+			dateTimeSettings->second = 0;
+
+			settings.setCurrentTime(dateTimeSettings);
+
+			responseMessage += F("DATETIME settings were set to ");
+			responseMessage += settings.getCurrentTimeText();
+		}
 		Serial.println(responseMessage);
 	}
 
