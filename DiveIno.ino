@@ -304,6 +304,9 @@ void handleMessage(String message) {
 			responseMessage += F("REPLAY - Disabled");
 		}
 		Serial.println(responseMessage);
+	} else if (message.startsWith(F("VERSION")) || message.startsWith(F("version"))) {
+		responseMessage += VERSION_NUMBER;
+		Serial.println(responseMessage);
 	}
 	Serial.flush();
 }
