@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.3.1";
+const String VERSION_NUMBER = "1.3.2";
 
 SdFat SD;
 
@@ -560,10 +560,20 @@ void replayDive()
 {
 	// Check if test data is available, which comes through the serial interface
 	if (Serial.available() > 0) {
-		float pressureInMillibar = Serial.parseFloat();
-		float depthInMeter = Serial.parseFloat();
-		diveDurationInSeconds = Serial.parseInt();
-		float temperatureInCelsius = Serial.parseFloat();
+		float pressureInMillibar = Serial.readStringUntil(',').toFloat();
+		float depthInMeter = Serial.readStringUntil(',').toFloat();
+		diveDurationInSeconds = Serial.readStringUntil(',').toInt();
+		float temperatureInCelsius = Serial.readStringUntil(',').toFloat();
+
+		Serial.print(F("REPLAY: "));
+		Serial.print(pressureInMillibar, 1);
+		Serial.print(F(" mbar, "));
+		Serial.print(depthInMeter, 1);
+		Serial.print(F(" m, "));
+		Serial.print(diveDurationInSeconds);
+		Serial.print(F(" sec, "));
+		Serial.print(temperatureInCelsius, 1);
+		Serial.println(F(" cel\n"));
 
 		view.drawCurrentPressure(pressureInMillibar);
 		view.drawDepth(depthInMeter, imperialUnitsSetting);
