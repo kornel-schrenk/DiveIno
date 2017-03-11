@@ -16,7 +16,7 @@ enum ascendRates
 	ASCEND_DANGER = 5,
 };
 
-typedef struct DiveResult {
+struct DiveResult {
 	float compartmentPartialPressures[COMPARTMENT_COUNT];
 	float maxDepthInMeters = 0;
 	unsigned int durationInSeconds = 0;
@@ -25,7 +25,7 @@ typedef struct DiveResult {
 	unsigned long previousDiveDateTimestamp = 0;
 };
 
-typedef struct DiveInfo {
+struct DiveInfo {
 	int ascendRate;
 	bool decoNeeded;
 	int minutesToDeco;
@@ -35,7 +35,7 @@ typedef struct DiveInfo {
 
 class Buhlmann {
 public:
-	Buhlmann(float minimumAircraftCabinPressure, float waterVapourPressureCorrection);
+	Buhlmann(float waterVapourPressureCorrection);
 
 	void setSeaLevelAtmosphericPressure(float seaLevelAtmosphericPressure);
 	void setNitrogenRateInGas(float nitrogenRateInGas);

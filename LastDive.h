@@ -9,7 +9,7 @@ extern SdFat SD;
 
 #define COMPARTMENT_COUNT 16
 
-typedef struct LastDiveData {
+struct LastDiveData {
 	long diveDateTimestamp = 0;
 	String diveDate;
 	String diveTime;

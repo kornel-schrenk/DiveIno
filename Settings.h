@@ -9,14 +9,14 @@
 
 extern SdFat SD;
 
-typedef struct DiveInoSettings {
+struct DiveInoSettings {
 	float seaLevelPressureSetting = 1013.2;
 	float oxygenRateSetting = 0.21;
 	bool soundSetting = true;
 	bool imperialUnitsSetting = false;
 };
 
-typedef struct DateTimeSettings {
+struct DateTimeSettings {
 	int year = 2000;
 	int month = 1;
 	int day = 1;

@@ -6,7 +6,7 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
-			<name>it.baeyens.arduino.core.inoToCpp</name>
+			<name>io.sloeber.core.inoToCpp</name>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -28,78 +28,78 @@
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-		<nature>it.baeyens.arduinonature</nature>
+		<nature>io.sloeber.arduinonature</nature>
 	</natures>
 	<linkedResources>
 		<link>
 			<name>core/core</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.14/cores/arduino</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.17/cores/arduino</locationURI>
 		</link>
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.14/variants/mega</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.17/variants/mega</locationURI>
 		</link>
 		<link>
 			<name>libraries/ArduinoJson</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/ArduinoJson</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/ArduinoJson</location>
 		</link>
 		<link>
 			<name>libraries/DS1307RTC</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/DS1307RTC</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/DS1307RTC</location>
 		</link>
 		<link>
 			<name>libraries/IRremote2</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/IRremote2</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/IRremote2</location>
 		</link>
 		<link>
 			<name>libraries/MAX17043</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/MAX17043</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/MAX17043</location>
 		</link>
 		<link>
 			<name>libraries/MS5803_14</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/MS5803_14</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/MS5803_14</location>
 		</link>
 		<link>
 			<name>libraries/SPI</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.14/libraries/SPI</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.17/libraries/SPI</locationURI>
 		</link>
 		<link>
 			<name>libraries/SdFat</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/SdFat</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/SdFat</location>
 		</link>
 		<link>
 			<name>libraries/Time</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/Time</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/Time</location>
 		</link>
 		<link>
 			<name>libraries/TimerFreeTone</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/TimerFreeTone</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/TimerFreeTone</location>
 		</link>
 		<link>
 			<name>libraries/UTFT</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/UTFT</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/UTFT</location>
 		</link>
 		<link>
 			<name>libraries/UTFT_SdRaw</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/UTFT_SdRaw</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/UTFT_SdRaw</location>
 		</link>
 		<link>
 			<name>libraries/Wire</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Development/sloeber/arduinoPlugin/packages/arduino/hardware/avr/1.6.14/libraries/Wire</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.17/libraries/Wire</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

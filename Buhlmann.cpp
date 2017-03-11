@@ -2,8 +2,15 @@
 
 #include "Buhlmann.h"
 
-Buhlmann::Buhlmann(float minimumAircraftCabinPressure, float waterVapourPressureCorrection) {
+Buhlmann::Buhlmann(float waterVapourPressureCorrection) {
 	_waterVapourPressureCorrection = waterVapourPressureCorrection;
+
+	//Default values
+	_nitrogenRateInGas = 0.78;
+	_seaLevelAtmosphericPressure = 1013.2;
+	_previousDiveResult = NULL;
+	_wasDecoDive = false;
+	_diveStartTimestamp = 0;
 
 	//Coefficients of the ZH-L16C-GF algorithm
 	_halfTimesNitrogen[0] = 4.0;

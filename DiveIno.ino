@@ -20,7 +20,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.3.2";
+const String VERSION_NUMBER = "1.3.3";
 
 SdFat SD;
 
@@ -64,7 +64,7 @@ byte selectedDateTimeSettingIndex = 0;
 byte currentMode = SURFACE_MODE;
 byte currentScreen = MENU_SCREEN;
 
-Buhlmann buhlmann = Buhlmann(400, 56.7);
+Buhlmann buhlmann = Buhlmann(56.7);
 
 //Utility variables
 float maxDepthInMeter;
@@ -179,7 +179,7 @@ void setup() {
     Serial.print(settings.getCurrentTimeText());
 
     Serial.print(F(" = "));
-    Serial.println(nowTimestamp());
+    Serial.println((unsigned long)nowTimestamp());
     Serial.println("");
 
 	tft.InitLCD();
@@ -399,7 +399,6 @@ void handleMessage(String message) {
 		int day = 0;
 		int hour = 0;
 		int minute = 0;
-		int second = 0;
 
 		year = dateTime.substring(0, 4).toInt();
 		month = dateTime.substring(5, 7).toInt();
@@ -709,7 +708,7 @@ void startDive()
 
 	// Initialize the DiveDeco library based on the settings
 	buhlmann.setSeaLevelAtmosphericPressure(seaLevelPressureSetting);
-	buhlmann.setNitrogenRateInGas(1 - oxygenRateSetting);
+	buhlmann.setNitrogenRateInGas(1 - (oxygenRateSetting + 0.01));
 
 	if (currentScreen == DIVE_SCREEN) {
 
@@ -1344,7 +1343,6 @@ void menuSelect(byte menuItemIndex)
 
 void displayScreen(byte screen) {
 	LogbookData* logbookData;
-	ProfileData* profileData;
 
 	DiveResult* diveResult;
 	LastDiveData* lastDiveData;

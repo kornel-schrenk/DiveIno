@@ -11,7 +11,7 @@ extern SdFat SD;
 // Error messages stored in flash.
 #define error(msg) SD.errorHalt(F(msg))
 
-typedef struct LogbookData {
+struct LogbookData {
 	int totalNumberOfDives = 0;
 	int totalDiveHours = 0;
 	int totalDiveMinutes = 0;
@@ -20,7 +20,7 @@ typedef struct LogbookData {
 	int numberOfStoredProfiles = 0;
 };
 
-typedef struct ProfileData {
+struct ProfileData {
 	int diveDuration = 0;
 	float maximumDepth = 0.0;
 	float minimumTemperature = 0.0;
