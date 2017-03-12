@@ -30,7 +30,7 @@ public:
 	Settings();
 	DiveInoSettings* loadDiveInoSettings();
 	bool saveDiveInoSettings(DiveInoSettings* diveInoSettings);
-	void printSettings();
+	void printSettings(Print* print);
 	String getCurrentTimeText();
 	DateTimeSettings* getCurrentTime();
 	void setCurrentTime(DateTimeSettings* dateTimeSettings);

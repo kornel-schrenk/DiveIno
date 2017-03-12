@@ -77,18 +77,18 @@ void Logbook::updateLogbookData(LogbookData* logbookData)
 	}
 }
 
-void Logbook::printLogbook()
+void Logbook::printLogbook(Print* print)
 {
 	SdFile logbookFile;
 	if (logbookFile.open(LOGBOOK_FILE_NAME, O_READ)) {
 		  int data;
 		  while ((data = logbookFile.read()) >= 0) {
-			Serial.write(data);
+			print->write(data);
 		  }
 		  logbookFile.close();
 	} else {
-		Serial.print(F("ERROR: Unable to open - "));
-		Serial.print(LOGBOOK_FILE_NAME);
+		print->print(F("ERROR: Unable to open - "));
+		print->print(LOGBOOK_FILE_NAME);
 	}
 }
 
@@ -310,7 +310,7 @@ void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 	}
 }
 
-void Logbook::printProfile(int profileNumber)
+void Logbook::printProfile(int profileNumber, Print* print)
 {
 	String profileFileName = getFileNameFromProfileNumber(profileNumber, false);
 	char profileFileNameArray[profileFileName.length()+1];
@@ -320,14 +320,13 @@ void Logbook::printProfile(int profileNumber)
 	if (profileFile.open(profileFileNameArray, O_READ)) {
 		  int data;
 		  while ((data = profileFile.read()) >= 0) {
-		    Serial.write(data);
+		    print->write(data);
 		  }
 		  profileFile.close();
 	} else {
-		Serial.print(F("ERROR: The following file does not exist - "));
-		Serial.println(profileFileName);
+		print->print(F("ERROR: The following file does not exist - "));
+		print->println(profileFileName);
 	}
-	Serial.flush();
 }
 
 bool Logbook::clearProfiles()

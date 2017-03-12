@@ -69,18 +69,18 @@ bool Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 	return false;
 }
 
-void Settings::printSettings()
+void Settings::printSettings(Print* print)
 {
 	SdFile settingsFile;
 	if (settingsFile.open(SETTINGS_FILE_NAME, O_READ)) {
 		  int data;
 		  while ((data = settingsFile.read()) >= 0) {
-			Serial.write(data);
+			  print->write(data);
 		  }
 		  settingsFile.close();
 	} else {
-		Serial.print(F("ERROR: Unable to open - "));
-		Serial.print(SETTINGS_FILE_NAME);
+		print->print(F("ERROR: Unable to open - "));
+		print->print(SETTINGS_FILE_NAME);
 	}
 }
 

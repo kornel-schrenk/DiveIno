@@ -42,6 +42,11 @@
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.17/variants/mega</locationURI>
 		</link>
 		<link>
+			<name>libraries/Adafruit_BluefruitLE_nRF51</name>
+			<type>2</type>
+			<location>C:/Users/korne/Documents/Arduino/libraries/Adafruit_BluefruitLE_nRF51</location>
+		</link>
+		<link>
 			<name>libraries/ArduinoJson</name>
 			<type>2</type>
 			<location>C:/Users/korne/Documents/Arduino/libraries/ArduinoJson</location>
@@ -75,6 +80,11 @@
 			<name>libraries/SdFat</name>
 			<type>2</type>
 			<location>C:/Users/korne/Documents/Arduino/libraries/SdFat</location>
+		</link>
+		<link>
+			<name>libraries/SoftwareSerial</name>
+			<type>2</type>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.17/libraries/SoftwareSerial</locationURI>
 		</link>
 		<link>
 			<name>libraries/Time</name>

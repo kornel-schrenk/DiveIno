@@ -35,7 +35,7 @@ public:
 	Logbook();
 	LogbookData* loadLogbookData();
 	void updateLogbookData(LogbookData* logbookData);
-	void printLogbook();
+	void printLogbook(Print* print);
 	bool clearLogbook();
 	String getFileNameFromProfileNumber(int profileNumber, bool isTemp);
 	bool createNewProfileFile(int profileNumber);
@@ -43,7 +43,7 @@ public:
 	void storeDiveSummary(int profileNumber, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time);
 	ProfileData* loadProfileDataFromFile(String profileFileName);
     void drawProfileItems(UTFT* tft, int profileNumber, int pageNumber);
-    void printProfile(int profileNumber);
+    void printProfile(int profileNumber, Print* print);
     bool clearProfiles();
 private:
     SdFile profileFile;

@@ -37,6 +37,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/TimerFreeTone}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Time}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Adafruit_BluefruitLE_nRF51}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Adafruit_BluefruitLE_nRF51/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SoftwareSerial}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SoftwareSerial/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.cpp.sketch.input.1813779490" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
@@ -60,6 +64,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/TimerFreeTone}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Time}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Adafruit_BluefruitLE_nRF51}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Adafruit_BluefruitLE_nRF51/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SoftwareSerial}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SoftwareSerial/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.1867339148" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
@@ -83,6 +91,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Wire/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/TimerFreeTone}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Time}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Adafruit_BluefruitLE_nRF51}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/Adafruit_BluefruitLE_nRF51/utility}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SoftwareSerial}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DiveIno/libraries/SoftwareSerial/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.S.sketch.input.1619806381" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>

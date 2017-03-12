@@ -1,3 +1,4 @@
+#include "Stream.h"
 #include "SPI.h"
 #include "Wire.h"
 #include "UTFT.h"
@@ -7,6 +8,14 @@
 #include "MS5803_14.h"
 #include "DS1307RTC.h"
 
+#include "Buhlmann.h"
+#include "View.h"
+#include "Settings.h"
+#include "Logbook.h"
+#include "LastDive.h"
+
+const String VERSION_NUMBER = "1.4.0";
+
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 	uint8_t csPin = 53;
 #elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
@@ -14,13 +23,18 @@
 	uint8_t csPin = 4;
 #endif
 
-#include "Buhlmann.h"
-#include "View.h"
-#include "Settings.h"
-#include "Logbook.h"
-#include "LastDive.h"
+// Manage Bluetooth support based on the Adafruit Bluefruit LE UART Friend module
+// 0 = Module is not present - Bluetooth was turned off
+// 1 = Module is connected - Bluetooth is supported
+#define BLUETOOTH_SUPPORTED 1
 
-const String VERSION_NUMBER = "1.3.3";
+#if BLUETOOTH_SUPPORTED
+	#include "Adafruit_BLE.h"
+	#include "Adafruit_BluefruitLE_UART.h"
+	#include "BluefruitConfig.h"
+
+	Adafruit_BluefruitLE_UART ble(Serial1, BLUEFRUIT_UART_MODE_PIN);
+#endif
 
 SdFat SD;
 
@@ -39,7 +53,6 @@ MS_5803 sensor = MS_5803(512);
 UTFT tft(ILI9481,38,39,40,41);
 UTFT_SdRaw sdFatFiles(&tft);
 View view(&tft, &sdFatFiles);
-
 
 // Currently elected menu item
 byte selectedMenuItemIndex;
@@ -104,13 +117,8 @@ bool emulatorEnabled = false;
 bool replayEnabled = false;
 
 void setup() {
-
 	Serial.begin(115200);
-	// Wait for USB Serial
-	while (!Serial) {
-		SysCall::yield();
-	}
-	delay(1000);
+	delay(500);
 
 	Serial.println(F(" ____   _              ___"));
 	Serial.println(F("|  _ \\ (_)__   __ ___ |_ _| _ __    ___"));
@@ -188,11 +196,37 @@ void setup() {
 
 	Serial.print(F("Battery: "));
 	Serial.print(batterySoc, 0);
-	Serial.println(F(" %\n"));
+	Serial.println(F(" %"));
+
+#if BLUETOOTH_SUPPORTED
+	// Initialize the Adafruit Bluefruit LE UART Friend module - https://www.adafruit.com/products/2479
+	Serial.println(F("\nBLE - Initialization"));
+	if (!ble.begin(false)) {
+		Serial.println(F("ERROR: Bluefruit LE UART Friend not found!")); // Make sure it's in CoMmanD mode!
+	} else {
+		Serial.println(F("BLE - Bluefruit LE UART Friend connected"));
+		ble.echo(false);
+
+		Serial.println(F("BLE - Perform factory reset"));
+		if (!ble.factoryReset()) {
+			Serial.println(F("ERROR: Factory reset"));
+		}
+
+		// Setting device name to 'DiveIno'
+		if (! ble.sendCommandCheckOK(F("AT+GAPDEVNAME=DiveIno")) ) {
+			Serial.println(F("ERROR: Could not set device name"));
+		}
+
+		Serial.println(F("BLE - Switch to DATA mode"));
+		ble.setMode(BLUEFRUIT_MODE_DATA);
+
+		Serial.println(F("BLE - Module READY"));
+	}
+#endif
 
 	displayScreen(MENU_SCREEN);
 
-	Serial.println(F("READY\n"));
+	Serial.println(F("\nREADY\n"));
 }
 
 void loop() {
@@ -225,8 +259,14 @@ void loop() {
 	} else if (currentScreen == MENU_SCREEN) {
 		//Read messages from the standard Serial interface
 		if (Serial.available() > 0) {
-			readMessageFromSerial(Serial.read());
+			readMessageFromSerial(Serial.read(), true);
 		}
+#if BLUETOOTH_SUPPORTED
+		//Read messages from the BLE interface
+		while (ble.available()) {
+			readMessageFromSerial((char) ble.read(), false);
+		}
+#endif
 	} else if (currentScreen == ABOUT_SCREEN) {
 		unsigned int measurementDifference = nowTimestamp() - timerTimestamp;
 
@@ -268,13 +308,13 @@ time_t nowTimestamp()
 // Serial API //
 ////////////////
 
-void readMessageFromSerial(char data)
+void readMessageFromSerial(char data, bool fromSerial)
 {
 	if (data == '@') {
 		messageBuffer = "";
 		recordMessage = true;
 	} else if (data == '#') {
-		handleMessage(messageBuffer);
+		handleMessage(messageBuffer, fromSerial);
 		recordMessage = false;
 	} else {
 		if (recordMessage) {
@@ -283,18 +323,26 @@ void readMessageFromSerial(char data)
 	}
 }
 
-void handleMessage(String message) {
+void handleMessage(String message, bool fromSerial) {
+
+	Stream* outputStream = &Serial;
+#if BLUETOOTH_SUPPORTED
+	if (!fromSerial) {
+		outputStream = &ble;
+	}
+#endif
+
 	String responseMessage = "";
 	if (message.startsWith(F("PROFILE")) || message.startsWith(F("profile"))) {
 		int profileNumber = message.substring(7).toInt();
 		if (profileNumber > 0) {
-			logbook.printProfile(profileNumber);
+			logbook.printProfile(profileNumber, outputStream);
 		} else {
 			responseMessage += F("ERROR: Invalid argument - Positive Integer value expected!");
-			Serial.println(responseMessage);
+			outputStream->println(responseMessage);
 		}
 	} else if (message.startsWith(F("LOGBOOK")) || message.startsWith(F("logbook"))) {
-		logbook.printLogbook();
+		logbook.printLogbook(outputStream);
 	} else if (message.startsWith(F("EMULATOR")) || message.startsWith(F("emulator"))) {
 		String onOffEmulator = message.substring(8);
 		onOffEmulator.trim();
@@ -305,7 +353,7 @@ void handleMessage(String message) {
 			emulatorEnabled = false;
 			responseMessage += F("EMULATOR - Disabled");
 		}
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("REPLAY")) || message.startsWith(F("replay"))) {
 		String onOffReplay = message.substring(6);
 		onOffReplay.trim();
@@ -316,10 +364,10 @@ void handleMessage(String message) {
 			replayEnabled = false;
 			responseMessage += F("REPLAY - Disabled");
 		}
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("VERSION")) || message.startsWith(F("version"))) {
 		responseMessage += VERSION_NUMBER;
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("DIAG")) || message.startsWith(F("diag"))) {
 		String what = message.substring(4);
 		what.trim();
@@ -336,9 +384,9 @@ void handleMessage(String message) {
 		} else if (what.startsWith(F("TIMESTAMP")) || what.startsWith(F("timestamp"))) {
 			responseMessage += nowTimestamp();
 		}
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("SETTINGS")) || message.startsWith(F("settings"))) {
-		settings.printSettings();
+		settings.printSettings(outputStream);
 	} else if (message.startsWith(F("SOUND")) || message.startsWith(F("sound"))) {
 		String state = message.substring(5);
 		state.trim();
@@ -350,7 +398,7 @@ void handleMessage(String message) {
 			responseMessage += F("SOUND - OFF");
 		}
 		saveSettings();
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("METRIC")) || message.startsWith(F("metric"))) {
 		String state = message.substring(5);
 		state.trim();
@@ -362,7 +410,7 @@ void handleMessage(String message) {
 			responseMessage += F("METRIC - OFF");
 		}
 		saveSettings();
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("PRESSURE")) || message.startsWith(F("pressure"))) {
 		float seaLevelPressure = message.substring(8).toFloat();
 		if (seaLevelPressure > 900 && seaLevelPressure < 1200) {
@@ -373,7 +421,7 @@ void handleMessage(String message) {
 		} else {
 			responseMessage += F("ERROR: Invalid argument - Must be between 900 and 1200 millibar!");
 		}
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("OXYGEN")) || message.startsWith(F("oxygen"))) {
 		float oxygenRate = message.substring(6).toFloat();
 		if (oxygenRate >= 0.16 && oxygenRate <= 0.5) {
@@ -384,12 +432,12 @@ void handleMessage(String message) {
 		} else {
 			responseMessage += F("ERROR: Invalid argument - Must be between 0.16 and 0.50!");
 		}
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("DEFAULT")) || message.startsWith(F("default"))) {
 		setSettingsToDefault();
 		saveSettings();
 		responseMessage += F("DEFAULT settings were set.");
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("DATETIME")) || message.startsWith(F("datetime"))) {
 		String dateTime = message.substring(8);
 		dateTime.trim();
@@ -443,14 +491,14 @@ void handleMessage(String message) {
 			responseMessage += F("DATETIME settings were set to ");
 			responseMessage += settings.getCurrentTimeText();
 		}
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("CLEAR")) || message.startsWith(F("clear"))) {
 		if (lastDive.clearLastDiveData()) {
 			responseMessage += F("CLEAR - OK");
 		} else {
 			responseMessage += F("ERROR: Surface time clean operation failed!");
 		}
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("RESET")) || message.startsWith(F("reset"))) {
 		//Revert settings to default
 		responseMessage += F("SETTINGS - Default settings will be restored.\n");
@@ -477,10 +525,10 @@ void handleMessage(String message) {
 		} else {
 			responseMessage += F("ERROR: Logbook reset failed!\n");
 		}
-		Serial.println(responseMessage);
+		outputStream->println(responseMessage);
 	}
 
-	Serial.flush();
+	outputStream->flush();
 }
 
 //////////
