@@ -14,7 +14,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.4.0";
+const String VERSION_NUMBER = "1.4.1";
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 	uint8_t csPin = 53;
@@ -170,9 +170,6 @@ void setup() {
 
 	irrecv.enableIRIn();
 
-    batteryMonitor.reset();
-    batteryMonitor.quickStart();
-
     if (sensor.initializeMS_5803(false)) {
       Serial.println(F("Pressure sensor: OK\n"));
     }
@@ -191,6 +188,10 @@ void setup() {
     Serial.println("");
 
 	tft.InitLCD();
+
+    batteryMonitor.reset();
+    batteryMonitor.quickStart();
+    delay(1000); // Time is required to LiPo Battery quickstart
 
 	batterySoc = batteryMonitor.getSoC();
 
