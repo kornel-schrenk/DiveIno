@@ -14,7 +14,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.4.1";
+const String VERSION_NUMBER = "1.4.2";
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 	uint8_t csPin = 53;
@@ -112,6 +112,13 @@ LastDive lastDive = LastDive();
 //Serial API implementation related variables
 String messageBuffer = "";
 bool recordMessage = false;
+
+//Water activated switch
+int WATER_SWITCH_PIN = 3;
+int WATER_LED_PIN = 6;
+int previousValueWaterSwitch = 0;
+long counterWaterSwitch = 0;
+bool waterSwitchActivated = false;
 
 bool emulatorEnabled = false;
 bool replayEnabled = false;
@@ -224,6 +231,8 @@ void setup() {
 		Serial.println(F("BLE - Module READY"));
 	}
 #endif
+	pinMode(WATER_SWITCH_PIN, INPUT);
+	pinMode(WATER_LED_PIN, OUTPUT);
 
 	displayScreen(MENU_SCREEN);
 
@@ -258,6 +267,8 @@ void loop() {
 			dive();
 		}
 	} else if (currentScreen == MENU_SCREEN) {
+		monitorWaterSwitch();
+
 		//Read messages from the standard Serial interface
 		if (Serial.available() > 0) {
 			readMessageFromSerial(Serial.read(), true);
@@ -279,6 +290,49 @@ void loop() {
 			view.drawBatteryStateOfCharge(batterySoc);
 		}
 	}
+}
+
+void monitorWaterSwitch() {
+	if (!waterSwitchActivated) {
+		int currentValueWaterSwitch = digitalRead(WATER_SWITCH_PIN);
+
+		if (currentValueWaterSwitch == LOW) {
+			digitalWrite(WATER_LED_PIN, HIGH);
+		} else {
+			digitalWrite(WATER_LED_PIN, LOW);
+		}
+
+		if (currentValueWaterSwitch == LOW && previousValueWaterSwitch == HIGH) {
+			Serial.println(F("WATER SWITCH - ON"));
+			counterWaterSwitch = 1; // Turned ON
+		}
+		if (currentValueWaterSwitch == HIGH && previousValueWaterSwitch == LOW) {
+			Serial.println(F("WATER SWITCH - OFF"));
+			counterWaterSwitch = 0; // Turned OFF
+		}
+		if (currentValueWaterSwitch == LOW && previousValueWaterSwitch == LOW) {
+			counterWaterSwitch++; // Still ON
+		}
+		previousValueWaterSwitch = currentValueWaterSwitch;
+
+		long ACTIVATION_LEVEL = 15000;
+
+		if (counterWaterSwitch > ACTIVATION_LEVEL) { // Switch is ON for some time
+			counterWaterSwitch = 0;
+			waterSwitchActivated = true;
+			digitalWrite(WATER_LED_PIN, LOW);
+			activatedWaterSwitch();
+		}
+	}
+}
+
+void activatedWaterSwitch()
+{
+	Serial.println(F("WATER SWITCH - Activated"));
+	// Switch into Dive Mode
+	currentMode = DIVE_START_MODE;
+	displayScreen(DIVE_SCREEN);
+	startDive();
 }
 
 void beep()
@@ -829,6 +883,7 @@ void stopDive()
 	if (emulatorEnabled) {
 		Serial.println(F("@STOP#"));
 	}
+	waterSwitchActivated = false;
 	Serial.println(F("\nDIVE - Stopped"));
 }
 
