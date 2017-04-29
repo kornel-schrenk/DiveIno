@@ -39,7 +39,7 @@ const String VERSION_NUMBER = "1.4.2";
 SdFat SD;
 
 //Infrared Receiver initialization
-int RECV_PIN = 11;
+int RECV_PIN = 9;
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
@@ -114,8 +114,8 @@ String messageBuffer = "";
 bool recordMessage = false;
 
 //Water activated switch
-int WATER_SWITCH_PIN = 3;
-int WATER_LED_PIN = 6;
+int WATER_SWITCH_PIN = 10;
+int WATER_LED_PIN = 11;
 int previousValueWaterSwitch = 0;
 long counterWaterSwitch = 0;
 bool waterSwitchActivated = false;
