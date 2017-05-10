@@ -14,13 +14,10 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.4.2";
+const String VERSION_NUMBER = "1.4.3";
 
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-	uint8_t csPin = 53;
-#elif defined(__SAM3X8E__) || defined(__SAM3X8H__)
+#if defined(__SAM3X8E__) || defined(__SAM3X8H__)
 	#include "TimerFreeTone.h"
-	uint8_t csPin = 4;
 #endif
 
 // Manage Bluetooth support based on the Adafruit Bluefruit LE UART Friend module
@@ -36,18 +33,20 @@ const String VERSION_NUMBER = "1.4.2";
 	Adafruit_BluefruitLE_UART ble(Serial1, BLUEFRUIT_UART_MODE_PIN);
 #endif
 
+// SD card initialization
 SdFat SD;
+uint8_t csPin = 53;
 
-//Infrared Receiver initialization
+// Infrared Receiver initialization
 int RECV_PIN = 9;
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
-//Pressure Sensor initialization
+// Pressure Sensor initialization
 MS_5803 sensor = MS_5803(512);
 
 // Pin number of the piezo buzzer
-#define TONE_PIN 8
+uint8_t TONE_PIN = 8;
 
 // TFT setup - 480x320 pixel
 UTFT tft(ILI9481,38,39,40,41);
