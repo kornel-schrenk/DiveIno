@@ -14,7 +14,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.4.3";
+const String VERSION_NUMBER = "1.4.4";
 
 #if defined(__SAM3X8E__) || defined(__SAM3X8H__)
 	#include "TimerFreeTone.h"
@@ -1071,6 +1071,7 @@ void selectButtonPressed()
 	} else if (currentScreen == DIVE_SCREEN) {
 		currentMode = SURFACE_MODE;
 		stopDive();
+		logbook.removeTempProfilefile(maximumProfileNumber+1);
 		displayScreen(MENU_SCREEN);
 	} else if (currentScreen == GAUGE_SCREEN) {
 		currentMode = SURFACE_MODE;

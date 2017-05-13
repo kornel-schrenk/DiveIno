@@ -291,8 +291,6 @@ DiveResult* Buhlmann::initializeCompartments() {
     }
 
     Serial.println(F("Compartment initialization - DONE"));
-    Serial.println("");
-
     return diveResult;
 }
 

@@ -39,6 +39,7 @@ public:
 	bool clearLogbook();
 	String getFileNameFromProfileNumber(int profileNumber, bool isTemp);
 	bool createNewProfileFile(int profileNumber);
+	void removeTempProfilefile(int profileNumber);
 	void storeProfileItem(float pressure, float depth, float temperature, int duration);
 	void storeDiveSummary(int profileNumber, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time);
 	ProfileData* loadProfileDataFromFile(String profileFileName);

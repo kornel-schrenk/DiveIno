@@ -138,6 +138,21 @@ bool Logbook::createNewProfileFile(int profileNumber)
 	return profileFile.open(tempProfileFileNameArray, O_WRITE | O_CREAT | O_APPEND );
 }
 
+void Logbook::removeTempProfilefile(int profileNumber)
+{
+	profileFile.close();
+
+	//The String has to be converted into a char array, otherwise the board will reset itself
+    String tempProfileFileName = getFileNameFromProfileNumber(profileNumber, true);
+	char tempProfileFileNameArray[tempProfileFileName.length()+1];
+	tempProfileFileName.toCharArray(tempProfileFileNameArray, tempProfileFileName.length()+1);
+
+	//Remove the temporary dive profile file
+	if (SD.exists(tempProfileFileNameArray)) {
+		SD.remove(tempProfileFileNameArray);
+	}
+}
+
 void Logbook::storeProfileItem(float pressure, float depth, float temperature, int duration)
 {
 	StaticJsonBuffer<JSON_OBJECT_SIZE(4)> jsonBuffer;

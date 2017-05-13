@@ -571,10 +571,10 @@ void View::displayTestScreen()
 	drawBatteryStateOfCharge(86.5);
 
 	drawCurrentPressure(2345.67);
-	drawCurrentTemperature(22.4, true);
-	drawMaximumDepth(36.5, true);
+	drawCurrentTemperature(22.4, false);
+	drawMaximumDepth(36.5, false);
 
-	drawDepth(34.6, true);
+	drawDepth(34.6, false);
 	drawDiveDuration(2048);
 
 	DiveInfo diveInfo;
@@ -585,7 +585,7 @@ void View::displayTestScreen()
 	diveInfo.decoNeeded = true;
     diveInfo.decoStopInMeters = 24;
     diveInfo.decoStopDurationInMinutes = 367;
-	drawDecoArea(diveInfo, true);
+	drawDecoArea(diveInfo, false);
 
 	drawSafetyStop(134);
 	drawAscend(ASCEND_NORMAL);
