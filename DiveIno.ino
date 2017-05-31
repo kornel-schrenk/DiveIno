@@ -14,7 +14,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.4.4";
+const String VERSION_NUMBER = "1.4.5";
 
 #if defined(__SAM3X8E__) || defined(__SAM3X8H__)
 	#include "TimerFreeTone.h"
@@ -386,26 +386,30 @@ void handleMessage(String message, bool fromSerial) {
 	}
 #endif
 
-	String responseMessage = "";
+	String responseMessage = "@";
 	if (message.startsWith(F("PROFILE")) || message.startsWith(F("profile"))) {
 		int profileNumber = message.substring(7).toInt();
 		if (profileNumber > 0) {
+			outputStream->println("@");
 			logbook.printProfile(profileNumber, outputStream);
+			outputStream->println("#");
 		} else {
-			responseMessage += F("ERROR: Invalid argument - Positive Integer value expected!");
+			responseMessage += F("ERROR: Invalid argument - Positive Integer value expected!#");
 			outputStream->println(responseMessage);
 		}
 	} else if (message.startsWith(F("LOGBOOK")) || message.startsWith(F("logbook"))) {
+		outputStream->println("@");
 		logbook.printLogbook(outputStream);
+		outputStream->println("#");
 	} else if (message.startsWith(F("EMULATOR")) || message.startsWith(F("emulator"))) {
 		String onOffEmulator = message.substring(8);
 		onOffEmulator.trim();
 		if (onOffEmulator.startsWith(F("on")) || onOffEmulator.startsWith(F("ON"))) {
 			emulatorEnabled = true;
-			responseMessage += F("EMULATOR - Enabled");
+			responseMessage += F("EMULATOR - Enabled#");
 		} else {
 			emulatorEnabled = false;
-			responseMessage += F("EMULATOR - Disabled");
+			responseMessage += F("EMULATOR - Disabled#");
 		}
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("REPLAY")) || message.startsWith(F("replay"))) {
@@ -413,14 +417,15 @@ void handleMessage(String message, bool fromSerial) {
 		onOffReplay.trim();
 		if (onOffReplay.startsWith(F("on")) || onOffReplay.startsWith(F("ON"))) {
 			replayEnabled = true;
-			responseMessage += F("REPLAY - Enabled");
+			responseMessage += F("REPLAY - Enabled#");
 		} else {
 			replayEnabled = false;
-			responseMessage += F("REPLAY - Disabled");
+			responseMessage += F("REPLAY - Disabled#");
 		}
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("VERSION")) || message.startsWith(F("version"))) {
 		responseMessage += VERSION_NUMBER;
+		responseMessage += F("#");
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("DIAG")) || message.startsWith(F("diag"))) {
 		String what = message.substring(4);
@@ -438,18 +443,21 @@ void handleMessage(String message, bool fromSerial) {
 		} else if (what.startsWith(F("TIMESTAMP")) || what.startsWith(F("timestamp"))) {
 			responseMessage += nowTimestamp();
 		}
+		responseMessage += F("#");
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("SETTINGS")) || message.startsWith(F("settings"))) {
+		outputStream->println("@");
 		settings.printSettings(outputStream);
+		outputStream->println("#");
 	} else if (message.startsWith(F("SOUND")) || message.startsWith(F("sound"))) {
 		String state = message.substring(5);
 		state.trim();
 		if (state.startsWith(F("ON")) || state.startsWith(F("on"))) {
 			soundSetting = true;
-			responseMessage += F("SOUND - ON");
+			responseMessage += F("SOUND - ON#");
 		} else {
 			soundSetting = false;
-			responseMessage += F("SOUND - OFF");
+			responseMessage += F("SOUND - OFF#");
 		}
 		saveSettings();
 		outputStream->println(responseMessage);
@@ -458,10 +466,10 @@ void handleMessage(String message, bool fromSerial) {
 		state.trim();
 		if (state.startsWith(F("ON")) || state.startsWith(F("on"))) {
 			imperialUnitsSetting = false;
-			responseMessage += F("METRIC - ON");
+			responseMessage += F("METRIC - ON#");
 		} else {
 			imperialUnitsSetting = true;
-			responseMessage += F("METRIC - OFF");
+			responseMessage += F("METRIC - OFF#");
 		}
 		saveSettings();
 		outputStream->println(responseMessage);
@@ -471,9 +479,10 @@ void handleMessage(String message, bool fromSerial) {
 			seaLevelPressureSetting = seaLevelPressure;
 			responseMessage += F("PRESSURE - ");
 			responseMessage += seaLevelPressureSetting;
+			responseMessage += F("#");
 			saveSettings();
 		} else {
-			responseMessage += F("ERROR: Invalid argument - Must be between 900 and 1200 millibar!");
+			responseMessage += F("ERROR: Invalid argument - Must be between 900 and 1200 millibar!#");
 		}
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("OXYGEN")) || message.startsWith(F("oxygen"))) {
@@ -482,15 +491,16 @@ void handleMessage(String message, bool fromSerial) {
 			oxygenRateSetting = oxygenRate;
 			responseMessage += F("OXYGEN - ");
 			responseMessage += oxygenRateSetting;
+			responseMessage += F("#");
 			saveSettings();
 		} else {
-			responseMessage += F("ERROR: Invalid argument - Must be between 0.16 and 0.50!");
+			responseMessage += F("ERROR: Invalid argument - Must be between 0.16 and 0.50!#");
 		}
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("DEFAULT")) || message.startsWith(F("default"))) {
 		setSettingsToDefault();
 		saveSettings();
-		responseMessage += F("DEFAULT settings were set.");
+		responseMessage += F("DEFAULT settings were set.#");
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("DATETIME")) || message.startsWith(F("datetime"))) {
 		String dateTime = message.substring(8);
@@ -545,12 +555,13 @@ void handleMessage(String message, bool fromSerial) {
 			responseMessage += F("DATETIME settings were set to ");
 			responseMessage += settings.getCurrentTimeText();
 		}
+		responseMessage += F("#");
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("CLEAR")) || message.startsWith(F("clear"))) {
 		if (lastDive.clearLastDiveData()) {
-			responseMessage += F("CLEAR - OK");
+			responseMessage += F("CLEAR - OK#");
 		} else {
-			responseMessage += F("ERROR: Surface time clean operation failed!");
+			responseMessage += F("ERROR: Surface time clean operation failed!#");
 		}
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("RESET")) || message.startsWith(F("reset"))) {
@@ -579,9 +590,9 @@ void handleMessage(String message, bool fromSerial) {
 		} else {
 			responseMessage += F("ERROR: Logbook reset failed!\n");
 		}
+		responseMessage += F("#");
 		outputStream->println(responseMessage);
 	}
-
 	outputStream->flush();
 }
 
