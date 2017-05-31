@@ -325,7 +325,7 @@ void Logbook::drawProfileItems(UTFT* tft, int profileNumber, int pageNumber)
 	}
 }
 
-void Logbook::printProfile(int profileNumber, Print* print)
+void Logbook::printProfile(int profileNumber, Stream* out)
 {
 	String profileFileName = getFileNameFromProfileNumber(profileNumber, false);
 	char profileFileNameArray[profileFileName.length()+1];
@@ -333,14 +333,48 @@ void Logbook::printProfile(int profileNumber, Print* print)
 
 	SdFile profileFile;
 	if (profileFile.open(profileFileNameArray, O_READ)) {
-		  int data;
-		  while ((data = profileFile.read()) >= 0) {
-		    print->write(data);
-		  }
-		  profileFile.close();
+		unsigned long totalSize = profileFile.fileSize();
+		unsigned long readSize = 0;
+		byte buffer[1024];
+		int readBytes;
+
+		Serial.print(F("START dump for: "));
+		Serial.println(profileFileNameArray);
+
+		while (true) {
+			readBytes = profileFile.read(buffer, sizeof(buffer));
+			readSize += readBytes;
+			if (readBytes == -1) {
+				Serial.println(F("Profile file read error."));
+				break;
+			} else if (readBytes < 1024) {
+				out->write(buffer, readBytes);
+				out->flush();
+
+				Serial.print(readSize);
+				Serial.print("/");
+				Serial.println(totalSize);
+
+				break;
+			} else {
+				out->write(buffer, readBytes);
+				out->flush();
+
+				Serial.print(readSize);
+				Serial.print("/");
+				Serial.println(totalSize);
+
+				delay(500); //Delay was added to switch the line back into normal state
+			}
+		}
+		profileFile.close();
+
+		Serial.print(F("END dump for: "));
+		Serial.println(profileFileNameArray);
+
 	} else {
-		print->print(F("ERROR: The following file does not exist - "));
-		print->println(profileFileName);
+		out->print(F("ERROR: The following file does not exist - "));
+		out->println(profileFileName);
 	}
 }
 

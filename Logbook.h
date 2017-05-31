@@ -44,7 +44,7 @@ public:
 	void storeDiveSummary(int profileNumber, unsigned int duration, float maxDepth, float minTemperature, float oxigenPercentage, String date, String time);
 	ProfileData* loadProfileDataFromFile(String profileFileName);
     void drawProfileItems(UTFT* tft, int profileNumber, int pageNumber);
-    void printProfile(int profileNumber, Print* print);
+    void printProfile(int profileNumber, Stream* print);
     bool clearProfiles();
 private:
     SdFile profileFile;

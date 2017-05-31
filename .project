@@ -44,32 +44,32 @@
 		<link>
 			<name>libraries/Adafruit_BluefruitLE_nRF51</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/Adafruit_BluefruitLE_nRF51</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/Adafruit_BluefruitLE_nRF51</location>
 		</link>
 		<link>
 			<name>libraries/ArduinoJson</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/ArduinoJson</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/ArduinoJson</location>
 		</link>
 		<link>
 			<name>libraries/DS1307RTC</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/DS1307RTC</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/DS1307RTC</location>
 		</link>
 		<link>
 			<name>libraries/IRremote2</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/IRremote2</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/IRremote2</location>
 		</link>
 		<link>
 			<name>libraries/MAX17043</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/MAX17043</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/MAX17043</location>
 		</link>
 		<link>
 			<name>libraries/MS5803_14</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/MS5803_14</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/MS5803_14</location>
 		</link>
 		<link>
 			<name>libraries/SPI</name>
@@ -79,27 +79,27 @@
 		<link>
 			<name>libraries/SdFat</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/SdFat</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/SdFat</location>
 		</link>
 		<link>
 			<name>libraries/Time</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/Time</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/Time</location>
 		</link>
 		<link>
 			<name>libraries/TimerFreeTone</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/TimerFreeTone</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/TimerFreeTone</location>
 		</link>
 		<link>
 			<name>libraries/UTFT</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/UTFT</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/UTFT</location>
 		</link>
 		<link>
 			<name>libraries/UTFT_SdRaw</name>
 			<type>2</type>
-			<location>C:/Users/Kornel_Schrenk/Documents/Arduino/libraries/UTFT_SdRaw</location>
+			<location>C:/Users/korne/Documents/Arduino/libraries/UTFT_SdRaw</location>
 		</link>
 		<link>
 			<name>libraries/Wire</name>
