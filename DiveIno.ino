@@ -14,7 +14,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.4.6";
+const String VERSION_NUMBER = "1.4.7";
 
 #if defined(__SAM3X8E__) || defined(__SAM3X8H__)
 	#include "TimerFreeTone.h"
@@ -462,7 +462,7 @@ void handleMessage(String message, bool fromSerial) {
 		saveSettings();
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("METRIC")) || message.startsWith(F("metric"))) {
-		String state = message.substring(5);
+		String state = message.substring(6);
 		state.trim();
 		if (state.startsWith(F("ON")) || state.startsWith(F("on"))) {
 			imperialUnitsSetting = false;
@@ -490,7 +490,7 @@ void handleMessage(String message, bool fromSerial) {
 		if (oxygenRate >= 0.16 && oxygenRate <= 0.5) {
 			oxygenRateSetting = oxygenRate;
 			responseMessage += F("OXYGEN - ");
-			responseMessage += oxygenRateSetting;
+			responseMessage += String(oxygenRateSetting, 3);
 			responseMessage += F("#");
 			saveSettings();
 		} else {
@@ -500,7 +500,7 @@ void handleMessage(String message, bool fromSerial) {
 	} else if (message.startsWith(F("DEFAULT")) || message.startsWith(F("default"))) {
 		setSettingsToDefault();
 		saveSettings();
-		responseMessage += F("DEFAULT settings were set.#");
+		responseMessage += F("DEFAULT settings restored.#");
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("DATETIME")) || message.startsWith(F("datetime"))) {
 		String dateTime = message.substring(8);
@@ -552,7 +552,7 @@ void handleMessage(String message, bool fromSerial) {
 
 			settings.setCurrentTime(dateTimeSettings);
 
-			responseMessage += F("DATETIME settings were set to ");
+			responseMessage += F("DATETIME - ");
 			responseMessage += settings.getCurrentTimeText();
 		}
 		responseMessage += F("#");
