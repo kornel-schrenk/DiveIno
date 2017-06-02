@@ -998,7 +998,7 @@ void processRemoteButtonPress(decode_results *results)
 	} else if (results->value == 0xFDA857 || results->value == 0xFF02FD) { // OK || Previous
 		selectButtonPressed();
 	} else if (results->value == 0xFD30CF || results->value == 0xFFE01F) { // * || EQ
-
+		starButtonPressed();
 	} else if (results->value == 0xFD708F || results->value == 0xFF906F) { // # || +
 		hashButtonPressed();
 	} else if (results->value == 0xFF6897 || results->value == 0xFDB04F) { // 0
@@ -1028,6 +1028,18 @@ void numericButtonPressed(byte number)
 {
 	if (currentScreen == PROFILE_SCREEN && number > 0) {
 		logbook.drawProfileItems(&tft, currentProfileNumber, number);
+	}
+}
+
+void starButtonPressed()
+{
+	if (currentScreen == SETTINGS_SCREEN) {
+		sensor.readSensor();
+		float pressureInMillibar = sensor.pressure();
+		if (980 < pressureInMillibar && pressureInMillibar < 1200) {
+			seaLevelPressureSetting = pressureInMillibar;
+		}
+		settingsSelect(0);
 	}
 }
 
@@ -1291,15 +1303,15 @@ void leftButtonPressed()
 		case SETTINGS_SCREEN: {
 			switch (selectedSettingIndex) {
 				case 0: {
-					if (seaLevelPressureSetting > 1001) {
+					if (seaLevelPressureSetting > 980) {
 						seaLevelPressureSetting = seaLevelPressureSetting - 0.1;
 					}
 					settingsSelect(0);
 				}
 				break;
 				case 1: {
-					if (oxygenRateSetting > 0.16) {
-						oxygenRateSetting = oxygenRateSetting - 0.01;
+					if (oxygenRateSetting > 0.21) {
+						oxygenRateSetting = oxygenRateSetting - 0.001;
 					}
 					settingsSelect(1);
 				}
@@ -1362,8 +1374,8 @@ void rightButtonPressed()
 				}
 				break;
 				case 1: {
-					if (oxygenRateSetting < 0.50) {
-						oxygenRateSetting = oxygenRateSetting + 0.01;
+					if (oxygenRateSetting < 0.40) {
+						oxygenRateSetting = oxygenRateSetting + 0.001;
 					}
 					settingsSelect(1);
 				}

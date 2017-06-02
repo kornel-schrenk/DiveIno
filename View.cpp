@@ -379,7 +379,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumF(seaLevelPressureSetting, 1, 280, SETTINGS_TOP);
+	tft->printNumF(seaLevelPressureSetting, 1, 280, SETTINGS_TOP, '.', 6, ' ');
 
 	if (settingIndex == 1) {
 		tft->setColor(VGA_BLACK);
@@ -388,7 +388,7 @@ void View::displaySettings(byte settingIndex, float seaLevelPressureSetting, flo
 		tft->setColor(VGA_TEAL);
 		tft->setBackColor(VGA_BLACK);
 	}
-	tft->printNumF(oxygenRateSetting, 2, 280, 40 + SETTINGS_TOP);
+	tft->printNumF(oxygenRateSetting*100, 1, 280, 40 + SETTINGS_TOP);
 
 	if (settingIndex == 2) {
 		tft->setColor(VGA_YELLOW);

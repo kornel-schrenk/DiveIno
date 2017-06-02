@@ -54,7 +54,7 @@ bool Settings::saveDiveInoSettings(DiveInoSettings* diveInoSettings)
 
 		JsonObject& root = jsonBuffer.createObject();
 		root["seaLevelPressure"] = double_with_n_digits(diveInoSettings->seaLevelPressureSetting, 5);
-		root.set("oxygenPercentage", diveInoSettings->oxygenRateSetting);
+		root["oxygenPercentage"] = double_with_n_digits(diveInoSettings->oxygenRateSetting, 3);
 		root.set("soundEnabled", diveInoSettings->soundSetting);
 		root.set("isImperialUnits", diveInoSettings->imperialUnitsSetting);
 
