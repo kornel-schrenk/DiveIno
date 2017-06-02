@@ -449,6 +449,19 @@ void handleMessage(String message, bool fromSerial) {
 		outputStream->println("@");
 		settings.printSettings(outputStream);
 		outputStream->println("#");
+	} else if (message.startsWith(F("AUTO")) || message.startsWith(F("auto"))) {
+		sensor.readSensor();
+		float pressureInMillibar = sensor.pressure();
+		if (980 <= pressureInMillibar && pressureInMillibar <= 1100) {
+			seaLevelPressureSetting = pressureInMillibar;
+			responseMessage += F("AUTO - ");
+			responseMessage += seaLevelPressureSetting;
+			responseMessage += F("#");
+			saveSettings();
+		} else {
+			responseMessage += F("ERROR: Invalid argument - Must be between 980 and 1100 millibar!#");
+		}
+		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("SOUND")) || message.startsWith(F("sound"))) {
 		String state = message.substring(5);
 		state.trim();
@@ -475,14 +488,14 @@ void handleMessage(String message, bool fromSerial) {
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("PRESSURE")) || message.startsWith(F("pressure"))) {
 		float seaLevelPressure = message.substring(8).toFloat();
-		if (seaLevelPressure > 900 && seaLevelPressure < 1200) {
+		if (980 <= seaLevelPressure && seaLevelPressure <= 1100) {
 			seaLevelPressureSetting = seaLevelPressure;
 			responseMessage += F("PRESSURE - ");
 			responseMessage += seaLevelPressureSetting;
 			responseMessage += F("#");
 			saveSettings();
 		} else {
-			responseMessage += F("ERROR: Invalid argument - Must be between 900 and 1200 millibar!#");
+			responseMessage += F("ERROR: Invalid argument - Must be between 980 and 1100 millibar!#");
 		}
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("OXYGEN")) || message.startsWith(F("oxygen"))) {
@@ -494,7 +507,7 @@ void handleMessage(String message, bool fromSerial) {
 			responseMessage += F("#");
 			saveSettings();
 		} else {
-			responseMessage += F("ERROR: Invalid argument - Must be between 0.16 and 0.50!#");
+			responseMessage += F("ERROR: Invalid argument - Must be between 0.21 and 0.40!#");
 		}
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("DEFAULT")) || message.startsWith(F("default"))) {
