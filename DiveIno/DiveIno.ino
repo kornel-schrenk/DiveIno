@@ -14,7 +14,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.5.0";
+const String VERSION_NUMBER = "1.5.1";
 
 #if defined(__SAM3X8E__) || defined(__SAM3X8H__)
 	#include "TimerFreeTone.h"
@@ -115,7 +115,7 @@ bool recordMessage = false;
 //Water activated switch
 int WATER_SWITCH_PIN = 10;
 int WATER_LED_PIN = 11;
-int previousValueWaterSwitch = 0;
+int previousValueWaterSwitch = LOW;
 long counterWaterSwitch = 0;
 bool waterSwitchActivated = false;
 

@@ -61,12 +61,12 @@ void LastDive::storeLastDiveData(LastDiveData* lastDiveData)
 		root.set("diveTime", lastDiveData->diveTime);
 		root.set("diveDuration", lastDiveData->durationInSeconds);
 		root.set("noFlyTime", lastDiveData->noFlyTimeInMinutes);
-		root.set("maxDepth", lastDiveData->maxDepthInMeters, 2);
+		root.set("maxDepth", lastDiveData->maxDepthInMeters);
 		root.set("wasDecoDive", lastDiveData->wasDecoDive);
 
 		JsonArray& partialPressures = root.createNestedArray("compartmentPartialPressures");
 		for (int i=0; i<COMPARTMENT_COUNT; i++) {
-			partialPressures.add(double_with_n_digits(lastDiveData->compartmentPartialPressures[i], 5));
+			partialPressures.add(lastDiveData->compartmentPartialPressures[i]);
 		}
 
 		root.prettyPrintTo(lastDiveFile);
