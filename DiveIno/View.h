@@ -59,6 +59,8 @@ public:
 	void drawSafetyStop(unsigned int safetyStopDurationInSeconds);
 	void drawAscend(int ascendRate);
 
+	void drawWaterSwitchIndicator(int percentage);
+
 	void drawBatteryStateOfCharge(float soc);
 
 	void drawButtonFrame(int x, int y, int w, int h, int r, word color, bool selected);

@@ -14,7 +14,7 @@
 #include "Logbook.h"
 #include "LastDive.h"
 
-const String VERSION_NUMBER = "1.5.1";
+const String VERSION_NUMBER = "1.5.2";
 
 #if defined(__SAM3X8E__) || defined(__SAM3X8H__)
 	#include "TimerFreeTone.h"
@@ -174,40 +174,16 @@ void setup() {
 
 	Wire.begin();
 
-	irrecv.enableIRIn();
-
-    if (sensor.initializeMS_5803(false)) {
-      Serial.println(F("Pressure sensor: OK\n"));
-    }
-    else {
-      Serial.println(F("Pressure sensor: FAILED\n"));
-    }
-
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-	setSyncProvider((unsigned long int (*)())RTC.get);
-#endif
-    Serial.print(F("Time: "));
-    Serial.print(settings.getCurrentTimeText());
-
-    Serial.print(F(" = "));
-    Serial.println((unsigned long)nowTimestamp());
-    Serial.println("");
-
-	tft.InitLCD();
+	pinMode(WATER_SWITCH_PIN, INPUT);
+	pinMode(WATER_LED_PIN, OUTPUT);
+	digitalWrite(WATER_LED_PIN, LOW); // Turn the water indicator LED OFF
 
     batteryMonitor.reset();
     batteryMonitor.quickStart();
-    delay(1000); // Time is required to LiPo Battery quickstart
-
-	batterySoc = batteryMonitor.getSoC();
-
-	Serial.print(F("Battery: "));
-	Serial.print(batterySoc, 0);
-	Serial.println(F(" %"));
 
 #if BLUETOOTH_SUPPORTED
 	// Initialize the Adafruit Bluefruit LE UART Friend module - https://www.adafruit.com/products/2479
-	Serial.println(F("\nBLE - Initialization"));
+	Serial.println(F("BLE - Initialization"));
 	if (!ble.begin(false)) {
 		Serial.println(F("ERROR: Bluefruit LE UART Friend not found!")); // Make sure it's in CoMmanD mode!
 	} else {
@@ -230,8 +206,33 @@ void setup() {
 		Serial.println(F("BLE - Module READY"));
 	}
 #endif
-	pinMode(WATER_SWITCH_PIN, INPUT);
-	pinMode(WATER_LED_PIN, OUTPUT);
+
+	tft.InitLCD();
+
+	irrecv.enableIRIn();
+
+    if (sensor.initializeMS_5803(false)) {
+      Serial.println(F("\nPressure sensor: OK\n"));
+    }
+    else {
+      Serial.println(F("\nPressure sensor: FAILED\n"));
+    }
+
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	setSyncProvider((unsigned long int (*)())RTC.get);
+#endif
+    Serial.print(F("Time: "));
+    Serial.print(settings.getCurrentTimeText());
+
+    Serial.print(F(" = "));
+    Serial.println((unsigned long)nowTimestamp());
+    Serial.println("");
+
+	batterySoc = batteryMonitor.getSoC();
+
+	Serial.print(F("Battery: "));
+	Serial.print(batterySoc, 0);
+	Serial.println(F(" %"));
 
 	displayScreen(MENU_SCREEN);
 
@@ -290,33 +291,42 @@ void loop() {
 		}
 	}
 }
-
+/**
+ * WATER_SWITCH_PIN default: HIGH - out of water <-> in water: LOW
+ *
+ * Transitions:
+ * 		HIGH -> LOW:  placed into WATER - turn ON
+ * 		LOW  -> LOW:  still in WATER
+ * 		LOW  -> HIGH: out of water - turn OFF - reset counter
+ */
 void monitorWaterSwitch() {
 	if (!waterSwitchActivated) {
 		int currentValueWaterSwitch = digitalRead(WATER_SWITCH_PIN);
 
-		if (currentValueWaterSwitch == LOW) {
-			digitalWrite(WATER_LED_PIN, HIGH);
-		} else {
-			digitalWrite(WATER_LED_PIN, LOW);
-		}
+		long WATER_ACTIVATION_LEVEL = 15000;
 
-		if (currentValueWaterSwitch == LOW && previousValueWaterSwitch == HIGH) {
+		if (previousValueWaterSwitch == HIGH && currentValueWaterSwitch == LOW) {
+			digitalWrite(WATER_LED_PIN, HIGH); // Turn the water indicator LED ON
 			Serial.println(F("WATER SWITCH - ON"));
 			counterWaterSwitch = 1; // Turned ON
-		}
-		if (currentValueWaterSwitch == HIGH && previousValueWaterSwitch == LOW) {
+		} else if (previousValueWaterSwitch == LOW && currentValueWaterSwitch == LOW) {
+			counterWaterSwitch++; // Still ON
+			if (counterWaterSwitch % 500 == 0) {
+				int percentage = counterWaterSwitch/(WATER_ACTIVATION_LEVEL/100);
+				Serial.print(F("WATER SWITCH - "));
+				Serial.print(percentage);
+				Serial.println(F(" %"));
+				view.drawWaterSwitchIndicator(percentage);
+			}
+		} else if (previousValueWaterSwitch == LOW && currentValueWaterSwitch == HIGH) {
+			digitalWrite(WATER_LED_PIN, LOW); // Turn the water indicator LED OFF
 			Serial.println(F("WATER SWITCH - OFF"));
 			counterWaterSwitch = 0; // Turned OFF
-		}
-		if (currentValueWaterSwitch == LOW && previousValueWaterSwitch == LOW) {
-			counterWaterSwitch++; // Still ON
+			view.drawWaterSwitchIndicator(0);
 		}
 		previousValueWaterSwitch = currentValueWaterSwitch;
 
-		long ACTIVATION_LEVEL = 15000;
-
-		if (counterWaterSwitch > ACTIVATION_LEVEL) { // Switch is ON for some time
+		if (counterWaterSwitch > WATER_ACTIVATION_LEVEL) { // Switch is ON for some time
 			counterWaterSwitch = 0;
 			waterSwitchActivated = true;
 			digitalWrite(WATER_LED_PIN, LOW);

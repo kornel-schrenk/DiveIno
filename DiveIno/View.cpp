@@ -594,6 +594,21 @@ void View::displayTestScreen()
 	//drawPartialPressureWarning();
 }
 
+void View::drawWaterSwitchIndicator(int percentage)
+{
+	int displayWidth = tft->getDisplayXSize()-1;
+	tft->setColor(VGA_LIME);
+
+	if (percentage <= 0) {
+		tft->setColor(VGA_BLACK);
+		tft->fillRect(0, MENU_TOP-9, displayWidth, MENU_TOP+5);
+	} else if (percentage >= 100) {
+		tft->fillRect(0, MENU_TOP-9, displayWidth, MENU_TOP+5);
+	} else {
+		tft->fillRect(0, MENU_TOP-9, (displayWidth*percentage)/100, MENU_TOP+5);
+	}
+}
+
 void View::drawBatteryStateOfCharge(float soc)
 {
 	tft->setFont(BigFont); //16x16 pixel
