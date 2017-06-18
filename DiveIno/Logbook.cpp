@@ -155,11 +155,11 @@ void Logbook::removeTempProfilefile(int profileNumber)
 
 void Logbook::storeProfileItem(float pressure, float depth, float temperature, int duration)
 {
-	StaticJsonBuffer<JSON_OBJECT_SIZE(4)> jsonBuffer;
+	StaticJsonBuffer<JSON_OBJECT_SIZE(5)> jsonBuffer;
 
 	JsonObject& root = jsonBuffer.createObject();
 	root.set("depth", depth);
-	root.set("pressure", pressure, 5);
+	root.set("pressure", pressure);
 	root.set("duration", duration);
 	root.set("temperature", temperature);
 
@@ -195,13 +195,13 @@ void Logbook::storeDiveSummary(int profileNumber, unsigned int duration, float m
 		finalFile.print(F("{ \"summary\":\n"));
 		finalFile.flush();
 
-		StaticJsonBuffer<JSON_OBJECT_SIZE(6)> jsonBuffer;
+		StaticJsonBuffer<JSON_OBJECT_SIZE(7)> jsonBuffer;
 
 		JsonObject& root = jsonBuffer.createObject();
 		root.set("diveDuration", duration);
 		root.set("maxDepth", maxDepth);
 		root.set("minTemperature", minTemperature);
-		root.set("oxigenPercentage", oxigenPercentage);
+		root.set("oxygenPercentage", oxigenPercentage);
 		root.set("diveDate", date.c_str());
 		root.set("diveTime", time.c_str());
 
@@ -267,7 +267,7 @@ ProfileData* Logbook::loadProfileDataFromFile(String profileFileName)
 				profileData->diveDuration = root["diveDuration"];
 				profileData->maximumDepth = root["maxDepth"];
 				profileData->minimumTemperature = root["minTemperature"];
-				profileData->oxigenPercentage = root["oxigenPercentage"];
+				profileData->oxygenPercentage = root["oxygenPercentage"];
 				profileData->diveDate = root["diveDate"].as<String>();
 				profileData->diveTime = root["diveTime"].as<String>();
 			}

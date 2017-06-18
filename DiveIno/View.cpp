@@ -198,7 +198,7 @@ void View::displayProfileScreen(ProfileData* profileData, int profileNumber, boo
 	tft->print(":", 328, 60);
 	tft->printNumI(profileData->diveDuration%60, 344, 60, 2 , '0');
 	tft->setColor(VGA_OLIVE);
-	tft->printNumF(profileData->oxigenPercentage, 1, 296, 100);
+	tft->printNumF(profileData->oxygenPercentage, 1, 296, 100);
 	if (isImperial) {
 		tft->setColor(VGA_FUCHSIA);
 		tft->printNumI(profileData->maximumDepth*3.28, paddingLeft, 60, 3);

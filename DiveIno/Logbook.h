@@ -24,7 +24,7 @@ struct ProfileData {
 	int diveDuration = 0;
 	float maximumDepth = 0.0;
 	float minimumTemperature = 0.0;
-	float oxigenPercentage = 21;
+	float oxygenPercentage = 21;
 	String diveDate;
 	String diveTime;
 	int numberOfProfileItems = 0;

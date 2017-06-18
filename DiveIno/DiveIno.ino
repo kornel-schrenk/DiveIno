@@ -123,8 +123,13 @@ bool emulatorEnabled = false;
 bool replayEnabled = false;
 
 void setup() {
+	Wire.begin();
+
+//	batteryMonitor.reset();
+//	batteryMonitor.quickStart();
+
 	Serial.begin(115200);
-	delay(500);
+	delay(1000);
 
 	Serial.println(F(" ____   _              ___"));
 	Serial.println(F("|  _ \\ (_)__   __ ___ |_ _| _ __    ___"));
@@ -138,7 +143,7 @@ void setup() {
 
 	// SD Card initialization
 	pinMode(csPin, OUTPUT);
-	if (SD.begin(csPin, SPI_HALF_SPEED)) {
+	if (SD.begin(csPin, SPI_FULL_SPEED)) {
 		Serial.println(F("SD card: OK\n"));
 	} else {
 		Serial.println(F("SD card: FAILED\n"));
@@ -172,14 +177,9 @@ void setup() {
 	}
 	Serial.println("");
 
-	Wire.begin();
-
 	pinMode(WATER_SWITCH_PIN, INPUT);
 	pinMode(WATER_LED_PIN, OUTPUT);
 	digitalWrite(WATER_LED_PIN, LOW); // Turn the water indicator LED OFF
-
-    batteryMonitor.reset();
-    batteryMonitor.quickStart();
 
 #if BLUETOOTH_SUPPORTED
 	// Initialize the Adafruit Bluefruit LE UART Friend module - https://www.adafruit.com/products/2479
@@ -229,7 +229,6 @@ void setup() {
     Serial.println("");
 
 	batterySoc = batteryMonitor.getSoC();
-
 	Serial.print(F("Battery: "));
 	Serial.print(batterySoc, 0);
 	Serial.println(F(" %"));
