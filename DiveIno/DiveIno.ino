@@ -125,8 +125,8 @@ bool replayEnabled = false;
 void setup() {
 	Wire.begin();
 
-//	batteryMonitor.reset();
-//	batteryMonitor.quickStart();
+	batteryMonitor.reset();
+	batteryMonitor.quickStart();
 
 	Serial.begin(115200);
 	delay(1000);
@@ -143,7 +143,7 @@ void setup() {
 
 	// SD Card initialization
 	pinMode(csPin, OUTPUT);
-	if (SD.begin(csPin, SPI_FULL_SPEED)) {
+	if (SD.begin(csPin, SPI_HALF_SPEED)) {
 		Serial.println(F("SD card: OK\n"));
 	} else {
 		Serial.println(F("SD card: FAILED\n"));
