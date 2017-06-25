@@ -594,7 +594,7 @@ void View::displayTestScreen()
 	//drawPartialPressureWarning();
 }
 
-void View::drawWaterSwitchIndicator(int percentage)
+void View::drawWaterSwitchIndicator(double percentage)
 {
 	int displayWidth = tft->getDisplayXSize()-1;
 	tft->setColor(VGA_LIME);

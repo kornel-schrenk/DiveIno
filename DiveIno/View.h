@@ -59,7 +59,7 @@ public:
 	void drawSafetyStop(unsigned int safetyStopDurationInSeconds);
 	void drawAscend(int ascendRate);
 
-	void drawWaterSwitchIndicator(int percentage);
+	void drawWaterSwitchIndicator(double percentage);
 
 	void drawBatteryStateOfCharge(float soc);
 

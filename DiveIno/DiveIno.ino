@@ -311,9 +311,9 @@ void monitorWaterSwitch() {
 		} else if (previousValueWaterSwitch == LOW && currentValueWaterSwitch == LOW) {
 			counterWaterSwitch++; // Still ON
 			if (counterWaterSwitch % 500 == 0) {
-				int percentage = counterWaterSwitch/(WATER_ACTIVATION_LEVEL/100);
+				double percentage = counterWaterSwitch/(WATER_ACTIVATION_LEVEL/100);
 				Serial.print(F("WATER SWITCH - "));
-				Serial.print(percentage);
+				Serial.print(percentage, 2);
 				Serial.println(F(" %"));
 				view.drawWaterSwitchIndicator(percentage);
 			}
