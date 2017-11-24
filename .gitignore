@@ -1,4 +1,5 @@
 /DiveIno/.ino.cpp
+/DiveIno/sloeber.ino.cpp
 /DiveIno/spec.d
 /DiveIno/.settings
 /DiveIno/Release
@@ -6,3 +7,5 @@
 /DiveIno/libraries
 /DiveIno/arduino
 /DiveIno/core
+/DiveIno/.cproject
+/DiveIno/.project
