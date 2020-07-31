@@ -1,0 +1,7 @@
+{
+  "port" : "COM7",
+  "test" : "./data/TestLog4.json",
+  "interval": 800,
+  "baudrate" : 115200,
+  "initialDelay" : 10
+}

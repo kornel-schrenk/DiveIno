@@ -1,0 +1,17 @@
+{
+  "name": "diveinosimulator",
+  "version": "1.0.1",
+  "description": "Provide a test harness for the open source DiveIno dive computer.",
+  "main": "emulator.js",
+  "scripts": {    
+  },
+  "dependencies": {
+	"serialport": "~4.0.7"
+  },
+  "author": {
+    "name": "Kornel Schrenk",
+    "email": "kornel@schrenk.hu",
+    "url": "http://www.schrenk.hu"
+  },
+  "license": "MIT"
+}
