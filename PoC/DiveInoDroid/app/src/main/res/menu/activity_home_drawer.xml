@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="@string/nav_computer_title">
+        <menu>
+            <item
+                android:id="@+id/nav_computer_diagnostics"
+                android:icon="@drawable/ic_diagnostics"
+                android:title="@string/nav_computer_diagnostics"/>
+            <item
+                android:id="@+id/nav_computer_configuration"
+                android:icon="@drawable/ic_configuration"
+                android:title="@string/nav_computer_configuration"
+                />
+            <item
+                android:id="@+id/nav_device_information"
+                android:icon="@drawable/ic_device_information"
+                android:title="@string/nav_device_information"
+                />
+        </menu>
+    </item>
+
+    <item android:title="@string/nav_application_title">
+        <menu>
+            <item
+                android:id="@+id/nav_logbook"
+                android:icon="@drawable/ic_logbook"
+                android:title="@string/nav_logbook" />
+        </menu>
+    </item>
+
+    <item android:title="@string/nav_other_title">
+        <menu>
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@drawable/ic_settings"
+                android:title="@string/nav_settings" />
+            <item
+                android:id="@+id/nav_help"
+                android:icon="@drawable/ic_help"
+                android:title="@string/nav_help" />
+        </menu>
+    </item>
+
+</menu>

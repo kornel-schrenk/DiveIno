@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/activity_vertical_margin"
+    tools:context=".DeviceInformationBleActivity">
+
+    <TextView
+        android:id="@+id/information_statistics_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:textStyle="italic"
+        android:text="@string/information_statistics_label"/>
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/information_statistics_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/information_statistics_label">
+
+        <TableRow
+            android:id="@+id/information_totalDivesTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/information_totalDivesTextView"
+                android:text="@string/information_totalDivesTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/information_totalDivesValueTextView"
+                android:text="0"
+                android:textStyle="bold"/>
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/information_storedProfilesTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/information_storedProfilesTextView"
+                android:text="@string/information_storedProfilesTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/information_storedProfilesValueTextView"
+                android:text="0"
+                android:textStyle="bold" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/information_maximumDepthTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/information_maximumDepthTextView"
+                android:text="@string/information_maximumDepthTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/information_maximumDepthValueTextView"
+                android:text="0.0"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/information_maximumDepthUnitsTextView"
+                android:text="@string/information_maximumDepthUnitsTextView" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/information_allDurationTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/information_allDurationTextView"
+                android:text="@string/information_allDurationTextView"
+                android:layout_marginEnd="10dp"
+                />
+
+            <TextView
+                android:id="@+id/information_allDurationValueTextView"
+                android:text="00:00"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/information_allDurationUnitsTextView"
+                android:text="@string/information_allDurationUnitsTextView" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/information_lastDiveTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/information_lastDiveTextView"
+                android:text="@string/information_lastDiveTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/information_lastDiveDateValueTextView"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold"
+                android:text="2000-01-01" />
+
+            <TextView
+                android:id="@+id/information_lastDiveTimeValueTextView"
+                android:textStyle="bold"
+                android:text="00:00" />
+        </TableRow>
+
+    </TableLayout>
+
+    <View
+        android:id="@+id/download_separator"
+        android:layout_height="1dp"
+        android:layout_width="fill_parent"
+        android:layout_below="@+id/information_statistics_layout"
+        android:background="#90909090"
+        android:layout_marginBottom="6dp"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:id="@+id/download_import_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="12dp"
+        android:layout_below="@+id/download_separator"
+        android:textStyle="italic"
+        android:text="@string/download_import_label"/>
+
+    <TextView
+        android:id="@+id/download_import_seekBar_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/download_import_label"
+        android:text="@string/download_import_seekBar_label"/>
+
+    <LinearLayout
+        android:id="@+id/download_import_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@+id/download_import_seekBar_label"
+        android:layout_alignParentStart="true">
+
+        <SeekBar
+            android:id="@+id/download_import_seekBar"
+            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:max="0"/>
+
+        <EditText
+            android:id="@+id/download_import_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:cursorVisible="false"
+            android:inputType="number"
+            android:text="0"/>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/download_import_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/download_import_layout"
+        android:layout_alignEnd="@+id/download_import_layout"
+        android:text="@string/download_import_button"/>
+
+</RelativeLayout>

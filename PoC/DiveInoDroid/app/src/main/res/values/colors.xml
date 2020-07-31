@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="axisTextColor">#000000</color>
+    <color name="axisLineColor">#303F9F</color>
+    <color name="legendColor">#000000</color>
+    <color name="profileGraphColor">#558B2F</color>
+    <color name="profileValueColor">#558B2F</color>
+    <color name="highLightColor">#FF4081</color>
+    <color name="safetyStopLineColor">#FFD600</color>
+    <color name="fortyMeterLineColor">#E65100</color>
+    <color name="tenMeterLineColor">#BDBDBD</color>
+</resources>

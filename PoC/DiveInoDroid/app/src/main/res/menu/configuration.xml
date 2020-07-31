@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_sync_all"
+        android:orderInCategory="100"
+        android:title="@string/action_sync_all"
+        android:icon="@drawable/ic_sync_all"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_auto"
+        android:orderInCategory="200"
+        android:title="@string/action_auto"
+        android:icon="@drawable/ic_auto"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_default"
+        android:orderInCategory="200"
+        android:title="@string/action_default"
+        android:icon="@drawable/ic_refresh"
+        app:showAsAction="ifRoom" />
+</menu>

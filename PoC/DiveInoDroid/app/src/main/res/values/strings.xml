@@ -1,0 +1,118 @@
+<resources>
+    <string name="app_name">DiveIno</string>
+    <string name="diagnostics_title">Diagnostics</string>
+    <string name="configuration_title">Configuration</string>
+    <string name="download_title">Download</string>
+    <string name="device_information_title">Information</string>
+    <string name="ble_device_list_title">Available devices</string>
+    <string name="logbook_title">Logbook</string>
+    <string name="profile_details_title">Dive details</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="ble_scan_started">BLE device scan started</string>
+    <string name="ble_not_supported">BLE is not supported</string>
+    <string name="bluetooth_not_supported">Bluetooth not supported.</string>
+    <string name="not_granted_permission">Required permission is not granted. Unable to continue.</string>
+    <string name="unknown_device">Unknown device</string>
+    <string name="not_uart_capable">Please select an UART capable device!</string>
+    <string name="rssi_not_available">N/A</string>
+
+    <string name="nav_computer_title">Computer</string>
+    <string name="nav_computer_diagnostics">Diagnostics</string>
+    <string name="nav_computer_configuration">Configuration</string>
+    <string name="nav_computer_download">Download</string>
+    <string name="nav_device_information">Information</string>
+    <string name="nav_application_title">Application</string>
+    <string name="nav_logbook">Logbook</string>
+    <string name="nav_other_title">Other</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_help">Help</string>
+
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+
+    <string name="home_connect_button">Connect</string>
+    <string name="home_download_button">Download</string>
+    <string name="home_manage_button">Manage</string>
+    <string name="home_logbook_button">Logbook</string>
+    <string name="home_settings_button">Settings</string>
+    <string name="home_about_button">About</string>
+
+    <string name="diagnostics_version_number">Version:</string>
+    <string name="diagnostics_temperature">Temperature:</string>
+    <string name="diagnostics_pressure">Pressure:</string>
+    <string name="diagnostics_battery">Battery Charge:</string>
+    <string name="diagnostics_date">Current Date:</string>
+
+    <string name="config_pressure_seekBar_label">Sea level absolute pressure:</string>
+    <string name="config_oxygen_seekBar_label">Oxygen percentage:</string>
+    <string name="config_sound_switch_label">Sound:</string>
+    <string name="config_units_switch_label">Units:</string>
+    <string name="config_date_label">Current date:</string>
+    <string name="config_time_label">Current time:</string>
+
+    <string name="information_statistics_label">Statistics:</string>
+    <string name="information_totalDivesTextView">Total dives:</string>
+    <string name="information_storedProfilesTextView">Stored profiles:</string>
+    <string name="information_maximumDepthTextView">Maximum depth:</string>
+    <string name="information_maximumDepthUnitsTextView">meter</string>
+    <string name="information_allDurationTextView">Total duration:</string>
+    <string name="information_allDurationUnitsTextView">hh:mm</string>
+    <string name="information_lastDiveTextView">Last dive:</string>
+
+    <string name="logbook_summary_label">Summary:</string>
+    <string name="logbook_totalDivesTextView">Total dives:</string>
+    <string name="logbook_maximumDepthTextView">Maximum depth:</string>
+    <string name="logbook_maximumDepthUnitsTextView">meter</string>
+    <string name="logbook_allDurationTextView">Total duration:</string>
+    <string name="logbook_allDurationUnitsTextView">hh:mm</string>
+    <string name="logbook_lastDiveTextView">Latest dive:</string>
+    <string name="logbook_dives_label">Dives:</string>
+
+    <string name="download_import_seekBar_label">Select stored profile index to import:</string>
+    <string name="download_import_label">Download:</string>
+    <string name="download_import_button">Import</string>
+
+    <string name="profile_details_label">Details:</string>
+    <string name="profile_durationTextView">Duration:</string>
+    <string name="profile_durationUnitsTextView">mm:ss</string>
+    <string name="profile_oxygenPercentageTextView">Oxygen percentage:</string>
+    <string name="profile_oxygenPercentageUnitsTextView">%</string>
+    <string name="profile_minimumTemperatureTextView">Minimum temperature:</string>
+    <string name="profile_minimumTemperatureUnitsTextView">celsius</string>
+    <string name="profile_maximumDepthTextView">Maximum depth:</string>
+    <string name="profile_maximumDepthUnitsTextView">meter</string>
+    <string name="profile_diveDateTimeTextView">Date:</string>
+    <string name="profile_chart_info_depthTextView">Depth:</string>
+    <string name="profile_chart_info_depthUnitsTextView">meter</string>
+    <string name="profile_chart_info_durationTextView">Duration:</string>
+    <string name="profile_chart_info_durationUnitsTextView">mm:ss</string>
+
+    <string name="not_available">N/A</string>
+    <string name="off">Off</string>
+    <string name="on">On</string>
+    <string name="metric">Metric</string>
+    <string name="imperial">Imperial</string>
+
+    <string name="unit_temperature_celsius">celsius</string>
+    <string name="unit_temperature_fahrenheit">fahrenheit</string>
+    <string name="unit_pressure_millibar">millibar</string>
+
+    <string name="action_exit">Exit</string>
+    <string name="action_sync_all">Sync</string>
+    <string name="action_auto">Auto</string>
+    <string name="action_default">Default</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_import_all">Import All</string>
+    <string name="action_open_file">Open</string>
+    <string name="action_delete_profile">Delete</string>
+
+    <string name="notification_already_imported_profile">Already imported profile!</string>
+    <string name="notification_error_profile_delete">Profile delete failed!</string>
+
+    <string name="dialog_loading">Loading...</string>
+    <string name="dialog_deleting">Deleting...</string>
+</resources>

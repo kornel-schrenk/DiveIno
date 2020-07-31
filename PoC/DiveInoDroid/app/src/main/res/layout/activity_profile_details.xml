@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="hu.diveino.droid.ProfileDetailsActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/activity_vertical_margin">
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/profile_details_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <TableRow
+            android:id="@+id/profile_durationTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/profile_durationTextView"
+                android:text="@string/profile_durationTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/profile_durationValueTextView"
+                android:text="0.0"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/profile_durationUnitsTextView"
+                android:text="@string/profile_durationUnitsTextView" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/profile_oxygenPercentageTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/profile_oxygenPercentageTextView"
+                android:text="@string/profile_oxygenPercentageTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/profile_oxygenPercentageValueTextView"
+                android:text="0.0"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/profile_oxygenPercentageUnitsTextView"
+                android:text="@string/profile_oxygenPercentageUnitsTextView" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/profile_minimumTemperatureTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/profile_minimumTemperatureTextView"
+                android:text="@string/profile_minimumTemperatureTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/profile_minimumTemperatureValueTextView"
+                android:text="0.0"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/profile_minimumTemperatureUnitsTextView"
+                android:text="@string/profile_minimumTemperatureUnitsTextView" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/profile_maximumDepthTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/profile_maximumDepthTextView"
+                android:text="@string/profile_maximumDepthTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/profile_maximumDepthValueTextView"
+                android:text="0.0"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/profile_maximumDepthUnitsTextView"
+                android:text="@string/profile_maximumDepthUnitsTextView" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/profile_diveDateTimeTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/profile_diveDateTimeTextView"
+                android:text="@string/profile_diveDateTimeTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/profile_diveDateValueTextView"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold"
+                android:text="2000-01-01" />
+
+            <TextView
+                android:id="@+id/profile_diveTimeValueTextView"
+                android:textStyle="bold"
+                android:text="00:00" />
+        </TableRow>
+
+    </TableLayout>
+
+    <View
+        android:id="@+id/dives_separator"
+        android:layout_height="1dp"
+        android:layout_width="fill_parent"
+        android:layout_below="@+id/profile_details_layout"
+        android:background="#90909090"
+        android:layout_marginBottom="6dp"
+        android:layout_marginTop="10dp"/>
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/profile_chart_info_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/dives_separator">
+
+        <TableRow
+            android:id="@+id/profile_chart_info_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/profile_chart_info_depthTextView"
+                android:text="@string/profile_chart_info_depthTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/profile_chart_info_depthValueTextView"
+                android:text="0.0"
+                android:layout_marginEnd="5dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/profile_chart_info_depthUnitsTextView"
+                android:text="@string/profile_chart_info_depthUnitsTextView"
+                android:layout_marginEnd="20dp" />
+
+            <TextView
+                android:id="@+id/profile_chart_info_durationTextView"
+                android:text="@string/profile_chart_info_durationTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/profile_chart_info_durationValueTextView"
+                android:text="0:00"
+                android:layout_marginEnd="5dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/profile_chart_info_durationUnitsTextView"
+                android:text="@string/profile_chart_info_durationUnitsTextView"
+                android:layout_marginEnd="10dp" />
+
+        </TableRow>
+    </TableLayout>
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/profile_chart"
+        android:layout_below="@+id/profile_chart_info_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</RelativeLayout>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="hu.diveino.droid.LogbookActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/activity_vertical_margin">
+
+    <TextView
+        android:id="@+id/logbook_summary_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:textStyle="italic"
+        android:text="@string/logbook_summary_label"/>
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/logbook_statistics_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/logbook_summary_label">
+
+        <TableRow
+            android:id="@+id/logbook_totalDivesTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/logbook_totalDivesTextView"
+                android:text="@string/logbook_totalDivesTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/logbook_totalDivesValueTextView"
+                android:text="0"
+                android:textStyle="bold"/>
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/logbook_allDurationTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/logbook_totalDurationTextView"
+                android:text="@string/logbook_allDurationTextView"
+                android:layout_marginEnd="10dp"
+                />
+
+            <TextView
+                android:id="@+id/logbook_totalDurationValueTextView"
+                android:text="00:00"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/logbook_totalDurationUnitsTextView"
+                android:text="@string/logbook_allDurationUnitsTextView" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/logbook_maximumDepthTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/logbook_maximumDepthTextView"
+                android:text="@string/logbook_maximumDepthTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/logbook_maximumDepthValueTextView"
+                android:text="0.0"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/logbook_maximumDepthUnitsTextView"
+                android:text="@string/logbook_maximumDepthUnitsTextView" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/logbook_lastDiveTableRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp" >
+
+            <TextView
+                android:id="@+id/logbook_lastDiveTextView"
+                android:text="@string/logbook_lastDiveTextView"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:id="@+id/logbook_lastDiveDateValueTextView"
+                android:layout_marginEnd="10dp"
+                android:textStyle="bold"
+                android:text="2000-01-01" />
+
+            <TextView
+                android:id="@+id/logbook_lastDiveTimeValueTextView"
+                android:textStyle="bold"
+                android:text="00:00" />
+        </TableRow>
+
+    </TableLayout>
+
+    <View
+        android:id="@+id/dives_separator"
+        android:layout_height="1dp"
+        android:layout_width="fill_parent"
+        android:layout_below="@+id/logbook_statistics_layout"
+        android:background="#90909090"
+        android:layout_marginBottom="6dp"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:id="@+id/dives_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="12dp"
+        android:layout_below="@+id/dives_separator"
+        android:textStyle="italic"
+        android:text="@string/logbook_dives_label"/>
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_below="@+id/dives_label"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <ListView
+            android:id="@+id/divesListView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
