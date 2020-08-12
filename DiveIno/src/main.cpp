@@ -1,13 +1,26 @@
 #include "Arduino.h"
 #include "M5Stack.h"
-#include "Wire.h"
-
-#include "SparkFun_MS5803_I2C.h"
-
 #include "ezTime.h"
 #include "M5ez.h"
+#include "Preferences.h"
 
-const String VERSION_NUMBER = "2.0.0";
+#include "RTClib.h"
+#include "SparkFun_MS5803_I2C.h"
+
+#include "images/jpgs.h"
+#include "images/jpgsdark.h"
+
+#include "screens/MainMenu.h"
+#include "screens/DiveInoScreen.h"
+#include "screens/HomeScreen.h"
+#include "screens/DiveScreen.h"
+#include "screens/GaugeScreen.h"
+#include "screens/LogbookScreen.h"
+#include "screens/SurfaceScreen.h"
+
+#include "pickers/SettingsPicker.h"
+
+const String VERSION_NUMBER = "2.0.1";
 
 // Pressure Sensor initialization
 MS5803 _sensor(ADDRESS_HIGH);
@@ -15,58 +28,71 @@ MS5803 _sensor(ADDRESS_HIGH);
 float _pressureInMillibar = 1050.0;
 float _temperatureInCelsius = 25.0;
 
-/////////////////
-// HOME SCREEN //
-/////////////////
+// Screen properties
+int _currentScreen = SCREEN_HOME;
+int16_t _lastPickedMainMenuIndex = 1;
+bool _backToMenu = false;
 
-void initHomeScreen() 
+/////////////
+// SCREENS //
+/////////////
+
+HomeScreen homeScreen = HomeScreen();
+DiveScreen diveScreen = DiveScreen();
+GaugeScreen gaugeScreen = GaugeScreen();
+LogbookScreen logbookScreen = LogbookScreen();
+SurfaceScreen surfaceScreen = SurfaceScreen();
+MainMenu mainMenuScreen = MainMenu();
+
+SettingsPicker settingsPicker;
+
+/////////////////////
+// Utility methods //
+/////////////////////
+
+bool setTimeFromRtc()
 {
-  ez.screen.clear();
-  ez.header.show("Home");
-  ez.buttons.show("Dive # Menu # Power off");
+  if (timeStatus() == timeNotSet || timeStatus() == timeNeedsSync)
+  {
+    Serial.println("Network time is unavailable");
+
+    RTC_DS1307 rtc;
+    //Real Time Clock (RTC) initialization
+    if (rtc.begin())
+    {
+      unsigned long timerTimestamp = rtc.now().unixtime();
+      Serial.println(F("RTC time available: "));
+
+      DateTime now = rtc.now();
+      Serial.print(now.year(), DEC);
+      Serial.print('-');
+      Serial.print(now.month(), DEC);
+      Serial.print('-');
+      Serial.print(now.day(), DEC);
+      Serial.print(' ');
+      Serial.print(now.hour(), DEC);
+      Serial.print(':');
+      Serial.print(now.minute(), DEC);
+      Serial.print(':');
+      Serial.print(now.second(), DEC);
+      Serial.println();
+
+      setTime(timerTimestamp);
+      Serial.println("RTC based time was set.");
+      return true;
+    }
+    else
+    {
+      Serial.println(F("RTC is NOT available."));
+      // No clock will be displayed - update has to be done manually with the Update button
+    }
+  }
+  return false;
 }
 
-///////////////
-// MAIN MENU //
-///////////////
-
-void openDiveScreen() 
-{
-  ez.msgBox("Dive", "Dive screen");
-}
-
-void openLogbookScreen() 
-{
-  ez.msgBox("Logbook", "Logbook screen");
-}
-
-void openSurfaceScreen() 
-{
-  ez.msgBox("Surface", "Surface screen");
-}
-
-void openGaugeScreen()
-{
-  ez.msgBox("Gauge", "Gauge screen");
-}
-
-void openAboutScreen()
-{
-  ez.msgBox("About", "About screen");
-}
-
-ezMenu initMainMenu()
-{
-  ezMenu mainMenu("Menu");
-  mainMenu.addItem("Dive", openDiveScreen);
-  mainMenu.addItem("Logbook", openLogbookScreen);
-  mainMenu.addItem("Surface", openSurfaceScreen);
-  mainMenu.addItem("Gauge", openGaugeScreen);
-  mainMenu.addItem("Settings", ez.settings.menu);
-  mainMenu.addItem("About", openAboutScreen);
-  mainMenu.addItem("Back");
-  return mainMenu;
-}
+///////////////////////
+// Lifecycle methods //
+///////////////////////
 
 void setup()
 {
@@ -76,7 +102,6 @@ void setup()
 
   #include <themes/default.h>
   #include <themes/dark.h>
-  ezt::setDebug(INFO);
   ez.begin();  
 
   Serial.println("\n");
@@ -101,27 +126,118 @@ void setup()
   Serial.print(_pressureInMillibar);
   Serial.println(" mb");
 
-  //Clock settings
-  //Note: Timezone name can be the default 2 letter country code - e.g. HU = Hungary
+  //Disable automatic updates on the NTP server.
+  //The update needs several seconds to execute, which makes the seconds counter freeze until the update
+  setInterval(0);
 
-  // if (!waitForSync(120)) {  // In seconds
-  //   Serial.println("No Wifi is available for time sync!");
-  // }
+  setTimeFromRtc();
 
-  initHomeScreen();
+  homeScreen.initHomeScreen();
 }
 
 void loop()
 {
-  String buttonPressed = ez.buttons.poll();
-  if (buttonPressed  == "Dive") {
-    //Blocks until the OK button is pressed
-    openDiveScreen();    
-    initHomeScreen();
-  } else if (buttonPressed  == "Menu") {
-    initMainMenu().run();
-    initHomeScreen();
-  } else if (buttonPressed  == "Power off") {
-    M5.Power.powerOFF();    
+  String buttonPressed = "";
+  if (!_backToMenu)
+  {
+    buttonPressed = ez.buttons.poll();
+  }
+  if (_backToMenu || buttonPressed == "Menu")
+  {
+    ezMenu mainMenu = mainMenuScreen.initMainMenu();
+    // Set the menu selection based on the last visited menu item
+    mainMenu.pickItem(_lastPickedMainMenuIndex - 1);
+    // Run the stuff behind the menu item and return with its index + 1
+    _lastPickedMainMenuIndex = mainMenu.runOnce();
+
+    switch (_lastPickedMainMenuIndex)
+    {
+    case 0:      
+      _backToMenu = false;
+      _currentScreen = SCREEN_HOME;
+      homeScreen.initHomeScreen();
+      break;
+    case 1:      
+      _backToMenu = false;
+      _currentScreen = SCREEN_DIVE;      
+      break;
+    case 2:      
+      _backToMenu = false;
+      _currentScreen = SCREEN_GAUGE;
+      break;
+    case 3:      
+      _backToMenu = false;
+      _currentScreen = SCREEN_LOGBOOK;
+      break;
+    case 4:      
+      _backToMenu = false;
+      _currentScreen = SCREEN_SURFACE;
+      break;
+    case 5:      
+      settingsPicker.runOnce("Settings");
+      _backToMenu = true;
+      _currentScreen = SCREEN_SETTINGS;
+      break;
+    case 6:      
+      _currentScreen = SCREEN_ABOUT;
+      _backToMenu = true;
+      ez.msgBox("About", "www.diveino.hu | Version: " + VERSION_NUMBER + "| Author: kornel@schrenk.hu", "Menu");
+      break;
+    }
+  }
+  else if (buttonPressed != "")
+  {
+    //Handle button press on the current screen
+    switch (_currentScreen)
+    {
+    case SCREEN_HOME:
+      homeScreen.handleButtonPress(buttonPressed);
+      break;
+    case SCREEN_DIVE:
+      diveScreen.handleButtonPress(buttonPressed);
+      break;
+    case SCREEN_GAUGE:
+      gaugeScreen.handleButtonPress(buttonPressed);
+      break;
+    case SCREEN_LOGBOOK:
+      logbookScreen.handleButtonPress(buttonPressed);
+      break;
+    }
+  }
+  else
+  {
+    //NO Button was pressed - Normal operation
+    switch (_currentScreen)
+    {
+    case SCREEN_HOME:
+      homeScreen.displayHomeClock();
+      break;
+    case SCREEN_DIVE:
+        if (minuteChanged()) {
+          diveScreen.refreshClockWidget();    
+        }
+      break;
+    case SCREEN_GAUGE:
+        if (minuteChanged()) {
+          gaugeScreen.refreshClockWidget();    
+        }
+      break;
+    case SCREEN_LOGBOOK:
+        if (minuteChanged()) {
+          logbookScreen.refreshClockWidget();    
+        }
+        break;
+    case SCREEN_SURFACE:
+        if (minuteChanged()) {
+          surfaceScreen.refreshClockWidget();    
+        }
+        break;        
+    case SCREEN_SETTINGS:
+        if (minuteChanged()) {
+          settingsPicker.refreshClockWidget();    
+        }
+        break;
+      break;  
+    }
   }
 }
