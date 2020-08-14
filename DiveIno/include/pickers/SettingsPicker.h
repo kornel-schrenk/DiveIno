@@ -6,7 +6,8 @@
 
 class SettingsPicker : public DiveInoScreen {
 public:    
-    static void runOnce(String pickerName);
+    static void runOnce(String pickerName);    
+    static DiveInoSettings getDiveInoSettings();
 private:
     static String _displayPickerMenu(String pickerName);
 
@@ -32,4 +33,12 @@ private:
     static bool _advancedDisplayThemePicker(ezMenu* callingMenu);
     static void _displayFactoryDefaultsPicker();
     static bool _advancedDisplayFactoryDefaultsPicker(ezMenu* callingMenu);
+    static void _displaySoundPicker();
+    static bool _advancedDisplaySoundPicker(ezMenu* callingMenu);
+    static void _displayImperialUnitsPicker();
+    static bool _advancedDisplayImperialUnitsPicker(ezMenu* callingMenu);
+    static void _displayOxygenRatePicker();
+    static bool _advancedDisplayOxygenRatePicker(ezMenu* callingMenu);    
+    static void _displaySeaLevelPressurePicker();
+    static bool _advancedDisplaySeaLevelPressurePicker(ezMenu* callingMenu); 
 };

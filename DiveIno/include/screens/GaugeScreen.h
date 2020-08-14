@@ -10,9 +10,14 @@
 class GaugeScreen : public DiveInoScreen {
 
     public:
+        void init(PressureSensorData sensorData);
+        
+        void display(PressureSensorData sensorData);
+        
         void handleButtonPress(String buttonName);
-
+        
     private:
+        void refreshSensorData(PressureSensorData sensorData);
 };
 
 #endif

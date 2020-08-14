@@ -10,7 +10,7 @@
 class HomeScreen : public DiveInoScreen {
 
     public:
-        void initHomeScreen();
+        void initHomeScreen(DiveInoSettings diveInoSettings);
         
         void displayHomeClock();
         void updateTime();
@@ -24,6 +24,7 @@ class HomeScreen : public DiveInoScreen {
 
     private:
         bool _isMinimalModeActive = false;
+        DiveInoSettings _diveInoSettings;
 };
 
 #endif

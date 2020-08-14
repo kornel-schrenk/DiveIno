@@ -20,13 +20,16 @@
 
 #include "pickers/SettingsPicker.h"
 
-const String VERSION_NUMBER = "2.0.1";
+const String VERSION_NUMBER = "2.0.2";
+
+bool _emulatorEnabled = false;
 
 // Pressure Sensor initialization
 MS5803 _sensor(ADDRESS_HIGH);
+struct PressureSensorData _sensorData;
 
-float _pressureInMillibar = 1050.0;
-float _temperatureInCelsius = 25.0;
+//TODO Use sea level pressure setting here
+float _previousPressureInMillibar = 1013.2;
 
 // Screen properties
 int _currentScreen = SCREEN_HOME;
@@ -90,6 +93,26 @@ bool setTimeFromRtc()
   return false;
 }
 
+PressureSensorData readPressureSensorData(float seaLevelPressureSetting, bool emulatorEnabled)
+{
+  struct PressureSensorData sensorData;
+
+  sensorData.pressureInMillibar = seaLevelPressureSetting; 
+  sensorData.temperatureInCelsius = 99;
+
+  if (emulatorEnabled) {
+    Serial.println(F("@GET#"));
+    if (Serial.available() > 0) {
+      sensorData.pressureInMillibar = Serial.parseFloat();
+      sensorData.temperatureInCelsius = Serial.parseFloat();
+    }
+  } else {			
+    sensorData.pressureInMillibar = _sensor.getPressure(ADC_4096);
+    sensorData.temperatureInCelsius = _sensor.getTemperature(CELSIUS, ADC_512);    
+  }
+  return sensorData;  
+}
+
 ///////////////////////
 // Lifecycle methods //
 ///////////////////////
@@ -100,9 +123,9 @@ void setup()
   Wire.begin();
   M5.Power.begin();
 
-  #include <themes/default.h>
-  #include <themes/dark.h>
-  ez.begin();  
+#include <themes/default.h>
+#include <themes/dark.h>
+  ez.begin();
 
   Serial.println("\n");
   Serial.println(F(" ____   _              ___"));
@@ -119,24 +142,31 @@ void setup()
   _sensor.reset();
   _sensor.begin();
 
-  _pressureInMillibar = _sensor.getPressure(ADC_4096);
-  _temperatureInCelsius = _sensor.getTemperature(CELSIUS, ADC_512);  
-  Serial.print(_temperatureInCelsius);
-  Serial.print(" C ");
-  Serial.print(_pressureInMillibar);
-  Serial.println(" mb");
-
   //Disable automatic updates on the NTP server.
   //The update needs several seconds to execute, which makes the seconds counter freeze until the update
   setInterval(0);
 
   setTimeFromRtc();
 
-  homeScreen.initHomeScreen();
+  homeScreen.initHomeScreen(settingsPicker.getDiveInoSettings());
 }
 
 void loop()
 {
+  // Read temperature and pressure information in every second
+  if (secondChanged()) {
+    //TODO - Use the sea level pressure setting here
+    _sensorData = readPressureSensorData(1013.2, false);
+
+    //Check for sensor error - difference has to be less than 20 meters
+		if (abs(_sensorData.pressureInMillibar-_previousPressureInMillibar) > 2000) {
+			//This is a sensor error - skip it!!!
+			_sensorData.pressureInMillibar = _previousPressureInMillibar;
+		} else {
+      _previousPressureInMillibar = _sensorData.pressureInMillibar;
+    }		
+  }
+
   String buttonPressed = "";
   if (!_backToMenu)
   {
@@ -152,33 +182,34 @@ void loop()
 
     switch (_lastPickedMainMenuIndex)
     {
-    case 0:      
+    case 0:
       _backToMenu = false;
       _currentScreen = SCREEN_HOME;
-      homeScreen.initHomeScreen();
+      homeScreen.initHomeScreen(settingsPicker.getDiveInoSettings());
       break;
-    case 1:      
+    case 1:
       _backToMenu = false;
       _currentScreen = SCREEN_DIVE;      
       break;
-    case 2:      
+    case 2:
       _backToMenu = false;
       _currentScreen = SCREEN_GAUGE;
+      gaugeScreen.init(_sensorData);
       break;
-    case 3:      
+    case 3:
       _backToMenu = false;
       _currentScreen = SCREEN_LOGBOOK;
       break;
-    case 4:      
+    case 4:
       _backToMenu = false;
       _currentScreen = SCREEN_SURFACE;
       break;
-    case 5:      
+    case 5:
       settingsPicker.runOnce("Settings");
       _backToMenu = true;
       _currentScreen = SCREEN_SETTINGS;
       break;
-    case 6:      
+    case 6:
       _currentScreen = SCREEN_ABOUT;
       _backToMenu = true;
       ez.msgBox("About", "www.diveino.hu | Version: " + VERSION_NUMBER + "| Author: kornel@schrenk.hu", "Menu");
@@ -213,31 +244,39 @@ void loop()
       homeScreen.displayHomeClock();
       break;
     case SCREEN_DIVE:
-        if (minuteChanged()) {
-          diveScreen.refreshClockWidget();    
-        }
+      if (minuteChanged())
+      {
+        diveScreen.refreshClockWidget();
+      }
       break;
     case SCREEN_GAUGE:
-        if (minuteChanged()) {
-          gaugeScreen.refreshClockWidget();    
-        }
+      if (minuteChanged())
+      {
+        gaugeScreen.refreshClockWidget();
+        gaugeScreen.display(_sensorData);
+      }
+      if (secondChanged()) {
+        gaugeScreen.display(_sensorData);
+      }
       break;
     case SCREEN_LOGBOOK:
-        if (minuteChanged()) {
-          logbookScreen.refreshClockWidget();    
-        }
-        break;
+      if (minuteChanged())
+      {
+        logbookScreen.refreshClockWidget();
+      }
+      break;
     case SCREEN_SURFACE:
-        if (minuteChanged()) {
-          surfaceScreen.refreshClockWidget();    
-        }
-        break;        
+      if (minuteChanged())
+      {
+        surfaceScreen.refreshClockWidget();
+      }
+      break;
     case SCREEN_SETTINGS:
-        if (minuteChanged()) {
-          settingsPicker.refreshClockWidget();    
-        }
-        break;
-      break;  
+      if (minuteChanged())
+      {
+        settingsPicker.refreshClockWidget();
+      }
+      break;      
     }
   }
 }
