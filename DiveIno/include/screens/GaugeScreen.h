@@ -10,13 +10,27 @@
 class GaugeScreen : public DiveInoScreen {
 
     public:
-        void init(PressureSensorData sensorData);
+        void init(DiveInoSettings diveInoSettings, PressureSensorData sensorData);
         
         void display(PressureSensorData sensorData);
+
+        void displayStopwatch();
+        void displayZeroTime();
+        void displayActualTime();
+        
+        void startStopwatch();
+        void stopStopwatch();
+        void resetStopwatch();
+        
+        bool isRunning();    
         
         void handleButtonPress(String buttonName);
         
     private:
+        bool _isStopWatchRunning = false;
+        unsigned long _stopwatchStartTimestamp;
+        unsigned long _stopwatchElapsedTime = 0;    
+
         void refreshSensorData(PressureSensorData sensorData);
 };
 

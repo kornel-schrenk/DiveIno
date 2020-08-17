@@ -20,7 +20,7 @@
 
 #include "pickers/SettingsPicker.h"
 
-const String VERSION_NUMBER = "2.0.2";
+const String VERSION_NUMBER = "2.0.3";
 
 bool _emulatorEnabled = false;
 
@@ -194,7 +194,7 @@ void loop()
     case 2:
       _backToMenu = false;
       _currentScreen = SCREEN_GAUGE;
-      gaugeScreen.init(_sensorData);
+      gaugeScreen.init(settingsPicker.getDiveInoSettings(), _sensorData);
       break;
     case 3:
       _backToMenu = false;
