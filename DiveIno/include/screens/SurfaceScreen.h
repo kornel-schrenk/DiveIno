@@ -10,6 +10,8 @@
 class SurfaceScreen : public DiveInoScreen {
 
     public:
+        void init(DiveInoSettings diveInoSettings);
+        
         void handleButtonPress(String buttonName);
 
     private:

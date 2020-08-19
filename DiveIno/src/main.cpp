@@ -20,7 +20,7 @@
 
 #include "pickers/SettingsPicker.h"
 
-const String VERSION_NUMBER = "2.0.3";
+const String VERSION_NUMBER = "2.0.4";
 
 bool _emulatorEnabled = false;
 
@@ -189,7 +189,8 @@ void loop()
       break;
     case 1:
       _backToMenu = false;
-      _currentScreen = SCREEN_DIVE;      
+      _currentScreen = SCREEN_DIVE; 
+      diveScreen.init(settingsPicker.getDiveInoSettings(), _sensorData);    
       break;
     case 2:
       _backToMenu = false;
@@ -199,10 +200,12 @@ void loop()
     case 3:
       _backToMenu = false;
       _currentScreen = SCREEN_LOGBOOK;
+      logbookScreen.init(settingsPicker.getDiveInoSettings());
       break;
     case 4:
       _backToMenu = false;
       _currentScreen = SCREEN_SURFACE;
+      surfaceScreen.init(settingsPicker.getDiveInoSettings());
       break;
     case 5:
       settingsPicker.runOnce("Settings");
@@ -233,6 +236,9 @@ void loop()
     case SCREEN_LOGBOOK:
       logbookScreen.handleButtonPress(buttonPressed);
       break;
+    case SCREEN_SURFACE:
+      surfaceScreen.handleButtonPress(buttonPressed);
+      break;  
     }
   }
   else
@@ -247,6 +253,10 @@ void loop()
       if (minuteChanged())
       {
         diveScreen.refreshClockWidget();
+        diveScreen.display(_sensorData);
+      }
+      if (secondChanged()) {
+        diveScreen.display(_sensorData);
       }
       break;
     case SCREEN_GAUGE:

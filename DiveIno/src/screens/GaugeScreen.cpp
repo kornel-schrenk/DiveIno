@@ -45,7 +45,7 @@ void GaugeScreen::refreshSensorData(PressureSensorData sensorData)
     ez.canvas.print(sensorData.pressureInMillibar, 0);
 
     ez.canvas.pos(260, 40);
-    ez.canvas.print("26.5"); //TODO Print out the real max depth here
+    ez.canvas.print("0.0"); //TODO Print out the real max depth here
 }
 
 void GaugeScreen::init(DiveInoSettings diveInoSettings, PressureSensorData sensorData)
