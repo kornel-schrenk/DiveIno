@@ -2,23 +2,24 @@
 #define TIMEUTILS_H_
 
 #include "Arduino.h"
+#include "Preferences.h"
+
 #include "M5ez.h"
 #include "ezTime.h"
 #include "RTClib.h"
 
 extern RTC_DS1307 rtc;
 
-class TimeUtils {
-public:
-	TimeUtils();
+class TimeUtils
+{
+	public:
+		bool setTimeFromRtc();
+		bool updateTimeFromNTPServer();
+		String setDateTime(int year, int month, int day, int hour, int minute);
 
-	bool setTimeFromRtc();
-
-	String getCurrentDateText();
-	String getCurrentTimeText();	
-	String getCurrentDateTimeText();
-private:
-
+	private:
+		String _getTimezoneLocation();
+		void _storeTimeInRtc();
 };
 
 #endif /* TIMEUTILS_H_ */

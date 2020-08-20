@@ -3,6 +3,11 @@
 
 #include "screens/HomeScreen.h"
 
+HomeScreen::HomeScreen(TimeUtils timeUtils)
+{
+  _timeUtils = timeUtils;
+}
+
 void HomeScreen::updateTime()
 {    
     ez.canvas.color(ez.theme->foreground);
@@ -112,59 +117,17 @@ void HomeScreen::handleButtonPress(String buttonName)
   if (buttonName == "Update")
   {
     ez.buttons.show("$Update # Menu # Minimal");
-    updateNTP();
-    if (timeStatus() == timeSet)
-    {
-      //Update timezone based on Preferences
-      String storedTimezone = getTimezoneLocation();
-      Serial.println("Stored timezone: " + storedTimezone);
-      ez.clock.tz.setLocation(storedTimezone);
-      Serial.println("New timezone was set to " + storedTimezone);
 
-      this->storeTimeInRtc();
-
+    if (_timeUtils.updateTimeFromNTPServer()) {
       ez.msgBox("Updated", dateTime(ez.clock.tz.now(), "Y-m-d H:i:s") + "||was set.", "Ok");
-    }
-    else
-    {
+    } else {
       ez.msgBox("Error", "Time update failed.", "Ok");
     }
+
     initHomeScreen(_diveInoSettings);
   }
   else if (buttonName == "Dive")
   {
     //TODO Show Dive Screen
   }
-}
-
-String HomeScreen::getTimezoneLocation()
-{
-	Preferences prefs;
-	prefs.begin("M5ez", true);	// read-only
-	String savedTimezone = prefs.getString("timezone", "GeoIP");
-  prefs.end();
-  return savedTimezone;
-}
-
-void HomeScreen::storeTimeInRtc()
-{
-  //Update the RTC based time
-  DateTime rtcDateTime = DateTime(ez.clock.tz.now());
- 
-  RTC_DS1307 rtc;
-  rtc.adjust(rtcDateTime);
-
-  Serial.println(F("RTC time was set as: "));
-  Serial.print(rtcDateTime.year(), DEC);
-  Serial.print('-');
-  Serial.print(rtcDateTime.month(), DEC);
-  Serial.print('-');
-  Serial.print(rtcDateTime.day(), DEC);
-  Serial.print(' ');
-  Serial.print(rtcDateTime.hour(), DEC);
-  Serial.print(':');
-  Serial.print(rtcDateTime.minute(), DEC);
-  Serial.print(':');
-  Serial.print(rtcDateTime.second(), DEC);
-  Serial.println();
 }

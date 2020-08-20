@@ -4,10 +4,11 @@
 // Serial API //
 ////////////////
 
-SerialApi::SerialApi(String versionNumber, SettingsUtils settingsUtils)
+SerialApi::SerialApi(String versionNumber, SettingsUtils settingsUtils, TimeUtils timeUtils)
 {
     _versionNumber = versionNumber;
     _settingsUtils = settingsUtils;
+	_timeUtils = timeUtils;
 }
 
 void SerialApi::updatePressureSensorData(PressureSensorData sensorData)
@@ -220,19 +221,8 @@ void SerialApi::handleMessage(String message, bool fromSerial) {
 		} else if (minute < 0 || minute > 59) {
 			responseMessage += F("ERROR: Invalid argument - Minute must be between 0 and 59!");
 		} else {
-			// DateTimeSettings* dateTimeSettings = new DateTimeSettings;
-			// dateTimeSettings->year = year;
-			// dateTimeSettings->month = month;
-			// dateTimeSettings->day = day;
-			// dateTimeSettings->hour = hour;
-			// dateTimeSettings->minute = minute;
-			// dateTimeSettings->second = 0;
-
-            //TODO Update current date and time
-			// settings.setCurrentTime(dateTimeSettings);
-
 			responseMessage += F("DATETIME - ");
-			// responseMessage += settings.getCurrentTimeText();
+			responseMessage += _timeUtils.setDateTime(year, month, day, hour, minute);
 		}
 		responseMessage += F("#");
 		outputStream->println(responseMessage);

@@ -22,7 +22,7 @@
 #include "utils/SettingsUtils.h"
 #include "utils/TimeUtils.h"
 
-const String VERSION_NUMBER = "2.0.5";
+const String VERSION_NUMBER = "2.0.6";
 
 struct PressureSensorData _sensorData;
 
@@ -38,7 +38,7 @@ PressureSensorUtils pressureSensorUtils = PressureSensorUtils();
 // API //
 /////////
 
-SerialApi serialApi = SerialApi(VERSION_NUMBER, settingsUtils);
+SerialApi serialApi = SerialApi(VERSION_NUMBER, settingsUtils, timeUtils);
 
 /////////////
 // SCREENS //
@@ -49,7 +49,7 @@ int _currentScreen = SCREEN_HOME;
 int16_t _lastPickedMainMenuIndex = 1;
 bool _backToMenu = false;
 
-HomeScreen homeScreen = HomeScreen();
+HomeScreen homeScreen = HomeScreen(timeUtils);
 DiveScreen diveScreen = DiveScreen();
 GaugeScreen gaugeScreen = GaugeScreen();
 LogbookScreen logbookScreen = LogbookScreen();
@@ -72,6 +72,9 @@ void setup()
 #include <themes/dark.h>
   ez.begin();
 
+  timeUtils.setTimeFromRtc();
+  pressureSensorUtils.initPressureSensor();
+
   Serial.println("\n");
   Serial.println(F(" ____   _              ___"));
   Serial.println(F("|  _ \\ (_)__   __ ___ |_ _| _ __    ___"));
@@ -82,14 +85,6 @@ void setup()
   Serial.print(F("v"));
   Serial.print(VERSION_NUMBER);
   Serial.println("\n");
-
-  //Disable automatic updates on the NTP server
-  //The update needs several seconds to execute, which makes the seconds counter freeze until the update
-  setInterval(0);
-
-  timeUtils.setTimeFromRtc();
-
-  pressureSensorUtils.initPressureSensor();
 
   homeScreen.initHomeScreen(settingsUtils.getDiveInoSettings());
 }

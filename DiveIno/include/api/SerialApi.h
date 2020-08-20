@@ -7,11 +7,12 @@
 
 #include "DiveInoBase.h"
 #include "utils/SettingsUtils.h"
+#include "utils/TimeUtils.h"
 
 class SerialApi : public DiveInoBase {
 
     public: 
-        SerialApi(String versionNumber, SettingsUtils settingsUtils);
+        SerialApi(String versionNumber, SettingsUtils settingsUtils, TimeUtils timeUtils);
         
         bool isEmulatorEnabled();
         bool isReplayEnabled();
@@ -31,6 +32,7 @@ class SerialApi : public DiveInoBase {
         String _versionNumber;
 
         SettingsUtils _settingsUtils;
+        TimeUtils _timeUtils;
 };
 
 #endif

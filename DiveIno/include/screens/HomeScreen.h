@@ -6,10 +6,12 @@
 #include "ezTime.h"
 
 #include "screens/DiveInoScreen.h"
+#include "utils/TimeUtils.h"
 
 class HomeScreen : public DiveInoScreen {
 
     public:
+        HomeScreen(TimeUtils timeUtils);
         void initHomeScreen(DiveInoSettings diveInoSettings);
         
         void displayHomeClock();
@@ -18,13 +20,11 @@ class HomeScreen : public DiveInoScreen {
         void updateAmPm();
 
         void handleButtonPress(String buttonName);
-        
-        String getTimezoneLocation();
-        void storeTimeInRtc();
 
     private:
         bool _isMinimalModeActive = false;
         DiveInoSettings _diveInoSettings;
+        TimeUtils _timeUtils;
 };
 
 #endif
