@@ -1,7 +1,3 @@
-# DiveIno Converter #
-
-![alt text](../master/src/main/resources/logo_small.png "DiveIno Converter logo")
-
 ## Description
 
 This software converts the dive profile log files from DiveIno dive computer format into UDDF or UDCF format.
@@ -37,11 +33,3 @@ Once you created the _DiveInoConverter.jar_ file, double click on it and the app
 * [UDCF - Universal Dive Computer Format](http://www.streit.cc/extern/udcf/udcf_doc_eng.html#toc2)
 * [UDDF - Universal Dive Data Format](http://www.uddf.org/)
 * [JavaFX deployment](http://code.makery.ch/library/javafx-8-tutorial/part7/)
-
-## Repository Owner 
-
-* [Kornel Schrenk](http://www.schrenk.hu/about/)
-
-## License
-
-This software is available under [MIT](../master/LICENSE) license.

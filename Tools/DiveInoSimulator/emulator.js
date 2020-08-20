@@ -1,17 +1,18 @@
-var config = require("./config.json");
+const config = require("./config.json");
 
-var fs = require('fs');
+const fs = require('fs');
 
-var SerialPort = require("serialport");
-var sp = new SerialPort(config.port, {
-	baudrate : config.baudrate,
-	parser : SerialPort.parsers.readline("\n")
+const SerialPort = require("serialport");
+const Readline = require('@serialport/parser-readline');
+const port = new SerialPort(config.port, {
+	baudRate : config.baudrate,
+	parser : new Readline()
 });
 
 var startTimeStamp = Date.now();
 var testData;
 
-sp.on("open", function() {
+port.on("open", function() {
 	console.log("*EMULATOR*: " + config.port + " serial port was opened!");
 	console.log("*EMULATOR*: " + config.test + " test data file will be used!");
 
@@ -21,7 +22,7 @@ sp.on("open", function() {
 		testData = JSON.parse(data);				
 	});
 
-	sp.on("data", function(data) {
+	port.on("data", function(data) {
 		if (data.startsWith("@START#")) {
 			startTimeStamp = Date.now();
 			console.log("*EMULATOR*: Dive started at: " + startTimeStamp);
@@ -38,9 +39,9 @@ sp.on("open", function() {
 				}
 			}
 			console.log("*EMULATOR*: " + durationInSeconds + " sec, " + pressure + " mbar, " + temperature + " cel\n");
-			sp.write(pressure + ", " + temperature + ",");
+			port.write(pressure + ", " + temperature + ",");
 		} else if (data.startsWith("@STOP#")) {
-			sp.write("@EMULATOR OFF#", function(err) {
+			port.write("@EMULATOR OFF#", function(err) {
 				if (err) {
 					return console.log("Error on write: ", err.message);
 				}
@@ -52,7 +53,7 @@ sp.on("open", function() {
 	});
 
 	setTimeout(function() {
-		sp.write("@EMULATOR ON#", function(err) {
+		port.write("@EMULATOR ON#", function(err) {
 			if (err) {
 				return console.log("Error on write: ", err.message);
 			}

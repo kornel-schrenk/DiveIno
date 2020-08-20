@@ -1,19 +1,20 @@
-var config = require("./config.json");
+const config = require("./config.json");
 
-var fs = require('fs');
+const fs = require('fs');
 
-var SerialPort = require("serialport");
-var sp = new SerialPort(config.port, {
-	baudrate : config.baudrate,
-	parser : SerialPort.parsers.readline("\n")
+const SerialPort = require("serialport");
+const Readline = require('@serialport/parser-readline');
+const port = new SerialPort(config.port, {
+	baudRate : config.baudrate,
+	parser : new Readline()
 });
 
-sp.on("open", function () {
+port.on("open", function () {
     console.log("*REPLAY:* " + config.port + " serial port was opened!");
     console.log("*REPLAY:* " + config.test + " test data file will be used!");
 
     //Log out to the console what the client sends back
-    sp.on('data', function(data) {
+    port.on('data', function(data) {
         console.log(data);
     });
 
@@ -22,7 +23,7 @@ sp.on("open", function () {
     
     //Turn on replay
 	setTimeout(function() {
-		sp.write("@REPLAY ON#", function(err) {
+		port.write("@REPLAY ON#", function(err) {
 			if (err) {
 				return console.log("Error on write: ", err.message);
 			}			
@@ -32,7 +33,7 @@ sp.on("open", function () {
 
 function sendMessage(duration, pressure, depth, temperature) {
     setTimeout(function () {
-        sp.write(pressure + ", " + depth + ", " + duration + ", " + temperature + ",");        
+        port.write(pressure + ", " + depth + ", " + duration + ", " + temperature + ",");        
     }, (config.initialDelay * 1000) + (duration * config.interval));
 }
 
@@ -61,7 +62,7 @@ function handleFile(err, data) {
         //Turn off replay
         if (i == data.profile.length-1) {
         	setTimeout(function() {
-        		sp.write("@REPLAY OFF#", function(err) {
+        		port.write("@REPLAY OFF#", function(err) {
         			if (err) {
         				return console.log("Error on write: ", err.message);
         			}        			

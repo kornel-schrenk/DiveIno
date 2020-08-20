@@ -23,6 +23,7 @@
 /Tools/DiveInoSimulator/node_modules
 /Tools/DiveInoSimulator/.idea
 /Tools/DiveInoSimulator/.git
+/Tools/DiveInoSimulator/package-lock.json
 /PoC/DiveInoTouch/.ino.cpp
 /PoC/DiveInoTouch/sloeber.ino.cpp
 /PoC/DiveInoTouch/spec.d
