@@ -2,10 +2,6 @@
 #include "M5Stack.h"
 #include "ezTime.h"
 #include "M5ez.h"
-#include "Preferences.h"
-
-#include "RTClib.h"
-#include "SparkFun_MS5803_I2C.h"
 
 #include "images/jpgs.h"
 #include "images/jpgsdark.h"
@@ -20,25 +16,38 @@
 
 #include "pickers/SettingsPicker.h"
 
-const String VERSION_NUMBER = "2.0.4";
+#include "api/SerialApi.h"
 
-bool _emulatorEnabled = false;
+#include "utils/PressureSensorUtils.h"
+#include "utils/SettingsUtils.h"
+#include "utils/TimeUtils.h"
 
-// Pressure Sensor initialization
-MS5803 _sensor(ADDRESS_HIGH);
+const String VERSION_NUMBER = "2.0.5";
+
 struct PressureSensorData _sensorData;
 
-//TODO Use sea level pressure setting here
-float _previousPressureInMillibar = 1013.2;
+///////////
+// Utils //
+///////////
+
+SettingsUtils settingsUtils = SettingsUtils();
+TimeUtils timeUtils = TimeUtils();
+PressureSensorUtils pressureSensorUtils = PressureSensorUtils();
+
+/////////
+// API //
+/////////
+
+SerialApi serialApi = SerialApi(VERSION_NUMBER, settingsUtils);
+
+/////////////
+// SCREENS //
+/////////////
 
 // Screen properties
 int _currentScreen = SCREEN_HOME;
 int16_t _lastPickedMainMenuIndex = 1;
 bool _backToMenu = false;
-
-/////////////
-// SCREENS //
-/////////////
 
 HomeScreen homeScreen = HomeScreen();
 DiveScreen diveScreen = DiveScreen();
@@ -48,70 +57,6 @@ SurfaceScreen surfaceScreen = SurfaceScreen();
 MainMenu mainMenuScreen = MainMenu();
 
 SettingsPicker settingsPicker;
-
-/////////////////////
-// Utility methods //
-/////////////////////
-
-bool setTimeFromRtc()
-{
-  if (timeStatus() == timeNotSet || timeStatus() == timeNeedsSync)
-  {
-    Serial.println("Network time is unavailable");
-
-    RTC_DS1307 rtc;
-    //Real Time Clock (RTC) initialization
-    if (rtc.begin())
-    {
-      unsigned long timerTimestamp = rtc.now().unixtime();
-      Serial.println(F("RTC time available: "));
-
-      DateTime now = rtc.now();
-      Serial.print(now.year(), DEC);
-      Serial.print('-');
-      Serial.print(now.month(), DEC);
-      Serial.print('-');
-      Serial.print(now.day(), DEC);
-      Serial.print(' ');
-      Serial.print(now.hour(), DEC);
-      Serial.print(':');
-      Serial.print(now.minute(), DEC);
-      Serial.print(':');
-      Serial.print(now.second(), DEC);
-      Serial.println();
-
-      setTime(timerTimestamp);
-      Serial.println("RTC based time was set.");
-      return true;
-    }
-    else
-    {
-      Serial.println(F("RTC is NOT available."));
-      // No clock will be displayed - update has to be done manually with the Update button
-    }
-  }
-  return false;
-}
-
-PressureSensorData readPressureSensorData(float seaLevelPressureSetting, bool emulatorEnabled)
-{
-  struct PressureSensorData sensorData;
-
-  sensorData.pressureInMillibar = seaLevelPressureSetting; 
-  sensorData.temperatureInCelsius = 99;
-
-  if (emulatorEnabled) {
-    Serial.println(F("@GET#"));
-    if (Serial.available() > 0) {
-      sensorData.pressureInMillibar = Serial.parseFloat();
-      sensorData.temperatureInCelsius = Serial.parseFloat();
-    }
-  } else {			
-    sensorData.pressureInMillibar = _sensor.getPressure(ADC_4096);
-    sensorData.temperatureInCelsius = _sensor.getTemperature(CELSIUS, ADC_512);    
-  }
-  return sensorData;  
-}
 
 ///////////////////////
 // Lifecycle methods //
@@ -138,33 +83,23 @@ void setup()
   Serial.print(VERSION_NUMBER);
   Serial.println("\n");
 
-  //Retrieve calibration constants for conversion math.
-  _sensor.reset();
-  _sensor.begin();
-
-  //Disable automatic updates on the NTP server.
+  //Disable automatic updates on the NTP server
   //The update needs several seconds to execute, which makes the seconds counter freeze until the update
   setInterval(0);
 
-  setTimeFromRtc();
+  timeUtils.setTimeFromRtc();
 
-  homeScreen.initHomeScreen(settingsPicker.getDiveInoSettings());
+  pressureSensorUtils.initPressureSensor();
+
+  homeScreen.initHomeScreen(settingsUtils.getDiveInoSettings());
 }
 
 void loop()
 {
-  // Read temperature and pressure information in every second
   if (secondChanged()) {
-    //TODO - Use the sea level pressure setting here
-    _sensorData = readPressureSensorData(1013.2, false);
+    _sensorData = pressureSensorUtils.readPressureSensorData(settingsUtils.getDefaultSeaLevelPressure(), serialApi.isEmulatorEnabled());	
 
-    //Check for sensor error - difference has to be less than 20 meters
-		if (abs(_sensorData.pressureInMillibar-_previousPressureInMillibar) > 2000) {
-			//This is a sensor error - skip it!!!
-			_sensorData.pressureInMillibar = _previousPressureInMillibar;
-		} else {
-      _previousPressureInMillibar = _sensorData.pressureInMillibar;
-    }		
+    serialApi.updatePressureSensorData(_sensorData);
   }
 
   String buttonPressed = "";
@@ -185,27 +120,27 @@ void loop()
     case 0:
       _backToMenu = false;
       _currentScreen = SCREEN_HOME;
-      homeScreen.initHomeScreen(settingsPicker.getDiveInoSettings());
+      homeScreen.initHomeScreen(settingsUtils.getDiveInoSettings());
       break;
     case 1:
       _backToMenu = false;
       _currentScreen = SCREEN_DIVE; 
-      diveScreen.init(settingsPicker.getDiveInoSettings(), _sensorData);    
+      diveScreen.init(settingsUtils.getDiveInoSettings(), _sensorData);    
       break;
     case 2:
       _backToMenu = false;
       _currentScreen = SCREEN_GAUGE;
-      gaugeScreen.init(settingsPicker.getDiveInoSettings(), _sensorData);
+      gaugeScreen.init(settingsUtils.getDiveInoSettings(), _sensorData);
       break;
     case 3:
       _backToMenu = false;
       _currentScreen = SCREEN_LOGBOOK;
-      logbookScreen.init(settingsPicker.getDiveInoSettings());
+      logbookScreen.init(settingsUtils.getDiveInoSettings());
       break;
     case 4:
       _backToMenu = false;
       _currentScreen = SCREEN_SURFACE;
-      surfaceScreen.init(settingsPicker.getDiveInoSettings());
+      surfaceScreen.init(settingsUtils.getDiveInoSettings());
       break;
     case 5:
       settingsPicker.runOnce("Settings");

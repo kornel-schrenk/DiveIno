@@ -1,24 +1,11 @@
 #include "pickers/SettingsPicker.h"
 #include <Preferences.h>
 
-DiveInoSettings SettingsPicker::getDiveInoSettings()
-{
-    struct DiveInoSettings diveInoSettings;
-
-    Preferences prefs;
-    prefs.begin("DiveIno", true);	// read-only
-    diveInoSettings.seaLevelPressureSetting = prefs.getInt("pressure", 1013);
-    diveInoSettings.oxygenRateSetting = prefs.getFloat("oxygen", 0.21);
-    diveInoSettings.soundSetting = prefs.getBool("sound", false);
-    diveInoSettings.imperialUnitsSetting = prefs.getBool("imperial", false);
-    prefs.end();
-
-    return diveInoSettings;    
-}
-
 ///////////////////////////
 // Variable declarations //
 ///////////////////////////
+
+SettingsUtils SettingsPicker::_settingsUtils = SettingsUtils();
 
 // General picker settings
 String SettingsPicker::_pickerButtons;
@@ -190,7 +177,7 @@ bool SettingsPicker::_advancedDisplayFactoryDefaultsPicker(ezMenu *callingMenu)
 
 void SettingsPicker::_displaySoundPicker()
 {
-    DiveInoSettings diveInoSettings = getDiveInoSettings();
+    DiveInoSettings diveInoSettings = _settingsUtils.getDiveInoSettings();
 	bool originalSetting = diveInoSettings.soundSetting;
     while(true) {
         ezMenu soundSettingMenu("Sound");
@@ -204,10 +191,7 @@ void SettingsPicker::_displaySoundPicker()
             case 0: //Back pressed
                 if (diveInoSettings.soundSetting != originalSetting) {                    
                     //Save the modified sound setting
-                    Preferences prefs;
-                    prefs.begin("DiveIno");
-                    prefs.putBool("sound", diveInoSettings.soundSetting);
-                    prefs.end();
+                    _settingsUtils.storeSoundSetting(diveInoSettings.soundSetting);
                 }
                 return;
         }
@@ -227,7 +211,7 @@ bool SettingsPicker::_advancedDisplaySoundPicker(ezMenu *callingMenu)
 
 void SettingsPicker::_displayImperialUnitsPicker()
 {
-    DiveInoSettings diveInoSettings = getDiveInoSettings();
+    DiveInoSettings diveInoSettings = _settingsUtils.getDiveInoSettings();
 	bool originalSetting = diveInoSettings.imperialUnitsSetting;
     while(true) {
         ezMenu imperialUnitsSettingMenu("Imperial units");
@@ -241,10 +225,7 @@ void SettingsPicker::_displayImperialUnitsPicker()
             case 0: //Back pressed
                 if (diveInoSettings.imperialUnitsSetting != originalSetting) {
                     //Save the modified imperial units setting
-                    Preferences prefs;
-                    prefs.begin("DiveIno");
-                    prefs.putBool("imperial", diveInoSettings.imperialUnitsSetting);
-                    prefs.end();
+                    _settingsUtils.storeImperialUnitsSetting(diveInoSettings.imperialUnitsSetting);
                 }
                 return;
         }
@@ -264,7 +245,7 @@ bool SettingsPicker::_advancedDisplayImperialUnitsPicker(ezMenu *callingMenu)
 
 void SettingsPicker::_displayOxygenRatePicker()
 {
-    DiveInoSettings diveInoSettings = getDiveInoSettings();
+    DiveInoSettings diveInoSettings = _settingsUtils.getDiveInoSettings();
 	uint8_t oxygenRateInt = diveInoSettings.oxygenRateSetting * 100;
     uint8_t originalOxygenRateInt = diveInoSettings.oxygenRateSetting * 100;
 
@@ -299,10 +280,7 @@ void SettingsPicker::_displayOxygenRatePicker()
         diveInoSettings.oxygenRateSetting = (float)oxygenRateInt / 100; 
 
         //Save the modified Oxygen Rate setting
-        Preferences prefs;
-        prefs.begin("DiveIno");
-        prefs.putFloat("oxygen", diveInoSettings.oxygenRateSetting);
-        prefs.end();
+        _settingsUtils.storeOxygenRateSetting(diveInoSettings.oxygenRateSetting);
     }    
 }
 
@@ -319,7 +297,7 @@ bool SettingsPicker::_advancedDisplayOxygenRatePicker(ezMenu *callingMenu)
 
 void SettingsPicker::_displaySeaLevelPressurePicker()
 {
-    DiveInoSettings diveInoSettings = getDiveInoSettings();
+    DiveInoSettings diveInoSettings = _settingsUtils.getDiveInoSettings();
 	int pressureRateInt = diveInoSettings.seaLevelPressureSetting;
     int originalPressureRateInt = diveInoSettings.seaLevelPressureSetting;
 
@@ -354,10 +332,7 @@ void SettingsPicker::_displaySeaLevelPressurePicker()
         diveInoSettings.seaLevelPressureSetting = pressureRateInt; 
 
         //Save the modified Sea Level Pressure setting
-        Preferences prefs;
-        prefs.begin("DiveIno");
-        prefs.putInt("pressure", diveInoSettings.seaLevelPressureSetting);
-        prefs.end();
+        _settingsUtils.storeSeaLevelPressureSetting(diveInoSettings.seaLevelPressureSetting);
     }   
 }
 

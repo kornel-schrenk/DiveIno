@@ -3,13 +3,15 @@
 #include "ezTime.h"
 
 #include "screens/DiveInoScreen.h"
+#include "utils/SettingsUtils.h"
 
 class SettingsPicker : public DiveInoScreen {
 public:    
-    static void runOnce(String pickerName);    
-    static DiveInoSettings getDiveInoSettings();
+    static void runOnce(String pickerName);        
 private:
     static String _displayPickerMenu(String pickerName);
+
+    static SettingsUtils _settingsUtils;
 
     /////////////
     // Pickers //
