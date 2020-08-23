@@ -27,13 +27,14 @@ port.on("open", function () {
 			if (err) {
 				return console.log("Error on write: ", err.message);
 			}			
-		});
+        });
+        console.log("@REPLAY ON#");
 	}, config.initialDelay * 1000 - 4000); //Two seconds before replay will start
 });
 
 function sendMessage(duration, pressure, depth, temperature) {
-    setTimeout(function () {
-        port.write(pressure + ", " + depth + ", " + duration + ", " + temperature + ",");        
+    setTimeout(function () {         
+        port.write(pressure + ", " + depth + ", " + duration + ", " + temperature + ",");               
     }, (config.initialDelay * 1000) + (duration * config.interval));
 }
 
@@ -66,7 +67,8 @@ function handleFile(err, data) {
         			if (err) {
         				return console.log("Error on write: ", err.message);
         			}        			
-        		});
+                });
+                console.log("@REPLAY OFF#");
         	}, (config.initialDelay * 1000) + (duration * config.interval) + 4000); 
         }
     }         

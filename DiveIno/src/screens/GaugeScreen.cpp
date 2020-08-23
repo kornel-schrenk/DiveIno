@@ -1,5 +1,10 @@
 #include "screens/GaugeScreen.h"
 
+GaugeScreen::GaugeScreen(Buhlmann* buhlmann)
+{
+    _buhlmann = buhlmann;
+}
+
 void GaugeScreen::displayZeroTime()
 {
     ez.canvas.color(ez.theme->foreground);
@@ -16,7 +21,11 @@ void GaugeScreen::displayZeroTime()
 void GaugeScreen::displayActualTime()
 {
     unsigned long elapsedTimeInSeconds = now() - _stopwatchStartTimestamp;
+    _displayActualTime(elapsedTimeInSeconds);
+}
 
+void GaugeScreen::_displayActualTime(unsigned long elapsedTimeInSeconds)
+{
     int hours = elapsedTimeInSeconds / 3600;
     elapsedTimeInSeconds = elapsedTimeInSeconds % 3600;
     int minutes = elapsedTimeInSeconds / 60;
@@ -33,7 +42,7 @@ void GaugeScreen::displayActualTime()
     ez.canvas.print(zeropad(seconds, 2));
 }
 
-void GaugeScreen::refreshSensorData(PressureSensorData sensorData)
+void GaugeScreen::_drawSensorData(PressureSensorData sensorData)
 {
     ez.canvas.color(ez.theme->foreground);
     ez.canvas.font(sans26);
@@ -43,13 +52,36 @@ void GaugeScreen::refreshSensorData(PressureSensorData sensorData)
 
     ez.canvas.pos(140, 40);
     ez.canvas.print(sensorData.pressureInMillibar, 0);
-
-    ez.canvas.pos(260, 40);
-    ez.canvas.print("0.0"); //TODO Print out the real max depth here
 }
 
-void GaugeScreen::init(DiveInoSettings diveInoSettings, PressureSensorData sensorData)
+void GaugeScreen::_drawCurrentDepth(float depthInMeter)
 {
+    ez.canvas.color(ez.theme->foreground);
+    ez.canvas.font(numonly7seg48);
+
+    ez.canvas.pos(210, 150);
+    ez.canvas.print(depthInMeter, 1);
+}
+
+void GaugeScreen::_drawMaximumDepth(float depthInMeter)
+{
+    ez.canvas.color(ez.theme->foreground);
+    ez.canvas.font(sans26);
+    
+    ez.canvas.pos(260, 40);
+    ez.canvas.print(depthInMeter, 1); 
+}
+
+void GaugeScreen::init(DiveInoSettings diveInoSettings, PressureSensorData sensorData, bool replayEnabled, bool emulatorEnabled)
+{
+    // Initialize the DiveDeco library based on the settings
+    _buhlmann->setSeaLevelAtmosphericPressure(diveInoSettings.seaLevelPressureSetting);    
+
+    _maxDepthInMeter = 0.0;
+
+    _replayEnabled = replayEnabled;
+    _emulatorEnabled = emulatorEnabled;
+
     ez.screen.clear();
     ez.header.show("Gauge");
 
@@ -75,21 +107,23 @@ void GaugeScreen::init(DiveInoSettings diveInoSettings, PressureSensorData senso
     ez.canvas.color(ez.theme->foreground);
     ez.canvas.font(numonly7seg48);
 
-    if (_isStopWatchRunning)
-    {
-        ez.buttons.show("Stop # Reset # Menu");
-        this->displayActualTime();
-    }
-    else
-    {
-        ez.buttons.show("Start # Reset # Menu");
-        this->displayZeroTime();
+    if (_replayEnabled) {
+        _isStopWatchRunning = false;
+        ez.buttons.show("Menu");
+    } else {
+        if (_isStopWatchRunning)
+        {
+            ez.buttons.show("Stop # Reset # Menu");
+            this->displayActualTime();
+        }
+        else
+        {
+            ez.buttons.show("Start # Reset # Menu");
+            this->displayZeroTime();
+        }
     }
 
-    ez.canvas.pos(210, 150);
-    ez.canvas.print("23.8");
-
-    refreshSensorData(sensorData);
+    display(sensorData);
 }
 
 void GaugeScreen::startStopwatch()
@@ -127,20 +161,67 @@ void GaugeScreen::resetStopwatch()
     ez.canvas.print(zeropad(0, 2));
 }
 
+void GaugeScreen::_refreshMaxDepth(float currentDepthInMeter)
+{	
+	if (_maxDepthInMeter <= currentDepthInMeter) {
+		_maxDepthInMeter = currentDepthInMeter;
+
+		_drawMaximumDepth(_maxDepthInMeter);
+	}
+}
+
 void GaugeScreen::display(PressureSensorData sensorData)
 {
-    if (minuteChanged())
-    {
-        this->refreshClockWidget();
-        this->displayActualTime();
-    }
+    if (_replayEnabled) {
+        _replayDive();
+    } else {
+        if (minuteChanged())
+        {
+            this->refreshClockWidget();
+            this->displayActualTime();
+        }
 
-    if (secondChanged() && _isStopWatchRunning)
-    {
-        this->displayActualTime();
-    }
+        if (secondChanged() && _isStopWatchRunning)
+        {
+            this->displayActualTime();
+        }
 
-    refreshSensorData(sensorData);
+        float currentDepthInMeter = _buhlmann->calculateDepthFromPressure(sensorData.pressureInMillibar);
+
+        _drawSensorData(sensorData);        
+        _refreshMaxDepth(currentDepthInMeter);
+        _drawCurrentDepth(currentDepthInMeter);
+    }
+}
+
+void GaugeScreen::_replayDive()
+{
+	// Check if test data is available, which comes through the serial interface
+	if (Serial.available() > 0) {
+		float pressureInMillibar = Serial.readStringUntil(',').toFloat();
+		float depthInMeter = Serial.readStringUntil(',').toFloat();
+		unsigned long diveDurationInSeconds = Serial.readStringUntil(',').toInt();
+		float temperatureInCelsius = Serial.readStringUntil(',').toFloat();
+
+		Serial.print(F("REPLAY: "));
+		Serial.print(pressureInMillibar, 1);
+		Serial.print(F(" mbar, "));
+		Serial.print(depthInMeter, 1);
+		Serial.print(F(" m, "));
+		Serial.print(diveDurationInSeconds);
+		Serial.print(F(" sec, "));
+		Serial.print(temperatureInCelsius, 1);
+		Serial.println(F(" cel\n"));
+
+        PressureSensorData replaySensorData = PressureSensorData();
+        replaySensorData.pressureInMillibar = pressureInMillibar;
+        replaySensorData.temperatureInCelsius = temperatureInCelsius;
+
+        _drawSensorData(replaySensorData);
+        _drawCurrentDepth(depthInMeter);
+		_refreshMaxDepth(depthInMeter);
+        _displayActualTime(diveDurationInSeconds);
+    }
 }
 
 void GaugeScreen::handleButtonPress(String buttonName)

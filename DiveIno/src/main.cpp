@@ -22,9 +22,17 @@
 #include "utils/SettingsUtils.h"
 #include "utils/TimeUtils.h"
 
-const String VERSION_NUMBER = "2.0.6";
+#include "deco/Buhlmann.h"
+
+const String VERSION_NUMBER = "2.0.7";
 
 struct PressureSensorData _sensorData;
+
+//////////
+// Deco //
+//////////
+
+Buhlmann buhlmann = Buhlmann(56.7);
 
 ///////////
 // Utils //
@@ -51,7 +59,7 @@ bool _backToMenu = false;
 
 HomeScreen homeScreen = HomeScreen(timeUtils);
 DiveScreen diveScreen = DiveScreen();
-GaugeScreen gaugeScreen = GaugeScreen();
+GaugeScreen gaugeScreen = GaugeScreen(&buhlmann);
 LogbookScreen logbookScreen = LogbookScreen();
 SurfaceScreen surfaceScreen = SurfaceScreen();
 MainMenu mainMenuScreen = MainMenu();
@@ -125,7 +133,8 @@ void loop()
     case 2:
       _backToMenu = false;
       _currentScreen = SCREEN_GAUGE;
-      gaugeScreen.init(settingsUtils.getDiveInoSettings(), _sensorData);
+      gaugeScreen.init(settingsUtils.getDiveInoSettings(), _sensorData, serialApi.isReplayEnabled(), serialApi.isEmulatorEnabled());
+      serialApi.reset();
       break;
     case 3:
       _backToMenu = false;
@@ -178,6 +187,11 @@ void loop()
     {
     case SCREEN_HOME:
       homeScreen.displayHomeClock();
+
+      //Serial API - Read messages from the standard Serial interface
+		  if (Serial.available() > 0) {
+			  serialApi.readMessageFromSerial(Serial.read());
+		  }
       break;
     case SCREEN_DIVE:
       if (minuteChanged())
@@ -190,13 +204,12 @@ void loop()
       }
       break;
     case SCREEN_GAUGE:
-      if (minuteChanged())
-      {
+      if (minuteChanged()) {
         gaugeScreen.refreshClockWidget();
         gaugeScreen.display(_sensorData);
       }
       if (secondChanged()) {
-        gaugeScreen.display(_sensorData);
+          gaugeScreen.display(_sensorData);
       }
       break;
     case SCREEN_LOGBOOK:

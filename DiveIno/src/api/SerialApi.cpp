@@ -26,13 +26,19 @@ bool SerialApi::isReplayEnabled()
     return _replayEnabled;
 }
 
-void SerialApi::readMessageFromSerial(char data, bool fromSerial)
+void SerialApi::reset()
+{
+	_emulatorEnabled = false;
+	_replayEnabled = false;
+}
+
+void SerialApi::readMessageFromSerial(char data)
 {
 	if (data == '@') {
 		_messageBuffer = "";
 		_recordMessage = true;
 	} else if (data == '#') {
-		handleMessage(_messageBuffer, fromSerial);
+		handleMessage(_messageBuffer);
 		_recordMessage = false;
 	} else {
 		if (_recordMessage) {
@@ -41,8 +47,8 @@ void SerialApi::readMessageFromSerial(char data, bool fromSerial)
 	}
 }
 
-void SerialApi::handleMessage(String message, bool fromSerial) {
-
+void SerialApi::handleMessage(String message) 
+{
 	Stream* outputStream = &Serial;
 
 	String responseMessage = "@";
@@ -108,17 +114,17 @@ void SerialApi::handleMessage(String message, bool fromSerial) {
         DiveInoSettings diveInoSettings = _settingsUtils.getDiveInoSettings();
 		outputStream->println("@");
         outputStream->println("{");
-        outputStream->print("""seaLevelPressure"":" ); 
+        outputStream->print("""seaLevelPressure"": " ); 
         outputStream->print(diveInoSettings.seaLevelPressureSetting);
         outputStream->println(",");
-        outputStream->print("""oxygenPercentage"":" ); 
+        outputStream->print("""oxygenPercentage"": " ); 
         outputStream->print(diveInoSettings.oxygenRateSetting);
         outputStream->println(",");
-        outputStream->print("""soundEnabled"":" ); 
-        outputStream->print(diveInoSettings.soundSetting);
+        outputStream->print("""soundEnabled"": " ); 
+        outputStream->print(diveInoSettings.soundSetting ? "true" : "false");
         outputStream->println(",");
-        outputStream->print("""isImperialUnits"":" ); 
-        outputStream->print(diveInoSettings.imperialUnitsSetting);
+        outputStream->print("""isImperialUnits"": " ); 
+        outputStream->print(diveInoSettings.imperialUnitsSetting ? "true" : "false");
         outputStream->println(",");
         outputStream->println("}");
         outputStream->println("#");

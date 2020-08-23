@@ -1,7 +1,7 @@
 {
   "port" : "COM3",
-  "test" : "./Tools/DiveInoSimulator/data/TestLog4.json",
-  "interval": 800,
+  "test" : "./Tools/DiveInoSimulator/data/TestSafetyStop.json",
+  "interval": 200,
   "baudrate" : 115200,
   "initialDelay" : 10
 }

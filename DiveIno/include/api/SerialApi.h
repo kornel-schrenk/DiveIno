@@ -17,10 +17,12 @@ class SerialApi : public DiveInoBase {
         bool isEmulatorEnabled();
         bool isReplayEnabled();
 
+        void reset();
+
         void updatePressureSensorData(PressureSensorData sensorData);
 
-        void readMessageFromSerial(char data, bool fromSerial);
-        void handleMessage(String message, bool fromSerial);
+        void readMessageFromSerial(char data);
+        void handleMessage(String message);
     private:    
         String _messageBuffer = "";
         bool _recordMessage = false;
