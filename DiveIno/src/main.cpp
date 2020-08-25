@@ -24,7 +24,7 @@
 
 #include "deco/Buhlmann.h"
 
-const String VERSION_NUMBER = "2.0.7";
+const String VERSION_NUMBER = "2.0.8";
 
 struct PressureSensorData _sensorData;
 
@@ -58,7 +58,7 @@ int16_t _lastPickedMainMenuIndex = 1;
 bool _backToMenu = false;
 
 HomeScreen homeScreen = HomeScreen(timeUtils);
-DiveScreen diveScreen = DiveScreen();
+DiveScreen diveScreen = DiveScreen(&buhlmann);
 GaugeScreen gaugeScreen = GaugeScreen(&buhlmann);
 LogbookScreen logbookScreen = LogbookScreen();
 SurfaceScreen surfaceScreen = SurfaceScreen();
@@ -128,7 +128,8 @@ void loop()
     case 1:
       _backToMenu = false;
       _currentScreen = SCREEN_DIVE; 
-      diveScreen.init(settingsUtils.getDiveInoSettings(), _sensorData);    
+      diveScreen.init(settingsUtils.getDiveInoSettings(), _sensorData, serialApi.isReplayEnabled(), serialApi.isEmulatorEnabled());    
+      serialApi.reset();
       break;
     case 2:
       _backToMenu = false;

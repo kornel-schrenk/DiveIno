@@ -15,7 +15,7 @@ port.on("open", function () {
 
     //Log out to the console what the client sends back
     port.on('data', function(data) {
-        console.log(data);
+        console.log(data.toString('ascii'));
     });
 
     //Read the file and send to the callback
@@ -63,11 +63,11 @@ function handleFile(err, data) {
         //Turn off replay
         if (i == data.profile.length-1) {
         	setTimeout(function() {
-        		port.write("@REPLAY OFF#", function(err) {
-        			if (err) {
-        				return console.log("Error on write: ", err.message);
-        			}        			
-                });
+        		// port.write("@REPLAY OFF#", function(err) {
+        		// 	if (err) {
+        		// 		return console.log("Error on write: ", err.message);
+        		// 	}        			
+                // });
                 console.log("@REPLAY OFF#");
         	}, (config.initialDelay * 1000) + (duration * config.interval) + 4000); 
         }
