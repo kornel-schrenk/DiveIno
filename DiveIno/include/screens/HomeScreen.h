@@ -19,7 +19,7 @@ class HomeScreen : public DiveInoScreen {
         void updateDate();
         void updateAmPm();
 
-        void handleButtonPress(String buttonName);
+        int handleButtonPress(String buttonName);
 
     private:
         bool _isMinimalModeActive = false;

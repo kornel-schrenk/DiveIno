@@ -24,7 +24,7 @@
 
 #include "deco/Buhlmann.h"
 
-const String VERSION_NUMBER = "2.0.8";
+const String VERSION_NUMBER = "2.0.9";
 
 struct PressureSensorData _sensorData;
 
@@ -65,6 +65,25 @@ SurfaceScreen surfaceScreen = SurfaceScreen();
 MainMenu mainMenuScreen = MainMenu();
 
 SettingsPicker settingsPicker;
+
+/////////////////////
+// Utility methods //
+/////////////////////
+
+void openDiveScreen()
+{
+  _backToMenu = false;
+  _currentScreen = SCREEN_DIVE;
+  diveScreen.init(settingsUtils.getDiveInoSettings(), _sensorData, serialApi.isReplayEnabled(), serialApi.isEmulatorEnabled());
+  serialApi.reset();
+}
+
+void openSurfaceScreen()
+{
+  _backToMenu = false;
+  _currentScreen = SCREEN_SURFACE;
+  surfaceScreen.init(settingsUtils.getDiveInoSettings(), diveScreen.getDiveResult());  
+}
 
 ///////////////////////
 // Lifecycle methods //
@@ -126,10 +145,7 @@ void loop()
       homeScreen.initHomeScreen(settingsUtils.getDiveInoSettings());
       break;
     case 1:
-      _backToMenu = false;
-      _currentScreen = SCREEN_DIVE; 
-      diveScreen.init(settingsUtils.getDiveInoSettings(), _sensorData, serialApi.isReplayEnabled(), serialApi.isEmulatorEnabled());    
-      serialApi.reset();
+      openDiveScreen();
       break;
     case 2:
       _backToMenu = false;
@@ -143,9 +159,7 @@ void loop()
       logbookScreen.init(settingsUtils.getDiveInoSettings());
       break;
     case 4:
-      _backToMenu = false;
-      _currentScreen = SCREEN_SURFACE;
-      surfaceScreen.init(settingsUtils.getDiveInoSettings());
+      openSurfaceScreen();
       break;
     case 5:
       settingsPicker.runOnce("Settings");
@@ -164,8 +178,10 @@ void loop()
     //Handle button press on the current screen
     switch (_currentScreen)
     {
-    case SCREEN_HOME:
-      homeScreen.handleButtonPress(buttonPressed);
+    case SCREEN_HOME:      
+      if (homeScreen.handleButtonPress(buttonPressed) == SCREEN_DIVE) {
+        openDiveScreen();
+      }
       break;
     case SCREEN_DIVE:
       diveScreen.handleButtonPress(buttonPressed);
@@ -197,11 +213,12 @@ void loop()
     case SCREEN_DIVE:
       if (minuteChanged())
       {
-        diveScreen.refreshClockWidget();
-        diveScreen.display(_sensorData);
+        diveScreen.refreshClockWidget();        
       }
-      if (secondChanged()) {
-        diveScreen.display(_sensorData);
+      if (minuteChanged() || secondChanged()) {
+        if (diveScreen.display(_sensorData) == SCREEN_SURFACE) {
+          openSurfaceScreen();
+        }
       }
       break;
     case SCREEN_GAUGE:

@@ -1,6 +1,7 @@
 #ifndef DiveInoScreen_h
 #define DiveInoScreen_h
 
+#define STAY_ON_SCREEN    456
 #define SCREEN_HOME       310
 #define SCREEN_DIVE       320
 #define SCREEN_GAUGE      330

@@ -59,8 +59,19 @@ void GaugeScreen::_drawCurrentDepth(float depthInMeter)
     ez.canvas.color(ez.theme->foreground);
     ez.canvas.font(numonly7seg48);
 
-    ez.canvas.pos(210, 150);
-    ez.canvas.print(depthInMeter, 1);
+    ez.canvas.pos(200, 150);
+    
+    if (depthInMeter < 10) {
+        ez.canvas.color(ez.theme->background);
+        ez.canvas.print("0");    
+        ez.canvas.color(ez.theme->foreground);
+        ez.canvas.print(zeropad((int)depthInMeter, 1));
+    } else {
+        ez.canvas.print(zeropad((int)depthInMeter, 2));
+    }
+
+    ez.canvas.print(".");
+    ez.canvas.print(zeropad((int)(depthInMeter*10) % 10, 1));
 }
 
 void GaugeScreen::_drawMaximumDepth(float depthInMeter)

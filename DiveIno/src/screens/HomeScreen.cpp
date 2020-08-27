@@ -41,7 +41,7 @@ void HomeScreen::updateAmPm()
 
 void HomeScreen::initHomeScreen(DiveInoSettings diveInoSettings) 
 { 
-  _diveInoSettings = diveInoSettings;
+  _diveInoSettings = diveInoSettings;  
 
   ez.screen.clear();
   ez.header.show("DiveIno");
@@ -112,7 +112,7 @@ void HomeScreen::displayHomeClock()
   }
 }
 
-void HomeScreen::handleButtonPress(String buttonName)
+int HomeScreen::handleButtonPress(String buttonName)
 {
   if (buttonName == "Update")
   {
@@ -127,7 +127,8 @@ void HomeScreen::handleButtonPress(String buttonName)
     initHomeScreen(_diveInoSettings);
   }
   else if (buttonName == "Dive")
-  {
-    //TODO Show Dive Screen
+  {    
+    return SCREEN_DIVE;
   }
+  return STAY_ON_SCREEN;
 }

@@ -25,7 +25,7 @@ class DiveScreen : public DiveInoScreen {
         
         void init(DiveInoSettings diveInoSettings, PressureSensorData sensorData, bool replayEnabled, bool emulatorEnabled);
 
-        void display(PressureSensorData sensorData);
+        int display(PressureSensorData sensorData);
 
         void displayStopwatch();
         void displayZeroTime();
@@ -36,6 +36,8 @@ class DiveScreen : public DiveInoScreen {
         void resetStopwatch();
         
         bool isRunning();
+
+        DiveResult* getDiveResult();
 
         void handleButtonPress(String buttonName);
 
@@ -49,7 +51,7 @@ class DiveScreen : public DiveInoScreen {
         bool _replayEnabled = false;
 
         unsigned long _previousDiveDurationInSeconds = 0;
-        void _replayDive();
+        bool _replayDive();
 
         bool _isStopWatchRunning = false;
         unsigned long _stopwatchStartTimestamp;
@@ -73,6 +75,7 @@ class DiveScreen : public DiveInoScreen {
 
         void _clearDecoDisplay();
         DiveInfo _currentDiveInfo;
+        DiveResult* _diveResult = NULL;
         void startDive();
         void _diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds);
         void stopDive();

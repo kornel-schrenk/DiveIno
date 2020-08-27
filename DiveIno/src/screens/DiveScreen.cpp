@@ -59,7 +59,7 @@ void DiveScreen::_drawCurrentDepth(float depthInMeter)
     ez.canvas.color(ez.theme->foreground);
     ez.canvas.font(numonly7seg48);
 
-    ez.canvas.pos(210, 150);
+    ez.canvas.pos(200, 150);
     
     if (depthInMeter < 10) {
         ez.canvas.color(ez.theme->background);
@@ -382,7 +382,7 @@ void DiveScreen::stopDive()
 
     Serial.println(F("DIVE - Finished"));
 
-    DiveResult* diveResult = _buhlmann->stopDive(ez.clock.tz.now());
+    this->_diveResult = _buhlmann->stopDive(ez.clock.tz.now());
 
     //TODO Navigate to the surface display screen
 }
@@ -391,14 +391,22 @@ void DiveScreen::_diveProgress(float temperatureInCelsius, float pressureInMilli
 	_currentDiveInfo = _buhlmann->progressDive(pressureInMillibar, durationInSeconds);
 }
 
+ DiveResult* DiveScreen::getDiveResult()
+ {
+     return _diveResult;
+ }
+
 /////////////
 // Display //
 /////////////
 
-void DiveScreen::display(PressureSensorData sensorData)
+int DiveScreen::display(PressureSensorData sensorData)
 {
     if (_replayEnabled) {
-        _replayDive();
+        if (_replayDive()) {
+            //Once the dive was completed open the Surface Screen
+            return SCREEN_SURFACE;
+        }
     } else {
         if (minuteChanged())
         {
@@ -418,9 +426,10 @@ void DiveScreen::display(PressureSensorData sensorData)
         _drawCurrentDepth(currentDepthInMeter);
         _drawDiveIndicator();
     }
+    return STAY_ON_SCREEN;
 }
 
-void DiveScreen::_replayDive()
+bool DiveScreen::_replayDive()
 {
 	// Check if test data is available, which comes through the serial interface
 	if (Serial.available() > 0) {
@@ -481,8 +490,10 @@ void DiveScreen::_replayDive()
             _diveProgress(temperatureInCelsius, pressureInMillibar, depthInMeter, diveDurationInSeconds);            
             this->stopDive();
             _replayEnabled = false;
+            return true; 
         }
     }
+    return false;
 }
 
 /////////////
