@@ -7,11 +7,12 @@
 
 #include "screens/DiveInoScreen.h"
 #include "utils/TimeUtils.h"
+#include "deco/LastDive.h"
 
 class HomeScreen : public DiveInoScreen {
 
     public:
-        HomeScreen(TimeUtils timeUtils);
+        HomeScreen(TimeUtils timeUtils, LastDive* lastDive);
         void initHomeScreen(DiveInoSettings diveInoSettings);
         
         void displayHomeClock();
@@ -22,6 +23,9 @@ class HomeScreen : public DiveInoScreen {
         int handleButtonPress(String buttonName);
 
     private:
+        LastDive* _lastDive;
+        bool _isNoFlyDisplayed();
+
         bool _isMinimalModeActive = false;
         DiveInoSettings _diveInoSettings;
         TimeUtils _timeUtils;

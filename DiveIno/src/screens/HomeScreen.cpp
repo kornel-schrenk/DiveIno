@@ -3,9 +3,25 @@
 
 #include "screens/HomeScreen.h"
 
-HomeScreen::HomeScreen(TimeUtils timeUtils)
+HomeScreen::HomeScreen(TimeUtils timeUtils, LastDive* lastDive)
 {
-  _timeUtils = timeUtils;
+    _timeUtils = timeUtils;
+    _lastDive = lastDive;
+}
+
+bool HomeScreen::_isNoFlyDisplayed()
+{
+    //Retrieve last dive data
+    LastDiveData *lastDiveData = _lastDive->loadLastDiveData();
+
+    long elapsedMinutes = (ez.clock.tz.now() - lastDiveData->diveDateTimestamp) / 60;
+
+    //No Fly Time is valid in 2 days only - after it becomes 0
+    if (elapsedMinutes < 2880 && (lastDiveData->noFlyTimeInMinutes - elapsedMinutes) > 0)
+    {
+        return true;
+    }
+    return false;
 }
 
 void HomeScreen::updateTime()
@@ -66,7 +82,9 @@ void HomeScreen::initHomeScreen(DiveInoSettings diveInoSettings)
     } else {      
       M5.Lcd.drawJpg((uint8_t *)celsius_small_jpg, (sizeof(celsius_small_jpg) / sizeof(celsius_small_jpg[0])), 75, 160, 32, 32);  
     }    
-    M5.Lcd.drawJpg((uint8_t *)airplane_small_jpg, (sizeof(airplane_small_jpg) / sizeof(airplane_small_jpg[0])), 110, 160, 32, 32);
+    if (this->_isNoFlyDisplayed()) {
+      M5.Lcd.drawJpg((uint8_t *)airplane_small_jpg, (sizeof(airplane_small_jpg) / sizeof(airplane_small_jpg[0])), 110, 160, 32, 32);
+    }    
   } else if (ez.theme->name == "Dark") {
     M5.Lcd.drawJpg((uint8_t *)ok_small_jpg_dark, (sizeof(ok_small_jpg) / sizeof(ok_small_jpg_dark[0])), 5, 160, 32, 32);
     if (_diveInoSettings.soundSetting) {
@@ -79,7 +97,9 @@ void HomeScreen::initHomeScreen(DiveInoSettings diveInoSettings)
     } else {      
       M5.Lcd.drawJpg((uint8_t *)celsius_small_jpg_dark, (sizeof(celsius_small_jpg_dark) / sizeof(celsius_small_jpg_dark[0])), 75, 160, 32, 32);  
     }  
-    M5.Lcd.drawJpg((uint8_t *)airplane_small_jpg_dark, (sizeof(airplane_small_jpg_dark) / sizeof(airplane_small_jpg_dark[0])), 110, 160, 32, 32);
+    if (this->_isNoFlyDisplayed()) {
+      M5.Lcd.drawJpg((uint8_t *)airplane_small_jpg_dark, (sizeof(airplane_small_jpg_dark) / sizeof(airplane_small_jpg_dark[0])), 110, 160, 32, 32);
+    }
   }
 
   ez.canvas.color(ez.theme->foreground);

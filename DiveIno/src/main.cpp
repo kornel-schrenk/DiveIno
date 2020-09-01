@@ -23,8 +23,9 @@
 #include "utils/TimeUtils.h"
 
 #include "deco/Buhlmann.h"
+#include "deco/LastDive.h"
 
-const String VERSION_NUMBER = "2.0.9";
+const String VERSION_NUMBER = "2.1.0";
 
 struct PressureSensorData _sensorData;
 
@@ -33,6 +34,7 @@ struct PressureSensorData _sensorData;
 //////////
 
 Buhlmann buhlmann = Buhlmann(56.7);
+LastDive lastDive = LastDive();
 
 ///////////
 // Utils //
@@ -46,7 +48,7 @@ PressureSensorUtils pressureSensorUtils = PressureSensorUtils();
 // API //
 /////////
 
-SerialApi serialApi = SerialApi(VERSION_NUMBER, settingsUtils, timeUtils);
+SerialApi serialApi = SerialApi(VERSION_NUMBER, settingsUtils, timeUtils, &lastDive);
 
 /////////////
 // SCREENS //
@@ -57,8 +59,8 @@ int _currentScreen = SCREEN_HOME;
 int16_t _lastPickedMainMenuIndex = 1;
 bool _backToMenu = false;
 
-HomeScreen homeScreen = HomeScreen(timeUtils);
-DiveScreen diveScreen = DiveScreen(&buhlmann);
+HomeScreen homeScreen = HomeScreen(timeUtils, &lastDive);
+DiveScreen diveScreen = DiveScreen(&buhlmann, &lastDive);
 GaugeScreen gaugeScreen = GaugeScreen(&buhlmann);
 LogbookScreen logbookScreen = LogbookScreen();
 SurfaceScreen surfaceScreen = SurfaceScreen();
@@ -82,7 +84,7 @@ void openSurfaceScreen()
 {
   _backToMenu = false;
   _currentScreen = SCREEN_SURFACE;
-  surfaceScreen.init(settingsUtils.getDiveInoSettings(), diveScreen.getDiveResult());  
+  surfaceScreen.init(settingsUtils.getDiveInoSettings(), lastDive.loadLastDiveData());  
 }
 
 ///////////////////////
@@ -239,7 +241,10 @@ void loop()
     case SCREEN_SURFACE:
       if (minuteChanged())
       {
-        surfaceScreen.refreshClockWidget();
+        surfaceScreen.refreshClockWidget();        
+      }
+      if (minuteChanged() || secondChanged()) {
+        surfaceScreen.display();
       }
       break;
     case SCREEN_SETTINGS:

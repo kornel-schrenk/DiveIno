@@ -8,11 +8,12 @@
 #include "DiveInoBase.h"
 #include "utils/SettingsUtils.h"
 #include "utils/TimeUtils.h"
+#include "deco/LastDive.h"
 
 class SerialApi : public DiveInoBase {
 
     public: 
-        SerialApi(String versionNumber, SettingsUtils settingsUtils, TimeUtils timeUtils);
+        SerialApi(String versionNumber, SettingsUtils settingsUtils, TimeUtils timeUtils, LastDive* lastDive);
         
         bool isEmulatorEnabled();
         bool isReplayEnabled();
@@ -35,6 +36,8 @@ class SerialApi : public DiveInoBase {
 
         SettingsUtils _settingsUtils;
         TimeUtils _timeUtils;
+
+        LastDive* _lastDive;
 };
 
 #endif

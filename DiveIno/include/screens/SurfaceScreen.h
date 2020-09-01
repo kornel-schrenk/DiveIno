@@ -7,16 +7,22 @@
 
 #include "screens/DiveInoScreen.h"
 #include "deco/Buhlmann.h"
+#include "deco/LastDive.h"
 
 class SurfaceScreen : public DiveInoScreen {
 
     public:
-        void init(DiveInoSettings diveInoSettings, DiveResult* diveResult);
+        void init(DiveInoSettings diveInoSettings, LastDiveData* lastDiveData);
         void handleButtonPress(String buttonName);
-    private:
-         DiveResult* _diveResult;
-         DiveInoSettings _diveInoSettings;
-         void _display();
+        void display();
+    private:        
+        DiveInoSettings _diveInoSettings;
+        LastDive* _lastDive;
+        LastDiveData* _lastDiveData = NULL;
+        
+        long _calculateNoFlyTime(LastDiveData* lastDiveData);
+        long _calculateSurfaceInterval(LastDiveData* lastDiveData);
+        void _displaySurfaceInterval(unsigned long elapsedTimeInSeconds);
 };
 
 #endif

@@ -7,6 +7,7 @@
 
 #include "screens/DiveInoScreen.h"
 #include "deco/Buhlmann.h"
+#include "deco/LastDive.h"
 
 #define SAFE_MODE           510
 #define SAFETY_STOP_MODE    520
@@ -21,7 +22,7 @@
 class DiveScreen : public DiveInoScreen {
 
     public:
-        DiveScreen(Buhlmann* buhlmann);
+        DiveScreen(Buhlmann* buhlmann, LastDive* lastDive);
         
         void init(DiveInoSettings diveInoSettings, PressureSensorData sensorData, bool replayEnabled, bool emulatorEnabled);
 
@@ -43,6 +44,8 @@ class DiveScreen : public DiveInoScreen {
 
     private:        
         Buhlmann* _buhlmann;
+        LastDive* _lastDive;
+
         DiveInoSettings _diveInoSettings;
         int _currentMode = SAFE_MODE;
         bool _diveStarted = false;

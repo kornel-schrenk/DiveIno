@@ -4,11 +4,12 @@
 // Serial API //
 ////////////////
 
-SerialApi::SerialApi(String versionNumber, SettingsUtils settingsUtils, TimeUtils timeUtils)
+SerialApi::SerialApi(String versionNumber, SettingsUtils settingsUtils, TimeUtils timeUtils, LastDive* lastDive)
 {
     _versionNumber = versionNumber;
     _settingsUtils = settingsUtils;
 	_timeUtils = timeUtils;
+	_lastDive = lastDive;
 }
 
 void SerialApi::updatePressureSensorData(PressureSensorData sensorData)
@@ -233,25 +234,23 @@ void SerialApi::handleMessage(String message)
 		responseMessage += F("#");
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("CLEAR")) || message.startsWith(F("clear"))) {
-		//TODO Remove last dive information
-        // if (lastDive.clearLastDiveData()) {
-		// 	responseMessage += F("CLEAR - OK");
-		// } else {
-		// 	responseMessage += F("ERROR: Surface time clean operation failed!");
-		// }
+        if (_lastDive->clearLastDiveData()) {
+			responseMessage += F("CLEAR - OK");
+		} else {
+			responseMessage += F("ERROR: Surface time clean operation failed!");
+		}
         responseMessage += F("#");
 		outputStream->println(responseMessage);
 	} else if (message.startsWith(F("RESET")) || message.startsWith(F("reset"))) {
 		//Revert settings to default
 		responseMessage += F("SETTINGS - Default settings will be restored.\n");
 		_settingsUtils.resetSettings();
-
-		//TODO Remove last dive information
-		// if (lastDive.clearLastDiveData()) {
-		// 	responseMessage += F("LAST DIVE - Last dive information was deleted.\n");
-		// } else {
-		// 	responseMessage += F("ERROR: Failed to delete last dive information!\n");
-		// }
+		
+		if (_lastDive->clearLastDiveData()) {
+			responseMessage += F("LAST DIVE - Last dive information was deleted.\n");
+		} else {
+			responseMessage += F("ERROR: Failed to delete last dive information!\n");
+		}
 
 		//TODO Remove all dive profile files
 		// if (logbook.clearProfiles()) {

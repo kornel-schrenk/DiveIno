@@ -1,8 +1,11 @@
 #include "screens/DiveScreen.h"
 
-DiveScreen::DiveScreen(Buhlmann* buhlmann)
+#include "deco/LastDive.h"
+
+DiveScreen::DiveScreen(Buhlmann* buhlmann, LastDive* lastDive)
 {
     _buhlmann = buhlmann;
+    _lastDive = lastDive;
 }
 
 void DiveScreen::displayZeroTime()
@@ -363,11 +366,16 @@ void DiveScreen::startDive()
     _buhlmann->setSeaLevelAtmosphericPressure(_diveInoSettings.seaLevelPressureSetting);    
     _buhlmann->setNitrogenRateInGas(1 - (_diveInoSettings.oxygenRateSetting + 0.01));
 
+    int surfaceIntervalInMinutes = _lastDive->getCurrentSurfaceIntervalInMinutes();
+    Serial.print("Surface interval: ");
+    Serial.print(surfaceIntervalInMinutes/60);
+    Serial.print(":");
+    Serial.println(zeropad(surfaceIntervalInMinutes%60, 2));    
+
+    DiveResult* diveResult = _lastDive->spendTimeOnSurface(surfaceIntervalInMinutes, _buhlmann);      
+
     Serial.println(F("DIVE - Started"));
 
-    DiveResult* diveResult = new DiveResult;
-    diveResult = _buhlmann->initializeCompartments();
- 
     _buhlmann->startDive(diveResult, ez.clock.tz.now());
 }
 
@@ -377,14 +385,34 @@ void DiveScreen::stopDive()
 		Serial.println(F("@STOP#"));
 	}
 
+    long nowTimestamp = ez.clock.tz.now();
+    Serial.print(F("Dive stop timestamp: "));
+    Serial.println(nowTimestamp);
+
     /////////////////////
     // Finish the dive //
 
     Serial.println(F("DIVE - Finished"));
 
-    this->_diveResult = _buhlmann->stopDive(ez.clock.tz.now());
+    this->_diveResult = _buhlmann->stopDive(nowTimestamp);
 
-    //TODO Navigate to the surface display screen
+    ///////////////////////////
+    // Update Last Dive Data //
+
+    _lastDive->clearLastDiveData();
+
+    LastDiveData lastDiveData = LastDiveData();
+    lastDiveData.diveDateTimestamp = nowTimestamp;
+    lastDiveData.maxDepthInMeters = this->_diveResult->maxDepthInMeters;
+    lastDiveData.durationInSeconds = this->_diveResult->durationInSeconds;
+    lastDiveData.noFlyTimeInMinutes = this->_diveResult->noFlyTimeInMinutes;
+    lastDiveData.wasDecoDive = this->_diveResult->wasDecoDive;
+
+    for (byte i=0; i<COMPARTMENT_COUNT; i++) {
+        lastDiveData.compartmentPartialPressures[i] = this->_diveResult->compartmentPartialPressures[i];
+    }
+
+    _lastDive->storeLastDiveData(&lastDiveData);    
 }
 
 void DiveScreen::_diveProgress(float temperatureInCelsius, float pressureInMillibar, float depthInMeter, unsigned int durationInSeconds) {
